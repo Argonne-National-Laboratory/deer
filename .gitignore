@@ -1,0 +1,10 @@
+.libs
+*-opt
+*-dbg
+*.so
+*.so.*
+*.la
+*.lo
+# Editor junk
+*.swp
+*.lo.d
