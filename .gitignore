@@ -8,3 +8,5 @@
 # Editor junk
 *.swp
 *.lo.d
+*.e
+*.exo

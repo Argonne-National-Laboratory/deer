@@ -7,6 +7,9 @@
 // New functions
 #include "TimeNDInterp.h"
 
+// New materials
+#include "ComputeNEMLStress.h"
+
 template<>
 InputParameters validParams<DeerApp>()
 {
@@ -44,6 +47,7 @@ void
 DeerApp::registerObjects(Factory & factory)
 {
   registerFunction(TimeNDInterp);
+  registerMaterial(ComputeNEMLStress);
 }
 
 // External entry point for dynamic syntax association

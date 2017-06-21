@@ -45,12 +45,16 @@ POROUS_FLOW         := no
 include $(MOOSE_DIR)/modules/modules.mk
 ###############################################################################
 
+# linking NEML
+ADDITIONAL_INCLUDES := -I/home/messner/projects/neml/src
+ADDITIONAL_LIBS 	  := -L/home/messner/projects/neml/lib -lneml
+
 # dep apps
-APPLICATION_DIR    := $(CURDIR)
-APPLICATION_NAME   := deer
-BUILD_EXEC         := yes
-DEP_APPS           := $(shell $(FRAMEWORK_DIR)/scripts/find_dep_apps.py $(APPLICATION_NAME))
-include            $(FRAMEWORK_DIR)/app.mk
+APPLICATION_DIR     := $(CURDIR)
+APPLICATION_NAME    := deer
+BUILD_EXEC          := yes
+DEP_APPS            := $(shell $(FRAMEWORK_DIR)/scripts/find_dep_apps.py $(APPLICATION_NAME))
+include             $(FRAMEWORK_DIR)/app.mk
 
 ###############################################################################
 # Additional special case targets should be added here

@@ -1,0 +1,53 @@
+#ifndef COMPUTENEMLSTRESS_H
+#define COMPUTENEMLSTRESS_H
+
+#include "ComputeStressBase.h"
+
+#include "neml_interface.h"
+
+#include <memory>
+
+class ComputeNEMLStress;
+
+template <>
+InputParameters validParams<ComputeNEMLStress>();
+
+class ComputeNEMLStress: public ComputeStressBase
+{
+ public:
+  ComputeNEMLStress(const InputParameters & parameters);
+
+  virtual void computeQpStress() override;
+  virtual void initQpStatefulProperties() override;
+  bool isElasticityTensorGuaranteedIsotropic();
+
+ protected:
+  FileName _fname;
+  std::string _mname;
+  std::unique_ptr<neml::NEMLModel> _model;
+  // Base class whines unless you do something
+  MaterialProperty<RankFourTensor> & _dummy_elasticity;
+  MaterialProperty<std::vector<Real>> & _hist;
+  MaterialProperty<std::vector<Real>> & _hist_old;
+  const MaterialProperty<RankTwoTensor> & _mechanical_strain_old;
+  MaterialProperty<RankTwoTensor> & _stress_old;
+  MaterialProperty<Real> & _energy;
+  MaterialProperty<Real> & _energy_old;
+  MaterialProperty<Real> & _dissipation;
+  MaterialProperty<Real> & _dissipation_old;
+  const VariableValue & _temperature; // Will default to zero
+  const VariableValue & _temperature_old;
+
+};
+
+/// Tensor -> my notation
+void tensor_neml(const RankTwoTensor & in, double * const out);
+
+/// Vector -> tensor
+void neml_tensor(const double * const in, RankTwoTensor & out);
+
+/// Tangent -> tensor
+void neml_tangent(const double * const in, RankFourTensor & out);
+
+
+#endif // COMPUTENEMLSTRESS_H
