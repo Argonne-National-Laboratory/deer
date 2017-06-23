@@ -28,11 +28,20 @@
       [./strain]
             type = ComputeSmallStrain
             displacements = 'disp_x disp_y disp_z'
+            eigenstrain_names = eigenstrain
       [../]
       [./stress]
             type = ComputeNEMLStress
             database = 'materials.xml'
             model = 'chaboche_600'
+            temperature = T
+      [../]
+      [./thermal_strain]
+            type= ComputeThermalExpansionEigenstrain
+            thermal_expansion_coeff = 2.0E-5
+            temperature = T
+            eigenstrain_name = eigenstrain
+            stress_free_temperature = 0.0
       [../]
 []
 
@@ -41,6 +50,10 @@
             type = PiecewiseLinear
             x = '0.0 1.0'
             y = '0.0 0.1'
+      [../]
+      [./temperature_load]
+            type = ParsedFunction
+            value = t*(200.0)
       [../]
 []
 
@@ -64,10 +77,10 @@
             boundary = 'bottom'
       [../]
       [./top]
-            type = FunctionPresetBC
+            type = PresetBC
             variable = disp_z
             boundary = 'top'
-            function = straining
+            value = 0.0
       [../]
 []
 
@@ -91,6 +104,9 @@
 []
 
 [AuxVariables]
+      [./T]
+      [../]
+
       [./s11]
             order = CONSTANT
             family = MONOMIAL
@@ -158,6 +174,12 @@
 [../]
 
 [AuxKernels]
+      [./tempfuncaux]
+            type = FunctionAux
+            variable = T
+            function = temperature_load
+      [../]
+
       [./report_s11]
             type = RankTwoAux
             rank_two_tensor = stress
