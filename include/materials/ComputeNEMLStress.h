@@ -25,16 +25,14 @@ class ComputeNEMLStress: public ComputeStressBase
   FileName _fname;
   std::string _mname;
   std::unique_ptr<neml::NEMLModel> _model;
-  // Base class whines unless you do something
-  MaterialProperty<RankFourTensor> & _dummy_elasticity;
   MaterialProperty<std::vector<Real>> & _hist;
-  MaterialProperty<std::vector<Real>> & _hist_old;
+  const MaterialProperty<std::vector<Real>> & _hist_old;
   const MaterialProperty<RankTwoTensor> & _mechanical_strain_old;
-  MaterialProperty<RankTwoTensor> & _stress_old;
+  const MaterialProperty<RankTwoTensor> & _stress_old;
   MaterialProperty<Real> & _energy;
-  MaterialProperty<Real> & _energy_old;
+  const MaterialProperty<Real> & _energy_old;
   MaterialProperty<Real> & _dissipation;
-  MaterialProperty<Real> & _dissipation_old;
+  const MaterialProperty<Real> & _dissipation_old;
   const VariableValue & _temperature; // Will default to zero
   const VariableValue & _temperature_old;
 

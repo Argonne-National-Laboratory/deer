@@ -16,7 +16,6 @@ ComputeNEMLStress::ComputeNEMLStress(const InputParameters & parameters) :
     ComputeStressBase(parameters),
     _fname(getParam<FileName>("database")),
     _mname(getParam<std::string>("model")),
-    _dummy_elasticity(declareProperty<RankFourTensor>(_base_name + "elasticity_tensor")),
     _hist(declareProperty<std::vector<Real>>(_base_name + "hist")),
     _hist_old(declarePropertyOld<std::vector<Real>>(_base_name + "hist")),
     _mechanical_strain_old(getMaterialPropertyOldByName<RankTwoTensor>(_base_name + "mechanical_strain")),
@@ -24,7 +23,7 @@ ComputeNEMLStress::ComputeNEMLStress(const InputParameters & parameters) :
     _energy(declareProperty<Real>(_base_name + "energy")),
     _energy_old(declarePropertyOld<Real>(_base_name + "energy")),
     _dissipation(declareProperty<Real>(_base_name + "dissipation")),
-    _dissipation_old(declareProperty<Real>(_base_name + "dissipation")),
+    _dissipation_old(declarePropertyOld<Real>(_base_name + "dissipation")),
     _temperature(coupledValue("temperature")),
     _temperature_old(coupledValueOld("temperature"))
 {
@@ -62,9 +61,9 @@ void ComputeNEMLStress::computeQpStress()
 
   double T_np1 = _temperature[_qp];
   double T_n = _temperature_old[_qp];
-
+  
   double * h_np1 = &(_hist[_qp][0]);
-  double * h_n = &(_hist_old[_qp][0]);
+  const double * const h_n = &(_hist_old[_qp][0]);
 
   double A_np1[36];
   
@@ -109,6 +108,7 @@ void ComputeNEMLStress::initQpStatefulProperties()
   int ier;
   _hist[_qp].resize(_model->nhist());
   ier = _model->init_hist(&(_hist[_qp][0]));
+  
 
   // Various other junk
   _energy[_qp] = 0.0;
