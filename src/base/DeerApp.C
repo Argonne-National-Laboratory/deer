@@ -6,6 +6,7 @@
 
 // New functions
 #include "TimeNDInterp.h"
+#include "ThicknessGradient.h"
 
 // New materials
 #include "ComputeNEMLStress.h"
@@ -47,6 +48,7 @@ void
 DeerApp::registerObjects(Factory & factory)
 {
   registerFunction(TimeNDInterp);
+  registerFunction(ThicknessGradient);
   registerMaterial(ComputeNEMLStress);
 }
 
