@@ -25,7 +25,8 @@ ComputeNEMLStress::ComputeNEMLStress(const InputParameters & parameters) :
     _dissipation(declareProperty<Real>(_base_name + "dissipation")),
     _dissipation_old(declarePropertyOld<Real>(_base_name + "dissipation")),
     _temperature(coupledValue("temperature")),
-    _temperature_old(coupledValueOld("temperature"))
+    _temperature_old(coupledValueOld("temperature")),
+    _inelastic_strain(declareProperty<RankTwoTensor>(_base_name + "inelastic_strain"))
 {
   // I strongly hesitate to put this here, may change later
   int ier;
@@ -97,6 +98,13 @@ void ComputeNEMLStress::computeQpStress()
 
   // Translate
   neml_tensor(estrain, _elastic_strain[_qp]);
+
+  // For EPP purposes calculate the inelastic strain
+  double pstrain[6];
+  for (int i=0; i<6; i++) {
+    pstrain[i] = e_np1[i] - estrain[i];
+  }
+  neml_tensor(pstrain, _inelastic_strain[_qp]);
 
 }
 
