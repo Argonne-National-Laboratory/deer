@@ -7,6 +7,7 @@
 // New functions
 #include "TimeNDInterp.h"
 #include "ThicknessGradient.h"
+#include "CapGradient.h"
 
 // New materials
 #include "ComputeNEMLStress.h"
@@ -50,6 +51,7 @@ DeerApp::registerObjects(Factory & factory)
 {
   registerFunction(TimeNDInterp);
   registerFunction(ThicknessGradient);
+  registerFunction(CapGradient);
   registerMaterial(ComputeNEMLStress);
   registerMaterial(ComputeThermalExpansionEigenstrainNEML);
 }
