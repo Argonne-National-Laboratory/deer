@@ -5,7 +5,6 @@
 #include "MooseSyntax.h"
 
 // New functions
-#include "TimeNDInterp.h"
 #include "ThicknessGradient.h"
 #include "CapGradient.h"
 
@@ -49,7 +48,6 @@ extern "C" void DeerApp__registerObjects(Factory & factory) { DeerApp::registerO
 void
 DeerApp::registerObjects(Factory & factory)
 {
-  registerFunction(TimeNDInterp);
   registerFunction(ThicknessGradient);
   registerFunction(CapGradient);
   registerMaterial(ComputeNEMLStress);
