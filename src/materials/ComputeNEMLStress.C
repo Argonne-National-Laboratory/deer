@@ -84,7 +84,7 @@ void ComputeNEMLStress::computeQpStress()
                     p_np1, p_n);
 
   if (ier != neml::SUCCESS)
-    mooseError("Error in NEML stress update!");
+    throw MooseException("NEML stress update failed!");
 
   // Do more translation, now back to tensors
   neml_tensor(s_np1, _stress[_qp]);
