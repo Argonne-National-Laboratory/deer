@@ -91,7 +91,7 @@ void ComputeNEMLStress::computeQpStress()
   neml_tangent(A_np1, _Jacobian_mult[_qp]);
 
   // Get the elastic strain
-  ier = _model->elastic_strains(s_np1, T_np1, estrain);
+  ier = _model->elastic_strains(s_np1, T_np1, h_np1, estrain);
 
   if (ier != neml::SUCCESS)
     mooseError("Error in NEML call for elastic strain!");
