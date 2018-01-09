@@ -37,9 +37,10 @@ ComputeThermalExpansionEigenstrainNEML::computeThermalStrain(
     Real & instantaneous_cte)
 {
   double nemlCTE = _model->alpha(_temperature[_qp]);
+  double nemlCTE_old = _model->alpha(_temperature_old[_qp]);
 
-  thermal_strain = _tstrain_old[_qp] + nemlCTE * (_temperature[_qp] - 
-                                                  _temperature_old[_qp]);
+  thermal_strain = _tstrain_old[_qp] + (nemlCTE + nemlCTE_old) / 2 * (
+      _temperature[_qp] - _temperature_old[_qp]);
   
   instantaneous_cte = nemlCTE;
   _tstrain[_qp] = thermal_strain;
