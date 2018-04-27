@@ -11,6 +11,7 @@
 // New materials
 #include "ComputeNEMLStress.h"
 #include "ComputeThermalExpansionEigenstrainNEML.h"
+#include "ComputeRadiationSwellingEigenstrain.h"
 
 template<>
 InputParameters validParams<DeerApp>()
@@ -52,6 +53,7 @@ DeerApp::registerObjects(Factory & factory)
   registerFunction(CapGradient);
   registerMaterial(ComputeNEMLStress);
   registerMaterial(ComputeThermalExpansionEigenstrainNEML);
+  registerMaterial(ComputeRadiationSwellingEigenstrain);
 }
 
 // External entry point for dynamic syntax association
