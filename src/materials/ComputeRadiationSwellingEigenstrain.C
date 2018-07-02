@@ -19,7 +19,7 @@ ComputeRadiationSwellingEigenstrain::ComputeRadiationSwellingEigenstrain(
     _swelling(getFunction("swelling")),
     _dose_rate(getFunction("dose_rate")),
     _dose(declareProperty<Real>(_base_name + "dose")),
-    _dose_old(declarePropertyOld<Real>(_base_name + "dose"))
+    _dose_old(getMaterialPropertyOld<Real>(_base_name + "dose"))
 {
 
 }

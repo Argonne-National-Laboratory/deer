@@ -17,7 +17,7 @@ ComputeThermalExpansionEigenstrainNEML::ComputeThermalExpansionEigenstrainNEML(
     _fname(getParam<FileName>("database")),
     _mname(getParam<std::string>("model")),
     _tstrain(declareProperty<Real>(_base_name + "tstrain")),
-    _tstrain_old(declarePropertyOld<Real>(_base_name + "tstrain")),
+    _tstrain_old(getMaterialPropertyOld<Real>(_base_name + "tstrain")),
     _temperature_old(coupledValueOld("temperature"))
 {
   // I strongly hesitate to put this here, may change later

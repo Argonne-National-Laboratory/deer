@@ -10,3 +10,4 @@
 *.lo.d
 *.e
 *.exo
+build
