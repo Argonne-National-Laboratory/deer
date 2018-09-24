@@ -21,14 +21,7 @@ ComputeThermalExpansionEigenstrainNEML::ComputeThermalExpansionEigenstrainNEML(
     _temperature_old(coupledValueOld("temperature"))
 {
   // I strongly hesitate to put this here, may change later
-  int ier;
-  _model = neml::parse_xml(_fname, _mname, ier);
-  if (ier == neml::FILE_NOT_FOUND) {
-    mooseError("File " + _fname + " not found!");
-  }
-  else if (ier != neml::SUCCESS) {
-    mooseError("Error parsing XML input!");
-  }
+  _model = neml::parse_xml_unique(_fname, _mname);
 }
 
 void
