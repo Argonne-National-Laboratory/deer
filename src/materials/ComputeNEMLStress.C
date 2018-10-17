@@ -106,6 +106,10 @@ void ComputeNEMLStress::computeQpStress()
   }
   neml_tensor(pstrain, _inelastic_strain[_qp]);
 
+  // Store dissipation
+  _energy[_qp] = u_np1;
+  _dissipation[_qp] = p_np1;
+
 }
 
 void ComputeNEMLStress::initQpStatefulProperties()
