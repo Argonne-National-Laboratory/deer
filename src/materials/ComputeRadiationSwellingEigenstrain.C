@@ -3,6 +3,8 @@
 #include "Function.h"
 #include "RankTwoTensor.h"
 
+registerMooseObject("DeerApp", ComputeRadiationSwellingEigenstrain);
+
 template <>
 InputParameters
 validParams<ComputeRadiationSwellingEigenstrain>()

@@ -1,5 +1,7 @@
 #include "CapGradient.h"
 
+registerMooseObject("DeerApp", CapGradient);
+
 template <>
 InputParameters
 validParams<CapGradient>()

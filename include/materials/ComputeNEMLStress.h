@@ -35,9 +35,9 @@ class ComputeNEMLStress: public ComputeStressBase
   const MaterialProperty<Real> & _dissipation_old;
   const VariableValue & _temperature; // Will default to zero
   const VariableValue & _temperature_old;
-
   MaterialProperty<RankTwoTensor> & _inelastic_strain;
-
+  MaterialProperty<Real> & _shear_modulus;
+  MaterialProperty<Real> & _bulk_modulus;
 };
 
 /// Tensor -> my notation

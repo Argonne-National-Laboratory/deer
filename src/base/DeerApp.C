@@ -23,42 +23,37 @@ InputParameters validParams<DeerApp>()
 DeerApp::DeerApp(InputParameters parameters) :
     MooseApp(parameters)
 {
-  Moose::registerObjects(_factory);
-  ModulesApp::registerObjects(_factory);
-  DeerApp::registerObjects(_factory);
-
-  Moose::associateSyntax(_syntax, _action_factory);
-  ModulesApp::associateSyntax(_syntax, _action_factory);
-  DeerApp::associateSyntax(_syntax, _action_factory);
+  DeerApp::registerAll(_factory, _action_factory, _syntax);
 }
 
 DeerApp::~DeerApp()
 {
 }
 
-// External entry point for dynamic application loading
-extern "C" void DeerApp__registerApps() { DeerApp::registerApps(); }
 void
 DeerApp::registerApps()
 {
   registerApp(DeerApp);
 }
 
-// External entry point for dynamic object registration
-extern "C" void DeerApp__registerObjects(Factory & factory) { DeerApp::registerObjects(factory); }
 void
-DeerApp::registerObjects(Factory & factory)
+DeerApp::registerAll(Factory & f, ActionFactory & af, Syntax & s)
 {
-  registerFunction(ThicknessGradient);
-  registerFunction(CapGradient);
-  registerMaterial(ComputeNEMLStress);
-  registerMaterial(ComputeThermalExpansionEigenstrainNEML);
-  registerMaterial(ComputeRadiationSwellingEigenstrain);
+  Registry::registerObjectsTo(f, {"DeerApp"});
+  Registry::registerActionsTo(af, {"DeerApp"});
+
+  ModulesApp::registerAll(f, af, s);
 }
 
-// External entry point for dynamic syntax association
-extern "C" void DeerApp__associateSyntax(Syntax & syntax, ActionFactory & action_factory) { DeerApp::associateSyntax(syntax, action_factory); }
-void
-DeerApp::associateSyntax(Syntax & /*syntax*/, ActionFactory & /*action_factory*/)
+// External entry point for dynamic application loading
+extern "C" void
+DeerApp__registerApps()
 {
+  DeerApp::registerApps();
+}
+
+extern "C" void
+DeepApp__registerAll(Factory & f, ActionFactory &af, Syntax & s)
+{
+  DeerApp::registerAll(f, af, s);
 }

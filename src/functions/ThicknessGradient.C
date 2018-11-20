@@ -1,5 +1,7 @@
 #include "ThicknessGradient.h"
 
+registerMooseObject("DeerApp", ThicknessGradient);
+
 template <>
 InputParameters
 validParams<ThicknessGradient>()

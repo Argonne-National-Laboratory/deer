@@ -1,6 +1,8 @@
 #include "ComputeNEMLStress.h"
 #include <string>
 
+registerMooseObject("DeerApp", ComputeNEMLStress);
+
 template <>
 InputParameters
 validParams<ComputeNEMLStress>()
@@ -26,7 +28,9 @@ ComputeNEMLStress::ComputeNEMLStress(const InputParameters & parameters) :
     _dissipation_old(getMaterialPropertyOld<Real>(_base_name + "dissipation")),
     _temperature(coupledValue("temperature")),
     _temperature_old(coupledValueOld("temperature")),
-    _inelastic_strain(declareProperty<RankTwoTensor>(_base_name + "inelastic_strain"))
+    _inelastic_strain(declareProperty<RankTwoTensor>(_base_name + "inelastic_strain")),
+    _shear_modulus(declareProperty<Real>(_base_name + "shear_modulus")),
+    _bulk_modulus(declareProperty<Real>(_base_name + "bulk_modulus"))
 {
   // I strongly hesitate to put this here, may change later
   _model = neml::parse_xml_unique(_fname, _mname);
@@ -102,6 +106,10 @@ void ComputeNEMLStress::computeQpStress()
   // Store dissipation
   _energy[_qp] = u_np1;
   _dissipation[_qp] = p_np1;
+
+  // Store elastic properties at current time
+  _shear_modulus[_qp] = _model->bulk(T_np1);
+  _bulk_modulus[_qp] = _model->shear(T_np1);
 
 }
 

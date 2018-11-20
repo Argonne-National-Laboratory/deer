@@ -1,6 +1,8 @@
 #include "ComputeThermalExpansionEigenstrainNEML.h"
 #include <string>
 
+registerMooseObject("DeerApp", ComputeThermalExpansionEigenstrainNEML);
+
 template <>
 InputParameters
 validParams<ComputeThermalExpansionEigenstrainNEML>()
