@@ -1,5 +1,4 @@
 #include "ComputeNEMLStress.h"
-#include <string>
 
 registerMooseObject("DeerApp", ComputeNEMLStress);
 
@@ -30,7 +29,8 @@ ComputeNEMLStress::ComputeNEMLStress(const InputParameters & parameters) :
     _temperature_old(coupledValueOld("temperature")),
     _inelastic_strain(declareProperty<RankTwoTensor>(_base_name + "inelastic_strain")),
     _shear_modulus(declareProperty<Real>(_base_name + "shear_modulus")),
-    _bulk_modulus(declareProperty<Real>(_base_name + "bulk_modulus"))
+    _bulk_modulus(declareProperty<Real>(_base_name + "bulk_modulus")),
+    _elasticity_tensor(declareProperty<RankFourTensor>(_base_name + "elasticity_tensor"))
 {
   // I strongly hesitate to put this here, may change later
   _model = neml::parse_xml_unique(_fname, _mname);
@@ -108,8 +108,15 @@ void ComputeNEMLStress::computeQpStress()
   _dissipation[_qp] = p_np1;
 
   // Store elastic properties at current time
-  _shear_modulus[_qp] = _model->bulk(T_np1);
-  _bulk_modulus[_qp] = _model->shear(T_np1);
+  double mu = _model->shear(T_np1);
+  double K = _model->bulk(T_np1);
+  double l = K - 2.0 * mu / 3.0;
+  
+  _shear_modulus[_qp] = mu;
+  _bulk_modulus[_qp] = K;
+
+  std::vector<Real> props({l, mu});
+  _elasticity_tensor[_qp].fillFromInputVector(props, RankFourTensor::FillMethod::symmetric_isotropic);
 
 }
 

@@ -5,8 +5,6 @@
 
 #include "neml_interface.h"
 
-#include <memory>
-
 class ComputeNEMLStress;
 
 template <>
@@ -38,6 +36,7 @@ class ComputeNEMLStress: public ComputeStressBase
   MaterialProperty<RankTwoTensor> & _inelastic_strain;
   MaterialProperty<Real> & _shear_modulus;
   MaterialProperty<Real> & _bulk_modulus;
+  MaterialProperty<RankFourTensor> & _elasticity_tensor;
 };
 
 /// Tensor -> my notation
