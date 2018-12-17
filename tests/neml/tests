@@ -1,0 +1,8 @@
+[Tests]
+  [./test_two_neml_materials]
+    type = 'Exodiff'
+    input = 'two_neml_materials.i'
+    exodiff = 'two_neml_materials_out.e'
+    requirement = "check that 2 neml materials can coexist in teh same input file"
+  [../]
+[]
