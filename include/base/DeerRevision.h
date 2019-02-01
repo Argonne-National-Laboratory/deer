@@ -3,7 +3,7 @@
 #ifndef DEER_REVISION_H
 #define DEER_REVISION_H
 
-#define DEER_REVISION "git commit ad4b14a on 2018-12-14"
-#define DEER_VERSION "ad4b14a"
+#define DEER_REVISION "git commit 76c0808 on 2019-01-31"
+#define DEER_VERSION "76c0808"
 
 #endif // DEER_REVISION_H
