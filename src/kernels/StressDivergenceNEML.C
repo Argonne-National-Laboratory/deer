@@ -12,15 +12,16 @@ validParams<StressDivergenceNEML>()
                                         "Which direction this kernel acts in");
   params.addRequiredCoupledVar("displacements",
                                "The displacement components");
-
   return params;
 }
 
 StressDivergenceNEML::StressDivergenceNEML(const InputParameters & parameters) 
   : DerivativeMaterialInterface<Kernel>(parameters),
+    _ld(getParam<bool>("use_displaced_mesh")),
     _component(getParam<unsigned int>("component")),
     _ndisp(coupledComponents("displacements")),
-    _disp(_ndisp),
+    _disp_nums(_ndisp),
+    _disp_vars(_ndisp),
     _stress(getMaterialPropertyByName<RankTwoTensor>("stress")),
     _material_strain_jacobian(getMaterialPropertyByName<RankFourTensor>("material_strain_jacobian")),
     _material_vorticity_jacobian(getMaterialPropertyByName<RankFourTensor>("material_vorticity_jacobian")),
@@ -33,7 +34,8 @@ StressDivergenceNEML::StressDivergenceNEML(const InputParameters & parameters)
 void StressDivergenceNEML::initialSetup()
 {
   for (unsigned int i = 0; i < _ndisp; i++) {
-    _disp[i] = coupled("displacements", i);
+    _disp_nums[i] = coupled("displacements", i);
+    _disp_vars[i] = getVar("displacements", i);
   }
 }
 
@@ -70,13 +72,14 @@ Real StressDivergenceNEML::computeQpJacobian()
 Real StressDivergenceNEML::computeQpOffDiagJacobian(unsigned int jvar)
 {
   for (unsigned int cc = 0; cc < _ndisp; cc++) {
-    if (jvar == _disp[cc]) {
+    if (jvar == _disp_nums[cc]) {
       return ssJacobianComponent(_material_strain_jacobian[_qp],
                                  _material_vorticity_jacobian[_qp],
                                  _strain_grad[_qp],
                                  _vorticity_grad[_qp],
                                  _component, cc,
-                                 _grad_test[_i][_qp], _grad_phi[_j][_qp]);
+                                 _grad_test[_i][_qp], 
+                                 _disp_vars[cc]->gradPhi()[_j][_qp]);
     }
   }
 
@@ -94,7 +97,7 @@ Real StressDivergenceNEML::ssJacobianComponent(
   // grad_phi(m,n)
   
   // For now we will just do it that way, need to work out a better, more 
-  // vectorized way
+  // vectorized method to compute it
   
   Real value = 0.0;
 

@@ -7,6 +7,7 @@ InputParameters
 validParams<ComputeNEMLSmallStrain>()
 {
   InputParameters params = validParams<ComputeNEMLStrainBase>();
+  params.set<bool>("use_displaced_mesh") = false;
   return params;
 }
 

@@ -38,10 +38,13 @@ class StressDivergenceNEML: public DerivativeMaterialInterface<Kernel>
                            const RealGradient & grad_phi);
 
  protected:
+  bool _ld;
+
   unsigned int _component;
   unsigned int _ndisp;
 
-  std::vector<unsigned int> _disp;
+  std::vector<unsigned int> _disp_nums;
+  std::vector<MooseVariable*> _disp_vars;
 
   const MaterialProperty<RankTwoTensor> & _stress;
   const MaterialProperty<RankFourTensor> & _material_strain_jacobian;
