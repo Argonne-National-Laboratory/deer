@@ -10,4 +10,7 @@
 *.lo.d
 *.e
 *.exo
+*.dylib
+*print_trace.*
+.DS_Store
 build
