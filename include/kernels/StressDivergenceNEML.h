@@ -23,7 +23,7 @@ class StressDivergenceNEML: public DerivativeMaterialInterface<Kernel>
   // These must be overwritten for Bbar-type stabilizations
   virtual void precalculateResidual() override;
   virtual void precalculateJacobian() override;
-  virtual void precalculateOffDiagJacobian(unsigned int jvar);
+  virtual void precalculateOffDiagJacobian(unsigned int jvar) override;
 
   // These are the standard implementation functions
   virtual Real computeQpResidual() override;
@@ -31,11 +31,14 @@ class StressDivergenceNEML: public DerivativeMaterialInterface<Kernel>
   virtual Real computeQpOffDiagJacobian(unsigned int jvar) override;
 
  private:
-  Real ssJacobianComponent(const RankFourTensor & A, const RankFourTensor & B,
+  Real matJacobianComponent(const RankFourTensor & A, const RankFourTensor & B,
                            const RankFourTensor & E, const RankFourTensor & W,
                            unsigned int i, unsigned int m,
                            const RealGradient & grad_psi,
-                           const RealGradient & grad_phi);
+                           const RealGradient & grad_phi,
+                           const RankTwoTensor & F,
+                           bool pull_back);
+  void calcDefGrad();
 
  protected:
   bool _ld;
@@ -45,12 +48,16 @@ class StressDivergenceNEML: public DerivativeMaterialInterface<Kernel>
 
   std::vector<unsigned int> _disp_nums;
   std::vector<MooseVariable*> _disp_vars;
+  std::vector<const VariableGradient *> _grad_disp;
 
   const MaterialProperty<RankTwoTensor> & _stress;
   const MaterialProperty<RankFourTensor> & _material_strain_jacobian;
   const MaterialProperty<RankFourTensor> & _material_vorticity_jacobian;
   const MaterialProperty<RankFourTensor> & _strain_grad;
   const MaterialProperty<RankFourTensor> & _vorticity_grad;
+  const MaterialProperty<bool> & _strain_ref_grad;
+
+  RankTwoTensor _qp_def_grad;
 };
 
 #endif // STRESSDIVERGENCENEML_H

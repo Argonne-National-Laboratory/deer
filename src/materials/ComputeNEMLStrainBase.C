@@ -23,7 +23,8 @@ ComputeNEMLStrainBase::ComputeNEMLStrainBase(const InputParameters & parameters)
     _mechanical_strain_inc(declareProperty<RankTwoTensor>("mechanical_strain_inc")),
     _vorticity_inc(declareProperty<RankTwoTensor>("vorticity_inc")),
     _strain_grad(declareProperty<RankFourTensor>("strain_grad")),
-    _vorticity_grad(declareProperty<RankFourTensor>("vorticity_grad"))
+    _vorticity_grad(declareProperty<RankFourTensor>("vorticity_grad")),
+    _ref_grad(declareProperty<bool>("strain_reference_grad"))
 {
 
 }
@@ -61,4 +62,18 @@ ComputeNEMLStrainBase::initQpStatefulProperties()
   _vorticity_inc[_qp].zero();
   _strain_grad[_qp].zero();
   _vorticity_grad[_qp].zero();
+}
+
+void ComputeNEMLStrainBase::computeProperties()
+{
+  precalculate();
+  for (_qp = 0; _qp < _qrule->n_points(); ++_qp)
+  {
+    computeQpStatefulProperties();
+  }
+}
+
+void ComputeNEMLStrainBase::precalculate()
+{
+
 }

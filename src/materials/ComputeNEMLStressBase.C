@@ -56,7 +56,7 @@ void ComputeNEMLStressBase::initQpStatefulProperties()
   int ier;
   _hist[_qp].resize(_model->nhist());
   ier = _model->init_hist(&(_hist[_qp][0]));
-  
+
   if (ier != neml::SUCCESS) {
     mooseError("Error initializing NEML history!");
   }
