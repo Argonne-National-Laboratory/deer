@@ -59,5 +59,14 @@ void neml_tensor(const double * const in, RankTwoTensor & out);
 /// Tangent -> tensor
 void neml_tangent(const double * const in, RankFourTensor & out);
 
+/// Tensor -> skew vector
+void tensor_skew(const RankTwoTensor & in, double * const out);
+
+/// Skew vector -> tensor
+void skew_tensor(const double * const in, RankTwoTensor & out);
+
+/// My convention for derivative of Mandel wrt skew to tensor
+void neml_skew_tangent(const double * const in, RankFourTensor & out);
+
 
 #endif // COMPUTENEMLSTRESS_H

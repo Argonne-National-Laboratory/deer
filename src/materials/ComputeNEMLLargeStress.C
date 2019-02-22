@@ -1,10 +1,10 @@
-#include "ComputeNEMLSmallStress.h"
+#include "ComputeNEMLLargeStress.h"
 
-registerMooseObject("DeerApp", ComputeNEMLSmallStress);
+registerMooseObject("DeerApp", ComputeNEMLLargeStress);
 
 template <>
 InputParameters
-validParams<ComputeNEMLSmallStress>()
+validParams<ComputeNEMLLargeStress>()
 {
   InputParameters params = validParams<ComputeNEMLStressBase>();
 
@@ -13,7 +13,7 @@ validParams<ComputeNEMLSmallStress>()
   return params;
 }
 
-ComputeNEMLSmallStress::ComputeNEMLSmallStress(
+ComputeNEMLLargeStress::ComputeNEMLLargeStress(
     const InputParameters & parameters)
   : ComputeNEMLStressBase(parameters)
 {
@@ -21,7 +21,7 @@ ComputeNEMLSmallStress::ComputeNEMLSmallStress(
 }
 
 void
-ComputeNEMLSmallStress::stressUpdate(
+ComputeNEMLLargeStress::stressUpdate(
       const double * const e_np1, const double * const e_n,
       const double * const w_np1, const double * const w_n,
       double T_np1, double T_n, double t_np1, double t_n,
@@ -33,11 +33,11 @@ ComputeNEMLSmallStress::stressUpdate(
   int ier;
 
   // Actually call the update
-  ier = _model->update_sd(e_np1, e_n, T_np1, T_n, t_np1, t_n,
-                    s_np1, s_n, h_np1, h_n, A_np1, u_np1, u_n,
-                    p_np1, p_n);
-
-  std::fill(B_np1, B_np1+18, 0.0);
+  ier = _model->update_ld_inc(e_np1, e_n, w_np1, w_n,
+                              T_np1, T_n, t_np1, t_n, 
+                              s_np1, s_n, h_np1, h_n, 
+                              A_np1, B_np1, u_np1, u_n,
+                              p_np1, p_n);
 
   if (ier != neml::SUCCESS)
     throw MooseException("NEML stress update failed!");

@@ -187,3 +187,44 @@ void neml_tangent(const double * const in, RankFourTensor & out)
     }
   }
 }
+
+void tensor_skew(const RankTwoTensor & in, double * const out)
+{
+  out[0] = -in(1,2);
+  out[1] = in(0,2);
+  out[2] = -in(0,1);
+}
+
+void skew_tensor(const double * const in, RankTwoTensor & out)
+{
+  out.zero();
+  out(0,1) = -in[2];
+  out(0,2) = in[1];
+  out(1,0) = in[2];
+  out(1,2) = -in[0];
+  out(2,0) = -in[1];
+  out(2,1) = in[0];
+}
+
+void neml_skew_tangent(const double * const in, RankFourTensor & out)
+{
+  out.zero();
+  double inds[6][2] = {{0,0}, {1,1}, {2,2}, {1,2}, {0,2}, {0,1}};
+  double mults[6] = {1.0, 1.0, 1.0, sqrt(2.0), sqrt(2.0), sqrt(2.0)};
+  
+  double winds[3][2] = {{2,1},{0,2},{1,0}}; // These are the positive values
+  
+  for (int i=0; i<6; i++) {
+    for (int j=0; j<3; j++) {
+      out(inds[i][0], inds[i][1], winds[j][0], winds[j][1]) = in[i*6+j] / (
+          mults[i] *  1.0);
+      out(inds[i][1], inds[i][0], winds[j][0], winds[j][1]) = in[i*6+j] / (
+          mults[i] *  1.0);
+      out(inds[i][0], inds[i][1], winds[j][1], winds[j][0]) = in[i*6+j] / (
+          mults[i] * -1.0);
+      out(inds[i][1], inds[i][0], winds[j][1], winds[j][0]) = in[i*6+j] / (
+          mults[i] * -1.0);
+    }
+  }
+  
+}
