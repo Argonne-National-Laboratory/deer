@@ -1,0 +1,204 @@
+#LyX 2.2 created this file. For more info see http://www.lyx.org/
+\lyxformat 508
+\begin_document
+\begin_header
+\save_transient_properties true
+\origin unavailable
+\textclass article
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman "default" "default"
+\font_sans "default" "default"
+\font_typewriter "default" "default"
+\font_math "auto" "auto"
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100 100
+\font_tt_scale 100 100
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+Large deformations in DEER/MOOSE/NEML
+\end_layout
+
+\begin_layout Section
+Small deformations
+\end_layout
+
+\begin_layout Standard
+Strong form:
+\begin_inset Formula 
+\[
+\nabla\cdot\bm{\sigma}=0
+\]
+
+\end_inset
+
+Weak form:
+\begin_inset Formula 
+\[
+\int_{\Omega}\nabla\cdot\bm{\sigma}\cdot\bar{\boldsymbol{u}}dv=0
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\int_{\partial\Omega}\bm{\sigma}\cdot\boldsymbol{n}\cdot\bar{\bm{u}}ds-\int_{\Omega}\bm{\sigma}:\nabla\bar{\boldsymbol{u}}dv=0
+\]
+
+\end_inset
+
+So our relevant residual contribution is:
+\begin_inset Formula 
+\[
+\int_{\Omega}\bm{\sigma}:\nabla\bar{\boldsymbol{u}}dv=0
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+R=\int_{\Omega}\sigma_{ij}\bar{u}_{i,j}dv=0
+\]
+
+\end_inset
+
+In the fun MOOSE expansion of the test functions
+\begin_inset Formula 
+\[
+R_{\alpha}=\int_{\Omega}\sigma_{ij}\psi_{i,j}^{\alpha}dv
+\]
+
+\end_inset
+
+We have two critical indices: the test function index 
+\begin_inset Formula $\alpha$
+\end_inset
+
+ (which unfortunately MOOSE calls _i) and the direction index 
+\begin_inset Formula $i$
+\end_inset
+
+ (which unfortunately I call _component).
+ The test function number is easy, we just look over all of those no matter
+ what.
+ The directional index is a bit harder.
+ As far as the test and trial functions are concerned everything is scalar
+ which means you just 
+\begin_inset Quotes eld
+\end_inset
+
+naturally
+\begin_inset Quotes erd
+\end_inset
+
+ get 
+\begin_inset Formula $\psi_{i}$
+\end_inset
+
+.
+ Each component corresponds to a row of the stress tensor.
+\end_layout
+
+\begin_layout Standard
+The Jacobian is then:
+\begin_inset Formula 
+\[
+\frac{dR_{\alpha}}{du_{\beta}}=\int_{\Omega}\left(\frac{d\sigma_{ij}}{d\Delta\varepsilon_{kl}}\frac{d\Delta\varepsilon_{kl}}{du_{m,n}}\frac{du_{m,n}}{du_{\beta}}+\frac{d\sigma_{ij}}{d\Delta w_{kl}}\frac{d\Delta w_{kl}}{du_{m,n}}\frac{du_{m,n}}{du_{\beta}}\right)\psi_{i,j}^{\alpha}dv
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\frac{dR_{\alpha}}{du_{\beta}}=\int_{\Omega}\left(\frac{d\sigma_{ij}}{d\Delta\varepsilon_{kl}}\frac{d\Delta\varepsilon_{kl}}{du_{m,n}}\phi_{m,n}^{\beta}+\frac{d\sigma_{ij}}{d\Delta w_{kl}}\frac{d\Delta w_{kl}}{du_{m,n}}\phi_{m,n}^{\beta}\right)\psi_{i,j}^{\alpha}dv
+\]
+
+\end_inset
+
+Which we will conveniently call:
+\begin_inset Formula 
+\[
+\frac{dR_{\alpha}}{du_{\beta}}=\int_{\Omega}\psi_{i,j}^{\alpha}\left(A_{ijkl}E_{klmn}+B_{ijkl}W_{klmn}\right)\phi_{m,n}^{\beta}dv
+\]
+
+\end_inset
+
+Now the indices of interest are 
+\begin_inset Formula $\alpha$
+\end_inset
+
+ and 
+\begin_inset Formula $\beta$
+\end_inset
+
+ which moose manages along with 
+\begin_inset Formula $i$
+\end_inset
+
+ and 
+\begin_inset Formula $m$
+\end_inset
+
+.
+\end_layout
+
+\end_body
+\end_document

@@ -14,3 +14,5 @@
 *print_trace.*
 .DS_Store
 build
+\#*\#
+*.lyx~
