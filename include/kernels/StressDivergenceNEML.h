@@ -35,10 +35,11 @@ class StressDivergenceNEML: public DerivativeMaterialInterface<Kernel>
                            const RankFourTensor & E, const RankFourTensor & W,
                            unsigned int i, unsigned int m,
                            const RealGradient & grad_psi,
+                           const RealGradient & grad_phi);
+  Real geomJacobianComponent(unsigned int i, unsigned int m,
+                           const RealGradient & grad_psi,
                            const RealGradient & grad_phi,
-                           const RankTwoTensor & F,
-                           bool pull_back);
-  void calcDefGrad();
+                           const RankTwoTensor & stress);
 
  protected:
   bool _ld;
@@ -55,7 +56,6 @@ class StressDivergenceNEML: public DerivativeMaterialInterface<Kernel>
   const MaterialProperty<RankFourTensor> & _material_vorticity_jacobian;
   const MaterialProperty<RankFourTensor> & _strain_grad;
   const MaterialProperty<RankFourTensor> & _vorticity_grad;
-  const MaterialProperty<bool> & _strain_ref_grad;
 
   RankTwoTensor _qp_def_grad;
 };

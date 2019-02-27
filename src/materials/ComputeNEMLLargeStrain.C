@@ -63,6 +63,4 @@ ComputeNEMLLargeStrain::computeQpStatefulProperties()
       }
     }
   }
-
-  _ref_grad[_qp] = false;
 }

@@ -23,8 +23,7 @@ ComputeNEMLStrainBase::ComputeNEMLStrainBase(const InputParameters & parameters)
     _mechanical_strain_inc(declareProperty<RankTwoTensor>("mechanical_strain_inc")),
     _vorticity_inc(declareProperty<RankTwoTensor>("vorticity_inc")),
     _strain_grad(declareProperty<RankFourTensor>("strain_grad")),
-    _vorticity_grad(declareProperty<RankFourTensor>("vorticity_grad")),
-    _ref_grad(declareProperty<bool>("strain_reference_grad"))
+    _vorticity_grad(declareProperty<RankFourTensor>("vorticity_grad"))
 {
 
 }

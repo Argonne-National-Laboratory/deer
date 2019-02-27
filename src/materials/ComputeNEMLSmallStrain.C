@@ -7,7 +7,6 @@ InputParameters
 validParams<ComputeNEMLSmallStrain>()
 {
   InputParameters params = validParams<ComputeNEMLStrainBase>();
-  params.set<bool>("use_displaced_mesh") = false;
   return params;
 }
 
@@ -33,6 +32,4 @@ ComputeNEMLSmallStrain::computeQpStatefulProperties()
   _strain_grad[_qp] =
     RankFourTensor(RankFourTensor::initIdentitySymmetricFour);
   _vorticity_grad[_qp].zero();
-
-  _ref_grad[_qp] = true;
 }

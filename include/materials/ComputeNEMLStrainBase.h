@@ -40,8 +40,6 @@ class ComputeNEMLStrainBase: public DerivativeMaterialInterface<Material>
 
   MaterialProperty<RankFourTensor> & _strain_grad;
   MaterialProperty<RankFourTensor> & _vorticity_grad;
-
-  MaterialProperty<bool> & _ref_grad;
 };
 
 #endif // COMPUTENEMLSTRAINBASE_H
