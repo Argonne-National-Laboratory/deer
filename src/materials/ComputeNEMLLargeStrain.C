@@ -7,7 +7,6 @@ InputParameters
 validParams<ComputeNEMLLargeStrain>()
 {
   InputParameters params = validParams<ComputeNEMLStrainBase>();
-  params.set<bool>("use_displaced_mesh") = true;
   return params;
 }
 
@@ -34,6 +33,17 @@ ComputeNEMLLargeStrain::computeQpStatefulProperties()
   RankTwoTensor Fi = F_np1.inverse();
 
   RankTwoTensor L = RankTwoTensor::Identity() - F_n * Fi;
+  /*
+  RankTwoTensor L;
+  L.zero();
+  for (int i=0; i<3; i++) {
+    for (int j=0; j<3; j++) {
+      for (int k=0; k<3; k++) {
+        L(i,j) += RankTwoTensor::Identity()(i,j) - F_n(i,k) * Fi(k,j);
+      }
+    }
+  }
+  */
 
   _strain_inc[_qp] = (L + L.transpose()) / 2.0;
   _mechanical_strain_inc[_qp] = (L + L.transpose()) / 2.0;
