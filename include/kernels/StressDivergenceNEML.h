@@ -56,8 +56,6 @@ class StressDivergenceNEML: public DerivativeMaterialInterface<Kernel>
   const MaterialProperty<RankFourTensor> & _material_vorticity_jacobian;
   const MaterialProperty<RankFourTensor> & _strain_grad;
   const MaterialProperty<RankFourTensor> & _vorticity_grad;
-
-  RankTwoTensor _qp_def_grad;
 };
 
 #endif // STRESSDIVERGENCENEML_H

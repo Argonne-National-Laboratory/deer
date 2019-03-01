@@ -22,7 +22,7 @@ class ComputeNEMLStrainBase: public DerivativeMaterialInterface<Material>
   virtual void initialSetup() override;
   virtual void initQpStatefulProperties() override;
   virtual void computeProperties() override;
-  virtual void computeQpStatefulProperties() = 0;
+  virtual void computeQpStatefulProperties();
 
   virtual void precalculate();
 
@@ -40,6 +40,11 @@ class ComputeNEMLStrainBase: public DerivativeMaterialInterface<Material>
 
   MaterialProperty<RankFourTensor> & _strain_grad;
   MaterialProperty<RankFourTensor> & _vorticity_grad;
+
+  MaterialProperty<RankTwoTensor> & _def_grad_inv;
+  const MaterialProperty<RankTwoTensor> & _def_grad_inv_old;
+
+  bool _ld;
 };
 
 #endif // COMPUTENEMLSTRAINBASE_H

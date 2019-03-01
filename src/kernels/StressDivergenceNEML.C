@@ -77,7 +77,7 @@ Real StressDivergenceNEML::computeQpJacobian()
                                    _grad_test[_i][_qp], _grad_phi[_j][_qp],
                                    _stress[_qp]);
   }
-
+  
   return value;
 }
 

@@ -70,8 +70,18 @@ void ComputeNEMLStressBase::computeQpProperties()
   double T_np1 = _temperature[_qp];
   double T_n = _temperature_old[_qp];
   
-  double * h_np1 = &(_hist[_qp][0]);
-  const double * const h_n = &(_hist_old[_qp][0]);
+  double * h_np1;
+  const double * h_n;
+  
+  // MOOSE vector debug doesn't like this
+  if (_model->nhist() > 0) {
+    h_np1 = &(_hist[_qp][0]);
+    h_n = &(_hist_old[_qp][0]);
+  }
+  else {
+    h_np1 = nullptr;
+    h_n = nullptr;
+  }
 
   double A_np1[36];
   double B_np1[18];
@@ -134,7 +144,12 @@ void ComputeNEMLStressBase::initQpStatefulProperties()
   // Figure out initial history
   int ier;
   _hist[_qp].resize(_model->nhist());
-  ier = _model->init_hist(&(_hist[_qp][0]));
+  if (_model->nhist() > 0) {
+    ier = _model->init_hist(&_hist[_qp].front());
+  }
+  else {
+    ier = 0;
+  }
 
   if (ier != neml::SUCCESS) {
     mooseError("Error initializing NEML history!");

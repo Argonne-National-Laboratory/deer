@@ -20,6 +20,8 @@ ComputeNEMLSmallStrain::ComputeNEMLSmallStrain(const InputParameters &
 void
 ComputeNEMLSmallStrain::computeQpStatefulProperties()
 {
+  ComputeNEMLStrainBase::computeQpStatefulProperties();
+
   RankTwoTensor grad_inc(
     (*_grad_disp[0])[_qp] - (*_grad_disp_old[0])[_qp],
     (*_grad_disp[1])[_qp] - (*_grad_disp_old[1])[_qp],

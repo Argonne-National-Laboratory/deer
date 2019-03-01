@@ -216,13 +216,13 @@ void neml_skew_tangent(const double * const in, RankFourTensor & out)
   
   for (int i=0; i<6; i++) {
     for (int j=0; j<3; j++) {
-      out(inds[i][0], inds[i][1], winds[j][0], winds[j][1]) = in[i*6+j] / (
+      out(inds[i][0], inds[i][1], winds[j][0], winds[j][1]) = in[i*3+j] / (
           mults[i] *  1.0);
-      out(inds[i][1], inds[i][0], winds[j][0], winds[j][1]) = in[i*6+j] / (
+      out(inds[i][1], inds[i][0], winds[j][0], winds[j][1]) = in[i*3+j] / (
           mults[i] *  1.0);
-      out(inds[i][0], inds[i][1], winds[j][1], winds[j][0]) = in[i*6+j] / (
+      out(inds[i][0], inds[i][1], winds[j][1], winds[j][0]) = in[i*3+j] / (
           mults[i] * -1.0);
-      out(inds[i][1], inds[i][0], winds[j][1], winds[j][0]) = in[i*6+j] / (
+      out(inds[i][1], inds[i][0], winds[j][1], winds[j][0]) = in[i*3+j] / (
           mults[i] * -1.0);
     }
   }

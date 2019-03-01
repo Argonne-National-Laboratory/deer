@@ -20,57 +20,34 @@ ComputeNEMLLargeStrain::ComputeNEMLLargeStrain(const InputParameters &
 void
 ComputeNEMLLargeStrain::computeQpStatefulProperties()
 {
-  RankTwoTensor F_np1 = RankTwoTensor(
-        (*_grad_disp[0])[_qp],
-        (*_grad_disp[1])[_qp],
-        (*_grad_disp[2])[_qp]) + RankTwoTensor::Identity();
+  ComputeNEMLStrainBase::computeQpStatefulProperties();
 
-  RankTwoTensor F_n = RankTwoTensor(
-        (*_grad_disp_old[0])[_qp],
-        (*_grad_disp_old[1])[_qp],
-        (*_grad_disp_old[2])[_qp]) + RankTwoTensor::Identity();
-
-  RankTwoTensor Fi = F_np1.inverse();
-
-  RankTwoTensor L = RankTwoTensor::Identity() - F_n * Fi;
-  /*
-  RankTwoTensor L;
-  L.zero();
-  for (int i=0; i<3; i++) {
-    for (int j=0; j<3; j++) {
-      for (int k=0; k<3; k++) {
-        L(i,j) += RankTwoTensor::Identity()(i,j) - F_n(i,k) * Fi(k,j);
-      }
-    }
-  }
-  */
+  RankTwoTensor F_n = _def_grad_inv_old[_qp].inverse();
+  
+  RankTwoTensor L = RankTwoTensor::Identity() - F_n * _def_grad_inv[_qp];
 
   _strain_inc[_qp] = (L + L.transpose()) / 2.0;
   _mechanical_strain_inc[_qp] = (L + L.transpose()) / 2.0;
   _vorticity_inc[_qp] = (L - L.transpose()) / 2.0;
-  
-  RankFourTensor dL;
-  dL.zero();
+
+  RankFourTensor dL = F_n.mixedProductIkJl(RankTwoTensor::Identity());
+
+  // MOOSE doesn't have the skew-symmetric identity baked in
+  RankFourTensor dD;
+  RankFourTensor dW;
+  dD.zero();
+  dW.zero();
   for (int i=0; i<3; i++) {
     for (int j=0; j<3; j++) {
       for (int k=0; k<3; k++) {
-        for (int m=0; m<3; m++) {
-          for (int n=0; n<3; n++) {
-            dL(i,j,m,n) += F_n(i,k) * Fi(k,m) * Fi(n,j);
-          }
+        for (int l=0; l<3; l++) {
+          dD(i,j,k,l) = 0.5*((i==l)*(j==k) + (i==k)*(j==l)); // this is just initIdentitySymmetricFour
+          dW(i,j,k,l) = 0.5*((i==l)*(j==k) - (i==k)*(j==l));
         }
       }
     }
   }
 
-  for (int i=0; i<3; i++) {
-    for (int j=0; j<3; j++) {
-      for (int k=0; k<3; k++) {
-        for (int l=0; l<3; l++) {
-          _strain_grad[_qp](i,j,k,l) = 0.5 * (dL(i,j,k,l) + dL(j,i,k,l));
-          _vorticity_grad[_qp](i,j,k,l) = 0.5 * (dL(i,j,k,l) - dL(j,i,k,l));          
-        }
-      }
-    }
-  }
+  _strain_grad[_qp] = dD * dL;
+  _vorticity_grad[_qp] = dW * dL;
 }
