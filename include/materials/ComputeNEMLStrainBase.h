@@ -22,7 +22,7 @@ class ComputeNEMLStrainBase: public DerivativeMaterialInterface<Material>
   virtual void initialSetup() override;
   virtual void initQpStatefulProperties() override;
   virtual void computeProperties() override;
-  virtual void computeQpStatefulProperties();
+  virtual void computeQpProperties() override;
 
   virtual void precalculate();
 

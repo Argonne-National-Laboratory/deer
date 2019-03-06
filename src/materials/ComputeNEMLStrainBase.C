@@ -70,10 +70,7 @@ ComputeNEMLStrainBase::initQpStatefulProperties()
 void ComputeNEMLStrainBase::computeProperties()
 {
   precalculate();
-  for (_qp = 0; _qp < _qrule->n_points(); ++_qp)
-  {
-    computeQpStatefulProperties();
-  }
+  DerivativeMaterialInterface<Material>::computeProperties();
 }
 
 void ComputeNEMLStrainBase::precalculate()
@@ -81,7 +78,7 @@ void ComputeNEMLStrainBase::precalculate()
 
 }
 
-void ComputeNEMLStrainBase::computeQpStatefulProperties()
+void ComputeNEMLStrainBase::computeQpProperties()
 {
   _def_grad_inv[_qp] = 
       (RankTwoTensor::Identity() - RankTwoTensor(

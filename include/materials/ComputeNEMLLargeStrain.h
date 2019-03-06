@@ -1,4 +1,4 @@
-#ifndef COMPUTENEMLLARGSTRAIN_H
+#ifndef COMPUTENEMLLARGESTRAIN_H
 #define COMPUTENEMLLARGESTRAIN_H
 
 #include "RankTwoTensor.h"
@@ -16,7 +16,7 @@ class ComputeNEMLLargeStrain: public ComputeNEMLStrainBase
   virtual ~ComputeNEMLLargeStrain() {};
 
  protected:
-  virtual void computeQpStatefulProperties() override;
+  virtual void computeQpProperties() override;
 };
 
 #endif // COMPUTENEMLLARGESTRAIN_H

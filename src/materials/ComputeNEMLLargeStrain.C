@@ -18,9 +18,9 @@ ComputeNEMLLargeStrain::ComputeNEMLLargeStrain(const InputParameters &
 }
 
 void
-ComputeNEMLLargeStrain::computeQpStatefulProperties()
+ComputeNEMLLargeStrain::computeQpProperties()
 {
-  ComputeNEMLStrainBase::computeQpStatefulProperties();
+  ComputeNEMLStrainBase::computeQpProperties();
 
   RankTwoTensor F_n = _def_grad_inv_old[_qp].inverse();
   

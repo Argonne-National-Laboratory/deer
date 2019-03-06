@@ -16,7 +16,7 @@ class ComputeNEMLSmallStrain: public ComputeNEMLStrainBase
   virtual ~ComputeNEMLSmallStrain() {};
 
  protected:
-  virtual void computeQpStatefulProperties() override;
+  virtual void computeQpProperties() override;
 };
 
 #endif // COMPUTENEMLSMALLSTRAIN_H
