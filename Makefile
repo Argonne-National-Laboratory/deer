@@ -46,8 +46,8 @@ include $(MOOSE_DIR)/modules/modules.mk
 ###############################################################################
 
 # linking NEML
-ADDITIONAL_INCLUDES := -I/home/messner/projects/neml/src
-ADDITIONAL_LIBS 	  := -L/home/messner/projects/neml/lib -lneml
+ADDITIONAL_INCLUDES := -I/Users/messner/projects/neml/src
+ADDITIONAL_LIBS 	  := -L/Users/messner/projects/neml/lib -lneml
 
 # dep apps
 APPLICATION_DIR     := $(CURDIR)

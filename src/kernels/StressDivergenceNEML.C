@@ -27,7 +27,9 @@ StressDivergenceNEML::StressDivergenceNEML(const InputParameters & parameters)
     _material_strain_jacobian(getMaterialPropertyByName<RankFourTensor>("material_strain_jacobian")),
     _material_vorticity_jacobian(getMaterialPropertyByName<RankFourTensor>("material_vorticity_jacobian")),
     _strain_grad(getMaterialPropertyByName<RankFourTensor>("strain_grad")),
-    _vorticity_grad(getMaterialPropertyByName<RankFourTensor>("vorticity_grad"))
+    _vorticity_grad(getMaterialPropertyByName<RankFourTensor>("vorticity_grad")),
+    _inv_def_grad(getMaterialPropertyByName<RankTwoTensor>("def_grad_inv")),
+    _inv_def_grad_old(getMaterialPropertyOld<RankTwoTensor>("def_grad_inv"))
 {
 
 }
@@ -64,15 +66,16 @@ Real StressDivergenceNEML::computeQpResidual()
 Real StressDivergenceNEML::computeQpJacobian()
 {
   Real value = 0.0;
-
-  value += matJacobianComponent(_material_strain_jacobian[_qp],
-                                _material_vorticity_jacobian[_qp],
-                                _strain_grad[_qp],
-                                _vorticity_grad[_qp],
-                                _component, _component,
-                                _grad_test[_i][_qp], _grad_phi[_j][_qp]);
-
-  if (_ld) {
+  
+  if (not _ld) {
+    value += matJacobianComponent(_material_strain_jacobian[_qp],
+                                  _material_vorticity_jacobian[_qp],
+                                  _strain_grad[_qp],
+                                  _vorticity_grad[_qp],
+                                  _component, _component,
+                                  _grad_test[_i][_qp], _grad_phi[_j][_qp]);
+  }
+  else {
     value += geomJacobianComponent(_component, _component,
                                    _grad_test[_i][_qp], _grad_phi[_j][_qp],
                                    _stress[_qp]);
@@ -87,14 +90,16 @@ Real StressDivergenceNEML::computeQpOffDiagJacobian(unsigned int jvar)
 
   for (unsigned int cc = 0; cc < _ndisp; cc++) {
     if (jvar == _disp_nums[cc]) {
-      value += matJacobianComponent(_material_strain_jacobian[_qp],
-                                    _material_vorticity_jacobian[_qp],
-                                    _strain_grad[_qp],
-                                    _vorticity_grad[_qp],
-                                    _component, cc,
-                                    _grad_test[_i][_qp], 
-                                    _disp_vars[cc]->gradPhi()[_j][_qp]);
-      if (_ld) {
+      if (not _ld) {
+        value += matJacobianComponent(_material_strain_jacobian[_qp],
+                                      _material_vorticity_jacobian[_qp],
+                                      _strain_grad[_qp],
+                                      _vorticity_grad[_qp],
+                                      _component, cc,
+                                      _grad_test[_i][_qp], 
+                                      _disp_vars[cc]->gradPhi()[_j][_qp]);
+      }
+      else {
         value += geomJacobianComponent(_component, cc,
                                        _grad_test[_i][_qp], 
                                        _disp_vars[cc]->gradPhi()[_j][_qp],
@@ -140,19 +145,20 @@ Real StressDivergenceNEML::geomJacobianComponent(
     const RealGradient & grad_psi, const RealGradient & grad_phi,
     const RankTwoTensor & stress)
 {
-  // In index notation this is: 
-  // grad_psi(i,j) * (stress(j,n) * delta(i,m)) * grad_phi(m,n)
-  
-  // For now we will just do it that way, need to work out a better, more 
-  // vectorized method to compute it
+  RankTwoTensor F_n = _inv_def_grad_old[_qp].inverse();
+  RankTwoTensor prod = F_n * _inv_def_grad[_qp];
 
   Real value = 0.0;
 
-  RankTwoTensor delta = RankTwoTensor::Identity();
-
-  for (int j = 0; j < _mesh.dimension(); j++) {
-    for (int n = 0; n < _mesh.dimension(); n++) {
-      value += grad_psi(j) * (stress(j,n) * delta(i,m)) * grad_phi(n); 
+  for (int j=0; j<3; j++) {
+    value += grad_phi(m) * stress(i,j) * grad_psi(j);
+    value -= grad_phi(j) * stress(i,j) * grad_psi(m);
+    for (int k=0; k<3; k++) {
+      for (int n=0; n<3; n++) {
+        value += (_material_strain_jacobian[_qp](i,j,k,n) 
+                  + _material_vorticity_jacobian[_qp](i,j,k,n)) * prod(k,m) * 
+            grad_phi(n) * grad_psi(j);
+      }
     }
   }
 
