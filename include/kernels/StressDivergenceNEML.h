@@ -31,15 +31,18 @@ class StressDivergenceNEML: public DerivativeMaterialInterface<Kernel>
   virtual Real computeQpOffDiagJacobian(unsigned int jvar) override;
 
  private:
-  Real matJacobianComponent(const RankFourTensor & A, const RankFourTensor & B,
-                           const RankFourTensor & E, const RankFourTensor & W,
-                           unsigned int i, unsigned int m,
-                           const RealGradient & grad_psi,
-                           const RealGradient & grad_phi);
-  Real geomJacobianComponent(unsigned int i, unsigned int m,
-                           const RealGradient & grad_psi,
-                           const RealGradient & grad_phi,
-                           const RankTwoTensor & stress);
+  Real smallJacobianComponent(const RankFourTensor & A, const RankFourTensor & B,
+                              const RankFourTensor & E, const RankFourTensor & W,
+                              unsigned int i, unsigned int m,
+                              const RealGradient & grad_psi,
+                              const RealGradient & grad_phi);
+  Real largeJacobianComponent(const RankFourTensor & A, const RankFourTensor & B,
+                              unsigned int i, unsigned int m,
+                              const RealGradient & grad_psi,
+                              const RealGradient & grad_phi,
+                              const RankTwoTensor & stress,
+                              const RankTwoTensor & F_n,
+                              const RankTwoTensor & F_np1_inv);
 
  protected:
   bool _ld;

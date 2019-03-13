@@ -67,18 +67,22 @@ Real StressDivergenceNEML::computeQpJacobian()
 {
   Real value = 0.0;
   
-  if (not _ld) {
-    value += matJacobianComponent(_material_strain_jacobian[_qp],
-                                  _material_vorticity_jacobian[_qp],
-                                  _strain_grad[_qp],
-                                  _vorticity_grad[_qp],
-                                  _component, _component,
-                                  _grad_test[_i][_qp], _grad_phi[_j][_qp]);
+  if (_ld) {
+    value += largeJacobianComponent(_material_strain_jacobian[_qp],
+                                    _material_vorticity_jacobian[_qp],
+                                    _component, _component,
+                                    _grad_test[_i][_qp], _grad_phi[_j][_qp],
+                                    _stress[_qp],
+                                    _inv_def_grad_old[_qp].inverse(),
+                                    _inv_def_grad[_qp]);
   }
   else {
-    value += geomJacobianComponent(_component, _component,
-                                   _grad_test[_i][_qp], _grad_phi[_j][_qp],
-                                   _stress[_qp]);
+    value += smallJacobianComponent(_material_strain_jacobian[_qp],
+                                    _material_vorticity_jacobian[_qp],
+                                    _strain_grad[_qp],
+                                    _vorticity_grad[_qp],
+                                    _component, _component,
+                                    _grad_test[_i][_qp], _grad_phi[_j][_qp]);
   }
   
   return value;
@@ -90,20 +94,24 @@ Real StressDivergenceNEML::computeQpOffDiagJacobian(unsigned int jvar)
 
   for (unsigned int cc = 0; cc < _ndisp; cc++) {
     if (jvar == _disp_nums[cc]) {
-      if (not _ld) {
-        value += matJacobianComponent(_material_strain_jacobian[_qp],
-                                      _material_vorticity_jacobian[_qp],
-                                      _strain_grad[_qp],
-                                      _vorticity_grad[_qp],
-                                      _component, cc,
-                                      _grad_test[_i][_qp], 
-                                      _disp_vars[cc]->gradPhi()[_j][_qp]);
+      if (_ld) {
+        value += largeJacobianComponent(_material_strain_jacobian[_qp],
+                                        _material_vorticity_jacobian[_qp],
+                                        _component, cc,
+                                        _grad_test[_i][_qp], 
+                                        _disp_vars[cc]->gradPhi()[_j][_qp],
+                                        _stress[_qp],
+                                        _inv_def_grad_old[_qp].inverse(),
+                                        _inv_def_grad[_qp]);
       }
       else {
-        value += geomJacobianComponent(_component, cc,
-                                       _grad_test[_i][_qp], 
-                                       _disp_vars[cc]->gradPhi()[_j][_qp],
-                                       _stress[_qp]);
+        value += smallJacobianComponent(_material_strain_jacobian[_qp],
+                                        _material_vorticity_jacobian[_qp],
+                                        _strain_grad[_qp],
+                                        _vorticity_grad[_qp],
+                                        _component, cc,
+                                        _grad_test[_i][_qp], 
+                                        _disp_vars[cc]->gradPhi()[_j][_qp]);
       }
     }
   }
@@ -111,7 +119,7 @@ Real StressDivergenceNEML::computeQpOffDiagJacobian(unsigned int jvar)
   return value;
 }
 
-Real StressDivergenceNEML::matJacobianComponent(
+Real StressDivergenceNEML::smallJacobianComponent(
     const RankFourTensor & A, const RankFourTensor & B, 
     const RankFourTensor & E, const RankFourTensor & W,
     unsigned int i, unsigned int m,
@@ -140,13 +148,14 @@ Real StressDivergenceNEML::matJacobianComponent(
   return value;
 }
 
-Real StressDivergenceNEML::geomJacobianComponent(
+Real StressDivergenceNEML::largeJacobianComponent(
+    const RankFourTensor & A, const RankFourTensor & B,
     unsigned int i, unsigned int m,
     const RealGradient & grad_psi, const RealGradient & grad_phi,
-    const RankTwoTensor & stress)
+    const RankTwoTensor & stress, const RankTwoTensor & F_n, 
+    const RankTwoTensor & F_np1_inv)
 {
-  RankTwoTensor F_n = _inv_def_grad_old[_qp].inverse();
-  RankTwoTensor prod = F_n * _inv_def_grad[_qp];
+  RankTwoTensor prod = F_n * F_np1_inv;
 
   Real value = 0.0;
 
@@ -155,8 +164,7 @@ Real StressDivergenceNEML::geomJacobianComponent(
     value -= grad_phi(j) * stress(i,j) * grad_psi(m);
     for (int k=0; k<3; k++) {
       for (int n=0; n<3; n++) {
-        value += (_material_strain_jacobian[_qp](i,j,k,n) 
-                  + _material_vorticity_jacobian[_qp](i,j,k,n)) * prod(k,m) * 
+        value += (A(i,j,k,n) + B(i,j,k,n)) * prod(k,m) * 
             grad_phi(n) * grad_psi(j);
       }
     }
