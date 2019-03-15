@@ -1,18 +1,18 @@
-#ifndef COMPUTENEMLLARGESTRESS_H
-#define COMPUTENEMLLARGESTRESS_H
+#ifndef COMPUTENEMLSTRESSUPDATE_H
+#define COMPUTENEMLSTRESSUPDATE_H
 
 #include "ComputeNEMLStressBase.h"
 
-class ComputeNEMLLargeStress;
+class ComputeNEMLStressUpdate;
 
 template <>
-InputParameters validParams<ComputeNEMLLargeStress>();
+InputParameters validParams<ComputeNEMLStressUpdate>();
 
-class ComputeNEMLLargeStress: public ComputeNEMLStressBase
+class ComputeNEMLStressUpdate: public ComputeNEMLStressBase
 {
  public:
-  ComputeNEMLLargeStress(const InputParameters & parameters);
-  virtual ~ComputeNEMLLargeStress() {};
+  ComputeNEMLStressUpdate(const InputParameters & parameters);
+  virtual ~ComputeNEMLStressUpdate() {};
 
  protected:
   virtual void stressUpdate(
@@ -24,6 +24,9 @@ class ComputeNEMLLargeStress: public ComputeNEMLStressBase
       double * const A_np1, double * const B_np1,
       double & u_np1, double u_n, double & p_np1, double p_n);
 
+ private:
+  const bool _ld;
+
 };
 
-#endif
+#endif // COMPUTENEMLSTRESSUPDATE_H

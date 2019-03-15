@@ -31,18 +31,16 @@ class StressDivergenceNEML: public DerivativeMaterialInterface<Kernel>
   virtual Real computeQpOffDiagJacobian(unsigned int jvar) override;
 
  private:
-  Real smallJacobianComponent(const RankFourTensor & A, const RankFourTensor & B,
-                              const RankFourTensor & E, const RankFourTensor & W,
-                              unsigned int i, unsigned int m,
-                              const RealGradient & grad_psi,
-                              const RealGradient & grad_phi);
-  Real largeJacobianComponent(const RankFourTensor & A, const RankFourTensor & B,
-                              unsigned int i, unsigned int m,
-                              const RealGradient & grad_psi,
-                              const RealGradient & grad_phi,
-                              const RankTwoTensor & stress,
-                              const RankTwoTensor & F_n,
-                              const RankTwoTensor & F_np1_inv);
+  Real matJacobianComponent(const RankFourTensor & A, const RankFourTensor & B,
+                            unsigned int i, unsigned int m,
+                            const RealGradient & grad_psi,
+                            const RealGradient & grad_phi,
+                            const RankTwoTensor & F_n_inv,
+                            const RankTwoTensor & F_np1_inv);
+  Real geomJacobianComponent(unsigned int i, unsigned int m,
+                             const RealGradient & grad_psi,
+                             const RealGradient & grad_phi,
+                             const RankTwoTensor & stress);
 
  protected:
   bool _ld;
@@ -57,8 +55,6 @@ class StressDivergenceNEML: public DerivativeMaterialInterface<Kernel>
   const MaterialProperty<RankTwoTensor> & _stress;
   const MaterialProperty<RankFourTensor> & _material_strain_jacobian;
   const MaterialProperty<RankFourTensor> & _material_vorticity_jacobian;
-  const MaterialProperty<RankFourTensor> & _strain_grad;
-  const MaterialProperty<RankFourTensor> & _vorticity_grad;
   const MaterialProperty<RankTwoTensor> & _inv_def_grad;
   const MaterialProperty<RankTwoTensor> & _inv_def_grad_old;
 };
