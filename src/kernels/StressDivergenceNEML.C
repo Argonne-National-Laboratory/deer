@@ -124,9 +124,9 @@ Real StressDivergenceNEML::matJacobianComponent(
 
   Real value = 0.0;
 
-  for (int j=0; j<3; j++) {
-    for (int k=0; k<3; k++) {
-      for (int n=0; n<3; n++) {
+  for (int j=0; j<_ndisp; j++) {
+    for (int k=0; k<_ndisp; k++) {
+      for (int n=0; n<_ndisp; n++) {
         value += (A(i,j,k,n) + B(i,j,k,n)) * pull(k,m) * 
             grad_phi(n) * grad_psi(j);
       }
@@ -144,7 +144,7 @@ Real StressDivergenceNEML::geomJacobianComponent(
 {
   Real value = 0.0;
 
-  for (int j=0; j<3; j++) {
+  for (int j=0; j<_ndisp; j++) {
     value += grad_phi(m) * stress(i,j) * grad_psi(j);
     value -= grad_phi(j) * stress(i,j) * grad_psi(m);
   }
