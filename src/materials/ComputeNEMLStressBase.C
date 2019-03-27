@@ -80,7 +80,7 @@ void ComputeNEMLStressBase::computeQpProperties()
   const double * h_n;
   
   // MOOSE vector debug doesn't like this
-  if (_model->nhist() > 0) {
+  if (_model->nstore() > 0) {
     h_np1 = &(_hist[_qp][0]);
     h_n = &(_hist_old[_qp][0]);
   }
@@ -149,9 +149,9 @@ void ComputeNEMLStressBase::initQpStatefulProperties()
 
   // Figure out initial history
   int ier;
-  _hist[_qp].resize(_model->nhist());
-  if (_model->nhist() > 0) {
-    ier = _model->init_hist(&_hist[_qp].front());
+  _hist[_qp].resize(_model->nstore());
+  if (_model->nstore() > 0) {
+    ier = _model->init_store(&_hist[_qp].front());
   }
   else {
     ier = 0;
