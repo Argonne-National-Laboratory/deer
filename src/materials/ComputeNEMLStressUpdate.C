@@ -43,6 +43,7 @@ ComputeNEMLStressUpdate::stressUpdate(
                                 s_np1, s_n, h_np1, h_n, 
                                 A_np1, B_np1, u_np1, u_n,
                                 p_np1, p_n);
+    std::fill(B_np1, B_np1+18, 0.0);
   }
   else {
     ier = _model->update_sd(e_np1, e_n, T_np1, T_n, t_np1, t_n,
