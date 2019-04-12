@@ -1,0 +1,20 @@
+[Tests]
+  [./preset]
+    type = CSVDiff
+    input = 'oned_preset.i'
+    csvdiff = 'oned_preset_out.csv'
+    requirement = "Quadratic convergence in 1D for PresetBCs, SMP does better than FDP for this problem."
+  [../]
+  [./dirichlet]
+    type = CSVDiff
+    input = 'oned_dirichlet.i'
+    csvdiff = 'oned_dirichlet_out.csv'
+    requirement = "Quadratic convergence in 1D for DirichletBCs, SMP does better than FDP for this problem."
+  [../]
+  [./neumann]
+    type = CSVDiff
+    input = 'oned_neumann.i'
+    csvdiff = 'oned_neumann_out.csv'
+    requirement = "Quadratic convergence in 1D for NeumannBCs, SMP does better than FDP for this problem."
+  [../]
+[]

@@ -2,7 +2,7 @@
   <elastic_model type="SmallStrainElasticity">
     <elastic type="IsotropicLinearElasticModel">
       <m1_type>youngs</m1_type>
-      <m1>1000.0</m1>
+      <m1>100000.0</m1>
       <m2_type>poissons</m2_type>
       <m2>0.25</m2>
     </elastic>

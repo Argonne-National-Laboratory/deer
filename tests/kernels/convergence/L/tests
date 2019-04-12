@@ -1,0 +1,8 @@
+[Tests]
+  [./preset]
+    type = CSVDiff
+    input = 'L-preset.i'
+    csvdiff = 'L-preset_out.csv'
+    requirement = "Quadratic convergence in 3D for PresetBCs on a complicated geometry, SMP matches FDP."
+  [../]
+[]

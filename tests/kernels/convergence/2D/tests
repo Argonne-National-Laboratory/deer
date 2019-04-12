@@ -1,0 +1,20 @@
+[Tests]
+  [./preset]
+    type = CSVDiff
+    input = 'preset.i'
+    csvdiff = 'preset_out.csv'
+    requirement = "Quadratic convergence in 2D for PresetBCs, SMP matches FDP."
+  [../]
+  [./dirichlet]
+    type = CSVDiff
+    input = 'dirichlet.i'
+    csvdiff = 'dirichlet_out.csv'
+    requirement = "Quadratic convergence in 2D for DirichletBCs, SMP matches FDP."
+  [../]
+  [./neumann]
+    type = CSVDiff
+    input = 'neumann.i'
+    csvdiff = 'neumann_out.csv'
+    requirement = "Quadratic convergence in 2D for NeumannBCs, SMP matches FDP."
+  [../]
+[]

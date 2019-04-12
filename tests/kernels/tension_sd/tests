@@ -1,8 +1,0 @@
-[Tests]
-  [./test_pull_tension_3d_small]
-    type = 'CSVDiff'
-    input = 'pull.i'
-    csvdiff = 'pull_list.csv'
-    requirement = "Simple validation of 3D stress controlled deformation"
-  [../]
-[]
