@@ -138,7 +138,6 @@ void ComputeNEMLStress::initQpStatefulProperties()
   _hist[_qp].resize(_model->nhist());
   ier = _model->init_hist(&(_hist[_qp][0]));
   
-
   // Various other junk
   _energy[_qp] = 0.0;
   _dissipation[_qp] = 0.0;
@@ -206,26 +205,11 @@ void skew_tensor(const double * const in, RankTwoTensor & out)
   out(2,1) = in[0];
 }
 
-void neml_skew_tangent(const double * const in, RankFourTensor & out)
+void recombine_tangent(const double * const Dpart, 
+                       const double * const Wpart,
+                       RankFourTensor & out)
 {
-  out.zero();
-  double inds[6][2] = {{0,0}, {1,1}, {2,2}, {1,2}, {0,2}, {0,1}};
-  double mults[6] = {1.0, 1.0, 1.0, sqrt(2.0), sqrt(2.0), sqrt(2.0)};
-  
-  double winds[3][2] = {{1,2},{0,2},{0,1}};
-  double wmults[3] = {-1.0,1.0,-1.0};
-  
-  for (int i=0; i<6; i++) {
-    for (int j=0; j<3; j++) {
-      out(inds[i][0], inds[i][1], winds[j][0], winds[j][1]) = in[i*3+j] / (
-          mults[i] *  wmults[j]);
-      out(inds[i][1], inds[i][0], winds[j][0], winds[j][1]) = in[i*3+j] / (
-          mults[i] *  wmults[j]);
-      out(inds[i][0], inds[i][1], winds[j][1], winds[j][0]) = in[i*3+j] / (
-          mults[i] *  wmults[j]);
-      out(inds[i][1], inds[i][0], winds[j][1], winds[j][0]) = in[i*3+j] / (
-          mults[i] *  wmults[j]);
-    }
-  }
-  
+  std::vector<double> data(81);
+  neml::transform_fourth(Dpart, Wpart, &data[0]);
+  out.fillFromInputVector(data, RankFourTensor::FillMethod::general);
 }

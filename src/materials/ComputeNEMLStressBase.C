@@ -25,8 +25,7 @@ ComputeNEMLStressBase::ComputeNEMLStressBase(const InputParameters & parameters)
     _linear_rot_old(getMaterialPropertyOld<RankTwoTensor>("linear_rot")),
     _stress(declareProperty<RankTwoTensor>("stress")),
     _stress_old(getMaterialPropertyOld<RankTwoTensor>("stress")),
-    _material_strain_jacobian(declareProperty<RankFourTensor>("material_strain_jacobian")),
-    _material_vorticity_jacobian(declareProperty<RankFourTensor>("material_vorticity_jacobian")),
+    _material_jacobian(declareProperty<RankFourTensor>("material_jacobian")),
     _hist(declareProperty<std::vector<Real>>("hist")),
     _hist_old(getMaterialPropertyOld<std::vector<Real>>("hist")),
     _energy(declareProperty<Real>("energy")),
@@ -68,7 +67,7 @@ void ComputeNEMLStressBase::computeQpProperties()
   double w_np1[3];
   tensor_skew(_linear_rot[_qp], w_np1);
   double w_n[3];
-  tensor_skew(_linear_rot[_qp], w_n);
+  tensor_skew(_linear_rot_old[_qp], w_n);
 
   double t_np1 = _t;
   double t_n = _t - _dt;
@@ -104,8 +103,7 @@ void ComputeNEMLStressBase::computeQpProperties()
 
   // Do more translation, now back to tensors
   neml_tensor(s_np1, _stress[_qp]);
-  neml_tangent(A_np1, _material_strain_jacobian[_qp]);
-  neml_skew_tangent(B_np1, _material_vorticity_jacobian[_qp]);
+  recombine_tangent(A_np1, B_np1, _material_jacobian[_qp]);
 
   // Get the elastic strain
   double estrain[6];

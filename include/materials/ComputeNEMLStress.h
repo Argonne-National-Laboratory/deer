@@ -65,8 +65,9 @@ void tensor_skew(const RankTwoTensor & in, double * const out);
 /// Skew vector -> tensor
 void skew_tensor(const double * const in, RankTwoTensor & out);
 
-/// My convention for derivative of Mandel wrt skew to tensor
-void neml_skew_tangent(const double * const in, RankFourTensor & out);
-
+/// Skew + symmetric parts to full tangent
+void recombine_tangent(const double * const Dpart, 
+                       const double * const Wpart,
+                       RankFourTensor & out);
 
 #endif // COMPUTENEMLSTRESS_H

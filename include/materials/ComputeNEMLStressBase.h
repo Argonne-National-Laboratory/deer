@@ -57,8 +57,7 @@ class ComputeNEMLStressBase: public DerivativeMaterialInterface<Material>
   MaterialProperty<RankTwoTensor> & _stress;
   const MaterialProperty<RankTwoTensor> & _stress_old;
 
-  MaterialProperty<RankFourTensor> & _material_strain_jacobian;
-  MaterialProperty<RankFourTensor> & _material_vorticity_jacobian;
+  MaterialProperty<RankFourTensor> & _material_jacobian;
 
   MaterialProperty<std::vector<Real>> & _hist;
   const MaterialProperty<std::vector<Real>> & _hist_old;
