@@ -1,0 +1,14 @@
+[Tests]
+  [./small]
+    type = Exodiff
+    input = 'small_patch.i'
+    exodiff = 'small_patch_out.e'
+    requirement = "Small strain uniaxial patch test"
+  [../]
+  [./large]
+    type = Exodiff
+    input = 'large_patch.i'
+    exodiff = 'large_patch_out.e'
+    requirement = "Large strain uniaxial patch test"
+  [../]
+[]
