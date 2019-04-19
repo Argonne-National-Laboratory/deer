@@ -67,9 +67,6 @@ class ComputeNEMLStressBase: public DerivativeMaterialInterface<Material>
   MaterialProperty<Real> & _dissipation;
   const MaterialProperty<Real> & _dissipation_old;
 
-  MaterialProperty<Real> & _shear_modulus;
-  MaterialProperty<Real> & _bulk_modulus;
-  MaterialProperty<RankFourTensor> & _elasticity_tensor;
   MaterialProperty<RankTwoTensor> & _elastic_strain;
   MaterialProperty<RankTwoTensor> & _inelastic_strain;
 };

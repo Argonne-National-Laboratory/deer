@@ -1,0 +1,14 @@
+[Tests]
+  [./small]
+    type = Exodiff
+    input = 'small_action.i'
+    exodiff = 'small_action_out.e'
+    requirement = "Check to make sure the action does everything, small strain."
+  [../]
+  [./large]
+    type = Exodiff
+    input = 'large_action.i'
+    exodiff = 'large_action_out.e'
+    requirement = "Check to make sure the action does everything, large strain."
+  [../]
+[]

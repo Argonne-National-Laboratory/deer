@@ -30,6 +30,12 @@ DeerApp::~DeerApp()
 {
 }
 
+static void
+associateSyntaxInner(Syntax & syntax, ActionFactory & /*action_factory*/)
+{
+  registerSyntax("NEMLMechanicsAction", "NEMLMechanics");
+}
+
 void
 DeerApp::registerApps()
 {
@@ -41,6 +47,8 @@ DeerApp::registerAll(Factory & f, ActionFactory & af, Syntax & s)
 {
   Registry::registerObjectsTo(f, {"DeerApp"});
   Registry::registerActionsTo(af, {"DeerApp"});
+  
+  associateSyntaxInner(s, af);
 
   ModulesApp::registerAll(f, af, s);
 }
