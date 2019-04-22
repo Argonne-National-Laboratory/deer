@@ -69,6 +69,8 @@ class ComputeNEMLStressBase: public DerivativeMaterialInterface<Material>
 
   MaterialProperty<RankTwoTensor> & _elastic_strain;
   MaterialProperty<RankTwoTensor> & _inelastic_strain;
+
+  const bool _ld;
 };
 
 

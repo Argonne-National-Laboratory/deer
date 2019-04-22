@@ -25,8 +25,8 @@ StressDivergenceNEML::StressDivergenceNEML(const InputParameters & parameters)
     _grad_disp(_ndisp),
     _stress(getMaterialPropertyByName<RankTwoTensor>("stress")),
     _material_jacobian(getMaterialPropertyByName<RankFourTensor>("material_jacobian")),
-    _inv_def_grad(getMaterialPropertyByName<RankTwoTensor>("def_grad_inv")),
-    _inv_def_grad_old(getMaterialPropertyOld<RankTwoTensor>("def_grad_inv"))
+    _df(getMaterialPropertyByName<RankTwoTensor>("df"))
+
 {
 
 }
@@ -67,8 +67,7 @@ Real StressDivergenceNEML::computeQpJacobian()
   value += matJacobianComponent(_material_jacobian[_qp],
                                 _component, _component,
                                 _grad_test[_i][_qp], _grad_phi[_j][_qp],
-                                _inv_def_grad_old[_qp],
-                                _inv_def_grad[_qp]);
+                                _df[_qp]);
 
   if (_ld) {
     value += geomJacobianComponent(_component, _component,
@@ -89,8 +88,7 @@ Real StressDivergenceNEML::computeQpOffDiagJacobian(unsigned int jvar)
                               _component, cc,
                               _grad_test[_i][_qp], 
                               _disp_vars[cc]->gradPhi()[_j][_qp],
-                              _inv_def_grad_old[_qp],
-                              _inv_def_grad[_qp]);
+                              _df[_qp]);
       if (_ld) {
         value += geomJacobianComponent(_component, cc,
                                        _grad_test[_i][_qp],
@@ -109,24 +107,14 @@ Real StressDivergenceNEML::matJacobianComponent(
     unsigned int i, unsigned int m,
     const RealGradient & grad_psi,
     const RealGradient & grad_phi,
-    const RankTwoTensor & F_n_inv,
-    const RankTwoTensor & F_np1_inv)
+    const RankTwoTensor & df)
 {
-  RankTwoTensor F_n = F_n_inv.inverse();
-  RankTwoTensor f_inv;
-  if (_ld) {
-    f_inv = F_n * F_np1_inv;
-  }
-  else {
-    f_inv = F_n;
-  }
-
   Real value = 0.0;
 
   for (int j=0; j<_ndisp; j++) {
     for (int k=0; k<_ndisp; k++) {
       for (int l =0; l<_ndisp; l++) {
-        value += C(i,j,k,l) * grad_psi(j) * f_inv(k,m) * grad_phi(l);
+        value += C(i,j,k,l) * grad_psi(j) * df(k,m) * grad_phi(l);
       }
     }
   }

@@ -24,9 +24,6 @@ class ComputeNEMLStressUpdate: public ComputeNEMLStressBase
       double * const A_np1, double * const B_np1,
       double & u_np1, double u_n, double & p_np1, double p_n);
 
- private:
-  const bool _ld;
-
 };
 
 #endif // COMPUTENEMLSTRESSUPDATE_H

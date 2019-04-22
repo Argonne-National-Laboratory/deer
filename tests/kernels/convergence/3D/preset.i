@@ -99,13 +99,13 @@
 [Materials]
   [./strain]
     type = ComputeNEMLStrain
-    use_displaced_mesh = true
+    large_kinematics = true
   [../]
   [./stress]
     type = ComputeNEMLStressUpdate
     database = "test.xml"
     model = "elastic_model"
-    use_displaced_mesh = true
+    large_kinematics = true
   [../]
 []
 

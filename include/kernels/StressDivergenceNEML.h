@@ -35,8 +35,7 @@ class StressDivergenceNEML: public DerivativeMaterialInterface<Kernel>
                             unsigned int i, unsigned int m,
                             const RealGradient & grad_psi,
                             const RealGradient & grad_phi,
-                            const RankTwoTensor & F_n_inv,
-                            const RankTwoTensor & F_np1_inv);
+                            const RankTwoTensor & df);
   Real geomJacobianComponent(unsigned int i, unsigned int m,
                              const RealGradient & grad_psi,
                              const RealGradient & grad_phi,
@@ -54,8 +53,8 @@ class StressDivergenceNEML: public DerivativeMaterialInterface<Kernel>
 
   const MaterialProperty<RankTwoTensor> & _stress;
   const MaterialProperty<RankFourTensor> & _material_jacobian;
-  const MaterialProperty<RankTwoTensor> & _inv_def_grad;
-  const MaterialProperty<RankTwoTensor> & _inv_def_grad_old;
+
+  const MaterialProperty<RankTwoTensor> & _df;
 };
 
 Real det(const RankTwoTensor & T);

@@ -73,7 +73,7 @@ NEMLMechanicsAction::act()
     auto params = _factory.getValidParams("ComputeNEMLStrain");
 
     params.set<std::vector<VariableName>>("displacements") = _displacements;
-    params.set<bool>("use_displaced_mesh") = _kin_mapper[_kinematics];
+    params.set<bool>("large_kinematics") = _kin_mapper[_kinematics];
 
     _problem->addMaterial("ComputeNEMLStrain", "strain", params);
   }

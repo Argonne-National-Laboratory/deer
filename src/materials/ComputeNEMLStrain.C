@@ -22,9 +22,16 @@ ComputeNEMLStrain::computeQpProperties()
 {
   ComputeNEMLStrainBase::computeQpProperties();
 
-  RankTwoTensor F_n = _def_grad_inv_old[_qp].inverse();
+  RankTwoTensor L;
   
-  RankTwoTensor L = RankTwoTensor::Identity() - F_n * _def_grad_inv[_qp];
+  if (_ld) {
+    L = RankTwoTensor::Identity() - _def_grad_old[_qp] * _def_grad[_qp].inverse();
+    _df[_qp] = -L + RankTwoTensor::Identity();
+  }
+  else {
+    L = _def_grad[_qp] - _def_grad_old[_qp];
+    _df[_qp] = RankTwoTensor::Identity();
+  }
 
   _strain_inc[_qp] = (L + L.transpose()) / 2.0;
   _mechanical_strain_inc[_qp] = (L + L.transpose()) / 2.0;

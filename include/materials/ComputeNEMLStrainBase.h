@@ -38,8 +38,10 @@ class ComputeNEMLStrainBase: public DerivativeMaterialInterface<Material>
   MaterialProperty<RankTwoTensor> & _mechanical_strain_inc;
   MaterialProperty<RankTwoTensor> & _vorticity_inc;
 
-  MaterialProperty<RankTwoTensor> & _def_grad_inv;
-  const MaterialProperty<RankTwoTensor> & _def_grad_inv_old;
+  MaterialProperty<RankTwoTensor> & _def_grad;
+  const MaterialProperty<RankTwoTensor> & _def_grad_old;
+
+  MaterialProperty<RankTwoTensor> & _df;
 
   bool _ld;
 };

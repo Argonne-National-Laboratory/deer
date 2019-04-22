@@ -8,6 +8,10 @@ validParams<ComputeNEMLStressBase>()
   params.addRequiredParam<FileName>("database", "Path to NEML XML database.");
   params.addRequiredParam<std::string>("model", "Model name in NEML database.");
   params.addCoupledVar("temperature", 0.0, "Coupled temperature");
+  
+  params.addParam<bool>("large_kinematics", false, "Use large displacement kinematics");
+  params.suppressParameter<bool>("use_displaced_mesh");
+
   return params;
 }
 
@@ -33,7 +37,8 @@ ComputeNEMLStressBase::ComputeNEMLStressBase(const InputParameters & parameters)
     _dissipation(declareProperty<Real>("dissipation")),
     _dissipation_old(getMaterialPropertyOld<Real>("dissipation")),
     _elastic_strain(declareProperty<RankTwoTensor>("elastic_strain")),
-    _inelastic_strain(declareProperty<RankTwoTensor>("inelastic_strain"))
+    _inelastic_strain(declareProperty<RankTwoTensor>("inelastic_strain")),
+    _ld(getParam<bool>("large_kinematics"))
 {
   // I strongly hesitate to put this here, may change later
   _model = neml::parse_xml_unique(_fname, _mname);

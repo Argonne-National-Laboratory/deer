@@ -18,8 +18,7 @@ validParams<ComputeNEMLStressUpdate>()
 // stress update", consistent with the kernel and the strain material
 ComputeNEMLStressUpdate::ComputeNEMLStressUpdate(
     const InputParameters & parameters)
-  : ComputeNEMLStressBase(parameters),
-    _ld(getParam<bool>("use_displaced_mesh"))
+  : ComputeNEMLStressBase(parameters)
 {
 
 }
