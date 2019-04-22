@@ -5,4 +5,10 @@
     csvdiff = 'L-lll_out.csv'
     requirement = "Quadratic convergence in 3D for PresetBCs on a complicated geometry, SMP matches FDP."
   [../]
+  [./L-small-small-small]
+    type = CSVDiff
+    input = 'L-sss.i'
+    csvdiff = 'L-sss_out.csv'
+    requirement = "Quadratic convergence in 3D for PresetBCs on a complicated geometry, SMP matches FDP."
+  [../]
 []
