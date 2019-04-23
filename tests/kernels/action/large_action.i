@@ -1,5 +1,9 @@
 # Simple 3D test
 
+[GlobalParams]
+  displacements = "disp_x disp_y disp_z"
+[]
+
 [Mesh]
   type = GeneratedMesh
   dim = 3
@@ -9,7 +13,6 @@
 []
 
 [NEMLMechanics]
-  displacements = "disp_x disp_y disp_z"
   kinematics = large
   add_all_output = true
 []
