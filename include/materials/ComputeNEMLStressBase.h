@@ -21,7 +21,6 @@ class ComputeNEMLStressBase: public DerivativeMaterialInterface<Material>
   virtual ~ComputeNEMLStressBase() {};
 
  protected:
-  virtual void computeProperties() override;
   virtual void computeQpProperties() override;
   virtual void initQpStatefulProperties() override;
 

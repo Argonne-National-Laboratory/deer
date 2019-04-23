@@ -63,7 +63,6 @@ ComputeNEMLStrainBase::initQpStatefulProperties()
 
 void ComputeNEMLStrainBase::computeProperties()
 {
-  if (_bnd) return;
   precalculate();
   DerivativeMaterialInterface<Material>::computeProperties();
 }

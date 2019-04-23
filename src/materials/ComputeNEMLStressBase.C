@@ -44,12 +44,6 @@ ComputeNEMLStressBase::ComputeNEMLStressBase(const InputParameters & parameters)
   _model = neml::parse_xml_unique(_fname, _mname);
 }
 
-void ComputeNEMLStressBase::computeProperties()
-{
-  if (_bnd) return;
-  DerivativeMaterialInterface<Material>::computeProperties();
-}
-
 void ComputeNEMLStressBase::computeQpProperties()
 {
   // Get the strains added together
