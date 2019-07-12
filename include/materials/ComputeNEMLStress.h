@@ -45,9 +45,6 @@ class ComputeNEMLStress: public DerivativeMaterialInterface<Material>
   const VariableValue & _temperature; // Will default to zero
   const VariableValue & _temperature_old;
   MaterialProperty<RankTwoTensor> & _inelastic_strain;
-  MaterialProperty<Real> & _shear_modulus;
-  MaterialProperty<Real> & _bulk_modulus;
-  MaterialProperty<RankFourTensor> & _elasticity_tensor;
 };
 
 /// Tensor -> my notation

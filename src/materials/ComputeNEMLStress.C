@@ -32,10 +32,7 @@ ComputeNEMLStress::ComputeNEMLStress(const InputParameters & parameters) :
     _dissipation_old(getMaterialPropertyOld<Real>("dissipation")),
     _temperature(coupledValue("temperature")),
     _temperature_old(coupledValueOld("temperature")),
-    _inelastic_strain(declareProperty<RankTwoTensor>("inelastic_strain")),
-    _shear_modulus(declareProperty<Real>("shear_modulus")),
-    _bulk_modulus(declareProperty<Real>("bulk_modulus")),
-    _elasticity_tensor(declareProperty<RankFourTensor>("elasticity_tensor"))
+    _inelastic_strain(declareProperty<RankTwoTensor>("inelastic_strain"))
 {
   // I strongly hesitate to put this here, may change later
   _model = neml::parse_xml_unique(_fname, _mname);
@@ -114,18 +111,6 @@ void ComputeNEMLStress::computeQpProperties()
   // Store dissipation
   _energy[_qp] = u_np1;
   _dissipation[_qp] = p_np1;
-
-  // Store elastic properties at current time
-  double mu = _model->shear(T_np1);
-  double K = _model->bulk(T_np1);
-  double l = K - 2.0 * mu / 3.0;
-  
-  _shear_modulus[_qp] = mu;
-  _bulk_modulus[_qp] = K;
-
-  std::vector<Real> props({l, mu});
-  _elasticity_tensor[_qp].fillFromInputVector(props, RankFourTensor::FillMethod::symmetric_isotropic);
-
 }
 
 void ComputeNEMLStress::initQpStatefulProperties()
