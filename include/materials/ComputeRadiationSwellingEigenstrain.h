@@ -13,7 +13,7 @@ InputParameters validParams<ComputeRadiationSwellingEigenstrain>();
  *  1) Dose rate versus time
  *  2) Swelling versus dose
  *
- *  The swelling curve is input as a swelling relation, i.e. 
+ *  The swelling curve is input as a swelling relation, i.e.
  *  change in volume / volume and the class takes care of the conversion
  *  to strain
  */
@@ -25,8 +25,8 @@ class ComputeRadiationSwellingEigenstrain: public ComputeEigenstrainBase
   virtual void computeQpEigenstrain() override;
 
  private:
-  Function & _swelling;
-  Function & _dose_rate;
+  const Function & _swelling;
+  const Function & _dose_rate;
   MaterialProperty<Real> & _dose;
   const MaterialProperty<Real> & _dose_old;
 };
