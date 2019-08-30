@@ -13,7 +13,7 @@ class CapGradient : public Function
  public:
   CapGradient(const InputParameters & parameters);
 
-  virtual Real value(Real t, const Point & p) override;
+  virtual Real value(Real t, const Point & p);
 
  private:
   Real _getTemp(Real T2p, Real nx);
