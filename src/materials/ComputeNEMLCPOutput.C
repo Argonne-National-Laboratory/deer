@@ -24,6 +24,10 @@ ComputeNEMLCPOutput::ComputeNEMLCPOutput(const InputParameters & parameters)
     _grain(getParam<unsigned int>("grain_id"))
 {
   _cpmodel = static_cast<neml::SingleCrystalModel *>(_model.get());
+  if((_cp == false) ){
+    mooseWarning("crystal plasticity flag is not set but still using crystal plasticity model");
+   }
+
   if((_cp == true) && (!parameters.isParamSetByUser("grain_id"))){
     mooseWarning("grain id's not provided, block id will be used for the cp");
     _given = 0;
@@ -61,9 +65,12 @@ ComputeNEMLCPOutput::initQpStatefulProperties()
       EulerAngles angles;
       // auto grains = _euler.getGrainNum(); // total grains
       if (_given == 0){
-        _grain = std::max(0,_current_elem->subdomain_id() - 1);
+        unsigned int grain = std::max(_current_elem->subdomain_id() - 1,0); // to avoid block 0 condition
+        angles = _euler->getEulerAngles(grain); // current orientation
       }
-      angles = _euler->getEulerAngles(_grain); // current orientation
+      else{
+        angles = _euler->getEulerAngles(_grain); // current orientation
+      }
       neml:: Orientation e = neml::Orientation::createEulerAngles(angles.phi1, angles.Phi, angles.phi2,"degrees");
       _cpmodel->set_active_orientation(&_hist[_qp].front(),e);
   }
