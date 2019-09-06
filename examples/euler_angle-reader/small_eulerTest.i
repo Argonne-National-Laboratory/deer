@@ -114,9 +114,7 @@
     database = "test.xml"
     model = "grain_1"
     large_kinematics = true
-    crystal_plasticity= true
     euler_angle_provider = euler_angle_file
-    add_cp_output = true
     # block = 1
     # grain_id = 0
   [../]
