@@ -13,23 +13,23 @@ registerMooseObject("DeerApp", PiecewiseLinearCycle);
 
 template <> InputParameters validParams<PiecewiseLinearCycle>() {
   InputParameters params = validParams<PiecewiseLinear>();
-  params.addRequiredParam<FunctionName>("cycle_fraction_func",
-                                        "The cycle fraction function name");
+  params.addRequiredParam<FunctionName>("cycle_time_func",
+                                        "The CycleTime function name");
   params.addClassDescription("linearly interpolate a function cyclicly");
   return params;
 }
 
 PiecewiseLinearCycle::PiecewiseLinearCycle(const InputParameters &parameters)
     : PiecewiseLinear(parameters), FunctionInterface(this),
-      _cycle_fraction_func(getFunction("cycle_fraction_func")) {}
+      _cycle_time_func(getFunction("cycle_time_func")) {}
 
 Real PiecewiseLinearCycle::value(Real t, const Point &p) {
-  // Real c_fraction = _cycle_fraction_func::value(t, p);
+  // Real c_fraction = _cycle_time_func::value(t, p);
   Real func_value;
   if (_has_axis) {
     func_value = _linear_interp->sample(p(_axis));
   } else {
-    func_value = _linear_interp->sample(_cycle_fraction_func.value(t, p));
+    func_value = _linear_interp->sample(_cycle_time_func.value(t, p));
   }
   return _scale_factor * func_value;
 }
@@ -39,8 +39,7 @@ Real PiecewiseLinearCycle::timeDerivative(Real t, const Point &p) {
   if (_has_axis) {
     func_value = _linear_interp->sampleDerivative(p(_axis));
   } else {
-    func_value =
-        _linear_interp->sampleDerivative(_cycle_fraction_func.value(t, p));
+    func_value = _linear_interp->sampleDerivative(_cycle_time_func.value(t, p));
   }
   return _scale_factor * func_value;
 }

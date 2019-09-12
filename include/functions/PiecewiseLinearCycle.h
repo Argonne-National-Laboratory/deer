@@ -9,24 +9,23 @@
 
 #pragma once
 
-#include "PiecewiseLinear.h"
-#include "CycleFraction.h"
+#include "CycleTime.h"
 #include "FunctionInterface.h"
+#include "PiecewiseLinear.h"
 
 // Forward declarations
 class PiecewiseLinearCycle;
 
-template <>
-InputParameters validParams<PiecewiseLinearCycle>();
+template <> InputParameters validParams<PiecewiseLinearCycle>();
 
 /**
  * Function which provides a PiecewiseLinear continuous linear interpolation
  * of a provided (x,y) point data set.
  */
-class PiecewiseLinearCycle : public PiecewiseLinear, protected FunctionInterface
-{
+class PiecewiseLinearCycle : public PiecewiseLinear,
+                             protected FunctionInterface {
 public:
-  PiecewiseLinearCycle(const InputParameters & parameters);
+  PiecewiseLinearCycle(const InputParameters &parameters);
 
   /**
    * Get the value of the function (based on time only)
@@ -34,7 +33,7 @@ public:
    * \param pt The point in space (x,y,z) (unused)
    * \return The value of the function at the specified time
    */
-  virtual Real value(Real t, const Point & pt) override;
+  virtual Real value(Real t, const Point &pt) override;
 
   /**
    * Get the time derivative of the function (based on time only)
@@ -42,12 +41,12 @@ public:
    * \param pt The point in space (x,y,z) (unused)
    * \return The time derivative of the function at the specified time
    */
-  virtual Real timeDerivative(Real t, const Point & pt) override;
+  virtual Real timeDerivative(Real t, const Point &pt) override;
 
   virtual Real integral() override;
 
   virtual Real average() override;
 
 protected:
-  Function & _cycle_fraction_func;
+  Function &_cycle_time_func;
 };
