@@ -1,0 +1,15 @@
+[Tests]
+  [./traction_aux]
+    type = Exodiff
+    input = 'simple_shear.i'
+    exodiff = 'simple_shear_out.e'
+    requirement = "Test demonstrating the use of TractionAux. Traction on the top"
+    " surface should be equal to stress ocmponents "
+  [../]
+  [./traction_aux_rotated]
+    type = Exodiff
+    input = 'simple_shear_rotated.i'
+    exodiff = 'simple_shear_rotated.e'
+    requirement = "Traction on the top surface must be the same as in simple_shear test."
+  [../]
+[]
