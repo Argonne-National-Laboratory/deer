@@ -3,7 +3,7 @@
 ###############################################################################
 #
 # Optional Environment variables
-# MOOSE_DIR        - Root directory of the MOOSE project 
+# MOOSE_DIR        - Root directory of the MOOSE project
 #
 ###############################################################################
 # Use the MOOSE submodule if it exists and MOOSE_DIR is not set
@@ -32,7 +32,7 @@ FLUID_PROPERTIES    := no
 HEAT_CONDUCTION     := yes
 MISC                := no
 NAVIER_STOKES       := no
-PHASE_FIELD         := no
+PHASE_FIELD         := yes
 RDG                 := no
 RICHARDS            := no
 SOLID_MECHANICS     := no
@@ -45,9 +45,9 @@ POROUS_FLOW         := no
 include $(MOOSE_DIR)/modules/modules.mk
 ###############################################################################
 
-# linking NEML
-ADDITIONAL_INCLUDES := 
-ADDITIONAL_LIBS 	  := 
+# linking NEML, NEML_DIR=/path/to/neml
+ADDITIONAL_INCLUDES := -I$(NEML_DIR)/src/ -I$(NEML_DIR)/src/math
+ADDITIONAL_LIBS 	  := -L$(NEML_DIR)/lib/ -lneml
 
 # dep apps
 APPLICATION_DIR     := $(CURDIR)
