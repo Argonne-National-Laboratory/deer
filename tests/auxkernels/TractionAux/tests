@@ -9,7 +9,7 @@
   [./traction_aux_rotated]
     type = Exodiff
     input = 'simple_shear_rotated.i'
-    exodiff = 'simple_shear_rotated.e'
+    exodiff = 'simple_shear_rotated_out.e'
     requirement = "Traction on the top surface must be the same as in simple_shear test."
   [../]
 []

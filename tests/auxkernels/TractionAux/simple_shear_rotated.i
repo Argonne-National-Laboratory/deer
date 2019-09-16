@@ -74,12 +74,15 @@
 []
 
 [Functions]
-  [./loadFunction]
-    type = ParsedFunction
-    value = 1e-2*t
-  [../]
+[./loadFunction_y]
+  type = ParsedFunction
+  value = 1e-2*t*(cos(pi/6)-sin(pi/6))
+[../]
+[./loadFunction_z]
+  type = ParsedFunction
+  value = 1e-2*t*(cos(pi/6)+sin(pi/6))
+[../]
 []
-
 
 [BCs]
   [./x0_x]
@@ -106,13 +109,13 @@
     type = FunctionDirichletBC
     variable = disp_y
     boundary = node67
-    function = loadFunction
+    function = loadFunction_y
   [../]
   [./z1_z]
     type = FunctionDirichletBC
     variable = disp_z
     boundary = node67
-    function = loadFunction
+    function = loadFunction_z
   [../]
 []
 
