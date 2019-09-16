@@ -23,7 +23,7 @@ PiecewiseLinearCycle::PiecewiseLinearCycle(const InputParameters &parameters)
     : PiecewiseLinear(parameters), FunctionInterface(this),
       _cycle_time_func(getFunction("cycle_time_func")) {}
 
-Real PiecewiseLinearCycle::value(Real t, const Point &p) {
+Real PiecewiseLinearCycle::value(Real t, const Point &p) const {
   // Real c_fraction = _cycle_time_func::value(t, p);
   Real func_value;
   if (_has_axis) {
@@ -34,21 +34,22 @@ Real PiecewiseLinearCycle::value(Real t, const Point &p) {
   return _scale_factor * func_value;
 }
 
-Real PiecewiseLinearCycle::timeDerivative(Real t, const Point &p) {
+Real PiecewiseLinearCycle::timeDerivative(Real t, const Point &p) const {
   Real func_value;
   if (_has_axis) {
     func_value = _linear_interp->sampleDerivative(p(_axis));
   } else {
     func_value = _linear_interp->sampleDerivative(_cycle_time_func.value(t, p));
   }
+  std::cout << "PiecewiseLinearCycle: func_value " << func_value << "\n";
   return _scale_factor * func_value;
 }
 
-Real PiecewiseLinearCycle::integral() {
+Real PiecewiseLinearCycle::integral() const {
   return _scale_factor * _linear_interp->integrate();
 }
 
-Real PiecewiseLinearCycle::average() {
+Real PiecewiseLinearCycle::average() const {
   return integral() /
          (_linear_interp->domain(_linear_interp->getSampleSize() - 1) -
           _linear_interp->domain(0));

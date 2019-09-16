@@ -21,7 +21,7 @@ class CycleNumber : public Function
 public:
   CycleNumber(const InputParameters & parameters);
 
-  virtual Real value(Real t, const Point & p);
+  Real value(Real t, const Point &p) const override;
 
   const Real _cycle_period;
 };

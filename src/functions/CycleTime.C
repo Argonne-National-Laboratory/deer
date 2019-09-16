@@ -24,7 +24,7 @@ template <> InputParameters validParams<CycleTime>() {
 CycleTime::CycleTime(const InputParameters &parameters)
     : Function(parameters), _cycle_period(getParam<Real>("cycle_period")) {}
 
-Real CycleTime::value(Real /*t*/, const Point & /*p*/) {
+Real CycleTime::value(Real /*t*/, const Point & /*p*/) const {
   Real intpart;
   Real fractpart = std::modf(_t / _cycle_period, &intpart);
   return fractpart * _cycle_period;

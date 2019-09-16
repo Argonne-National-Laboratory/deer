@@ -13,15 +13,13 @@
 
 class CycleTime;
 
-template <>
-InputParameters validParams<CycleTime>();
+template <> InputParameters validParams<CycleTime>();
 
-class CycleTime : public Function
-{
+class CycleTime : public Function {
 public:
-  CycleTime(const InputParameters & parameters);
+  CycleTime(const InputParameters &parameters);
 
-  virtual Real value(Real t, const Point & p);
+  Real value(Real t, const Point &p) const override;
 
   const Real _cycle_period;
 };

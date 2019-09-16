@@ -33,7 +33,7 @@ public:
    * \param pt The point in space (x,y,z) (unused)
    * \return The value of the function at the specified time
    */
-  virtual Real value(Real t, const Point &pt);
+  Real value(Real t, const Point &pt) const override;
 
   /**
    * Get the time derivative of the function (based on time only)
@@ -41,11 +41,11 @@ public:
    * \param pt The point in space (x,y,z) (unused)
    * \return The time derivative of the function at the specified time
    */
-  virtual Real timeDerivative(Real t, const Point &pt);
+  Real timeDerivative(Real t, const Point &pt) const override;
 
-  virtual Real integral();
+  Real integral() const override;
 
-  virtual Real average();
+  Real average() const override;
 
 protected:
   const Function &_cycle_time_func;

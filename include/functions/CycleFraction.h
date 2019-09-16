@@ -13,15 +13,13 @@
 
 class CycleFraction;
 
-template <>
-InputParameters validParams<CycleFraction>();
+template <> InputParameters validParams<CycleFraction>();
 
-class CycleFraction : public Function
-{
+class CycleFraction : public Function {
 public:
-  CycleFraction(const InputParameters & parameters);
+  CycleFraction(const InputParameters &parameters);
 
-  virtual Real value(Real t, const Point & p);
+  Real value(Real t, const Point &p) const override;
 
   const Real _cycle_period;
 };
