@@ -1,0 +1,10 @@
+[Tests]
+  [./small]
+    type = Exodiff
+    input = 'test_cyclic_functions.i'
+    exodiff = 'test_cyclic_functions_out.e'
+    requirement = "Test the behavior of cyclic functions: CycleTime, CycleFraction, "
+    "CycleNumber and PiecewiseLinearCycle. It runs for 3 cycle and a total time of 9 "
+    "units. "
+  [../]
+[]
