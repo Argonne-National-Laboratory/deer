@@ -1,9 +1,11 @@
 [Mesh]
-  type = GeneratedMesh
+  [./msh]
+  type = GeneratedMeshGenerator
   dim = 3
   nx = 1
   ny = 1
   nz = 1
+  []
 []
 
 [GlobalParams]
