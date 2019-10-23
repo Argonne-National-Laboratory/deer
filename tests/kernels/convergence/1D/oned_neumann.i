@@ -10,9 +10,11 @@
 []
 
 [Mesh]
-  type = GeneratedMesh
-  dim = 1
-  nx = 10
+  [./msh]
+    type = GeneratedMeshGenerator
+    dim = 1
+    nx = 10
+  []
 []
 
 [Kernels]

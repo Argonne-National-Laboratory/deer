@@ -1,32 +1,35 @@
 [Mesh]
-  type = GeneratedMesh
-  nx = 1
-  ny = 1
-  nz = 1
-  dim = 3
-[]
+  [./msh]
+    type = GeneratedMeshGenerator
+    nx = 1
+    ny = 1
+    nz = 1
+    dim = 3
+  []
 
-
-[MeshModifiers]
   [./rotate]
-    type= Transform
+    input = msh
+    type= TransformGenerator
     transform = ROTATE
     vector_value = '0 30 0'
   [../]
 
 
   [./node0_1]
-    type = AddExtraNodeset
+    input = rotate
+    type = ExtraNodesetGenerator
     new_boundary = 'node01'
     nodes = '0 1'
   [../]
   [./node0]
-    type = AddExtraNodeset
+    input = node0_1
+    type = ExtraNodesetGenerator
     new_boundary = 'node0'
     nodes = '0'
   [../]
   [./node67]
-    type = AddExtraNodeset
+     input = node0
+    type = ExtraNodesetGenerator
     new_boundary = 'node67'
     nodes = '6 7'
   [../]

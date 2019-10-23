@@ -1,14 +1,14 @@
 [Mesh]
-  type = GeneratedMesh
+  [./msh]
+  type = GeneratedMeshGenerator
   dim = 3
   nx = 2
   ny = 2
   nz = 2
-[]
-
-[MeshModifiers]
+  []
   [./subdomain]
-    type = AssignElementSubdomainID
+    input = msh
+    type = ElementSubdomainIDGenerator
     subdomain_ids = '0 0 0 0
                      1 1 1 1'
   [../]

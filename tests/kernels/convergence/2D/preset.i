@@ -12,10 +12,12 @@
 []
 
 [Mesh]
-  type = GeneratedMesh
-  dim = 2
-  nx = 4
-  ny = 4
+  [./msh]
+    type = GeneratedMeshGenerator
+    dim = 2
+    nx = 4
+    ny = 4
+  []
 []
 
 [Kernels]

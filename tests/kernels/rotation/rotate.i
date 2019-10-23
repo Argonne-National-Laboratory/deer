@@ -14,7 +14,8 @@
 []
 
 [Mesh]
-  type = GeneratedMesh
+  [./msh]
+  type = GeneratedMeshGenerator
   dim = 3
   nx = 1
   ny = 1
@@ -25,6 +26,7 @@
   ymax = 0.5
   zmin = -0.5
   zmax = 0.5
+  []
 []
 
 [Kernels]

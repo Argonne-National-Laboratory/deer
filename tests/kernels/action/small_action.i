@@ -1,11 +1,13 @@
 # Simple 3D test
 
 [Mesh]
-  type = GeneratedMesh
+  [./msh]
+  type = GeneratedMeshGenerator
   dim = 3
   nx = 4
   ny = 4
   nz = 4
+  []
 []
 
 [NEMLMechanics]
@@ -71,7 +73,7 @@
   nl_max_its = 15
   nl_rel_tol = 1e-8
   nl_abs_tol = 1e-10
-  
+
   dt = 1
   end_time = 1.0
 []
