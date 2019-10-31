@@ -38,6 +38,10 @@ template <> InputParameters validParams<NEMLMechanicsAction>() {
       "add_all_output", false,
       "Dump all the usual stress and strain variables to the output");
 
+  params.addParam<std::vector<MaterialPropertyName>>("eigenstrains",
+                                                     std::vector<MaterialPropertyName>(),
+                                                     "Names of the eigenstrains");
+
   return params;
 }
 
@@ -47,7 +51,11 @@ NEMLMechanicsAction::NEMLMechanicsAction(const InputParameters &params)
       _ndisp(_displacements.size()),
       _add_disp(getParam<bool>("add_displacements")),
       _add_all(getParam<bool>("add_all_output")),
-      _kinematics(getParam<MooseEnum>("kinematics").getEnum<Kinematics>()) {}
+      _kinematics(getParam<MooseEnum>("kinematics").getEnum<Kinematics>()),
+      _eigenstrains(getParam<std::vector<MaterialPropertyName>>("eigenstrains"))
+{
+
+}
 
 void NEMLMechanicsAction::act() {
   if (_current_task == "add_variable") {
@@ -70,6 +78,7 @@ void NEMLMechanicsAction::act() {
     auto params = _factory.getValidParams("ComputeNEMLStrain");
 
     params.set<std::vector<VariableName>>("displacements") = _displacements;
+    params.set<std::vector<MaterialPropertyName>>("eigenstrain_names") = _eigenstrains;
     params.set<bool>("large_kinematics") = _kin_mapper[_kinematics];
 
     _problem->addMaterial("ComputeNEMLStrain", "strain", params);

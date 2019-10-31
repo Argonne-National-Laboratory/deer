@@ -36,6 +36,8 @@ class NEMLMechanicsAction : public Action
   std::map<Kinematics, bool> _kin_mapper = {
     {Kinematics::Small, false},
     {Kinematics::Large, true}};
+
+  std::vector<MaterialPropertyName> _eigenstrains;  
 };
 
 #endif // NEMLMECHANICSACTION_H

@@ -9,6 +9,7 @@ validParams<ComputeNEMLStrainBase>()
   params.addRequiredCoupledVar("displacements",
                                "Displacement variables");
   params.addParam<bool>("large_kinematics", false, "Use large displacement kinematics.");
+  params.addParam<std::vector<MaterialPropertyName>>("eigenstrain_names", "List of eigenstrains to account for.");
   params.suppressParameter<bool>("use_displaced_mesh");
 
   return params;
@@ -25,9 +26,15 @@ ComputeNEMLStrainBase::ComputeNEMLStrainBase(const InputParameters & parameters)
     _def_grad(declareProperty<RankTwoTensor>("def_grad")),
     _def_grad_old(getMaterialPropertyOld<RankTwoTensor>("def_grad")),
     _df(declareProperty<RankTwoTensor>("df")),
+    _eigenstrain_names(getParam<std::vector<MaterialPropertyName>>("eigenstrain_names")),
+    _eigenstrains(_eigenstrain_names.size()),
+    _eigenstrains_old(_eigenstrain_names.size()),
     _ld(getParam<bool>("large_kinematics"))
 {
-
+  for (unsigned int i = 0; i < _eigenstrain_names.size(); i++) {
+    _eigenstrains[i] = &getMaterialProperty<RankTwoTensor>(_eigenstrain_names[i]);
+    _eigenstrains_old[i] = &getMaterialPropertyOld<RankTwoTensor>(_eigenstrain_names[i]);
+  }
 }
 
 void
@@ -70,6 +77,18 @@ void ComputeNEMLStrainBase::computeProperties()
 void ComputeNEMLStrainBase::precalculate()
 {
 
+}
+
+RankTwoTensor ComputeNEMLStrainBase::eigenstrainIncrement()
+{
+  RankTwoTensor res;
+  res.zero();
+  for (unsigned int i = 0; i < _eigenstrain_names.size(); i++) {
+    res += (*_eigenstrains[i])[_qp];
+    res -= (*_eigenstrains_old[i])[_qp];
+  }
+  
+  return res;
 }
 
 void ComputeNEMLStrainBase::computeQpProperties()

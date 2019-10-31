@@ -34,6 +34,6 @@ ComputeNEMLStrain::computeQpProperties()
   }
 
   _strain_inc[_qp] = (L + L.transpose()) / 2.0;
-  _mechanical_strain_inc[_qp] = (L + L.transpose()) / 2.0;
+  _mechanical_strain_inc[_qp] = (L + L.transpose()) / 2.0 - eigenstrainIncrement();
   _vorticity_inc[_qp] = (L - L.transpose()) / 2.0;
 }

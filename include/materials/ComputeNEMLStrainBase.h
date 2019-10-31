@@ -26,6 +26,8 @@ class ComputeNEMLStrainBase: public DerivativeMaterialInterface<Material>
 
   virtual void precalculate();
 
+  RankTwoTensor eigenstrainIncrement();
+
  protected:
   unsigned int _ndisp;
 
@@ -42,6 +44,10 @@ class ComputeNEMLStrainBase: public DerivativeMaterialInterface<Material>
   const MaterialProperty<RankTwoTensor> & _def_grad_old;
 
   MaterialProperty<RankTwoTensor> & _df;
+
+  std::vector<MaterialPropertyName> _eigenstrain_names;
+  std::vector<const MaterialProperty<RankTwoTensor>*> _eigenstrains;
+  std::vector<const MaterialProperty<RankTwoTensor>*> _eigenstrains_old;
 
   bool _ld;
 };
