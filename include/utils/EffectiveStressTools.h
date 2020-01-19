@@ -54,7 +54,8 @@ T Hayhurst(const RankTwoTensorTempl<T> &stress,
 
   Real I1 = stress.trace();
   Real svm = RankTwoScalarTools::vonMisesStress(stress);
-  Real S1_positive = RankTwoScalarTools::maxPrincipal(stress, direction);
+  Real S1_positive =
+      std::max(RankTwoScalarTools::maxPrincipal(stress, direction), 0.0);
   return params_vector[0] * S1_positive + params_vector[1] * I1 +
          params_vector[2] * svm;
 }

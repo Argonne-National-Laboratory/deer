@@ -6,5 +6,6 @@
       <m2_type>poissons</m2_type>
       <m2>0.3</m2>
     </elastic>
+    <alpha>1.0e-3</alpha>
   </elastic_model>
 </materials>
