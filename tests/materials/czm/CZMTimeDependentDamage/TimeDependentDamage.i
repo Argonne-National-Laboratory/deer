@@ -18,7 +18,90 @@
     type = BreakMeshByBlockGenerator
     input = new_block
   []
+  [./lower]
+     input = split
+     type = LowerDBlockFromSidesetGenerator
+     new_block_name = 'LD_interface'
+     new_block_id = 1000
+     sidesets = 6
+  [../]
 []
+
+[AuxVariables]
+  [./dummy]
+    family = MONOMIAL
+    order = CONSTANT
+  []
+  [./interface_damage]
+    family = MONOMIAL
+    order = CONSTANT
+  []
+  [./T_N]
+    family = MONOMIAL
+    order = CONSTANT
+  []
+
+[]
+
+
+# [UserObjects]
+#   [./LD_map]
+#     type = Map2LDelem
+#     ld_block_names = 'LD_interface'
+#     execute_on = 'INITIAL'
+#     boundary = 'interface'
+#   []
+#   [./get_interface_dmage]
+#   type = RealMPAcrossInterface_QP
+#   property_name = interface_damage
+#   interface_value_type = 'master'
+#   boundary = 'interface'
+#   execute_on ='INITIAL NONLINEAR FINAL'
+#   var = dummy
+#   []
+#   [./get_Tn]
+#   type = RealVecorValueMPAcrossInterface_QP
+#   property_name = traction
+#   interface_value_type = 'master'
+#   boundary = 'interface'
+#   execute_on = 'INITIAL LINEAR'
+#   var = dummy
+#   component = 0
+#   []
+# []
+
+[AuxKernels]
+  # [./aux_interface_damage]
+  #   type = Boundary2LDAux
+  #   block = 'LD_interface'
+  #   map2LDelem_uo_name = LD_map
+  #   RealMPAcrossInterface_uo_name = get_interface_dmage
+  #   variable = interface_damage
+  #   execute_on = 'NONLINEAR FINAL TIMESTEP_END'
+  # [../]
+  # [./aux_normal_traction]
+  #   type = Boundary2LDAux
+  #   block = 'LD_interface'
+  #   map2LDelem_uo_name = LD_map
+  #   RealMPAcrossInterface_uo_name = get_Tn
+  #   variable = T_N
+  #   execute_on = 'INITIAL LINEAR TIMESTEP_END'
+  # [../]
+  [./aux_normal_traction]
+    type = MaterialRealVectorValueAux
+    boundary = 'interface'
+    property = traction
+    variable = T_N
+    component = 0
+  [../]
+  [./aux_interface_damage]
+    type = MaterialRealAux
+    boundary = 'interface'
+    property = interface_damage
+    variable = interface_damage
+  [../]
+[]
+
 
 [NEMLMechanics]
   displacements = "disp_x disp_y disp_z"
@@ -110,9 +193,9 @@
     boundary = 'interface'
     K_n = 1e4
     K_t = 1e4
-    max_damage =.9
-    stiffness_reduction_factor = 100.
-    residual_life_scaling_factor = 10.
+    max_damage =.99
+    stiffness_reduction_factor = 1000.
+    residual_life_scaling_factor = 1.
     effective_stress_mp_name = vonmises_interface
     x = '0 1000'
     y = '1e3 1e2'
