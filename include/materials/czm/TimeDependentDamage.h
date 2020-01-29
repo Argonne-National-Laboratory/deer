@@ -56,6 +56,7 @@ protected:
   const MaterialProperty<RealVectorValue> &_T_fail_old;
   const MaterialProperty<RealVectorValue> &_K_fail_old;
   const Real _residual_life_scaling_factor;
+  const Real _min_allowed_residual_life;
 
   /// LinearInterpolation object
   std::unique_ptr<LinearInterpolation> _linear_interp;

@@ -32,6 +32,9 @@ template <> InputParameters validParams<TimeDependentDamage>() {
   params.addRequiredParam<MaterialPropertyName>(
       "effective_stress_mp_name",
       "the effective stress material property name");
+  params.addParam<Real>(
+      "min_allowed_residual_life", 0.,
+      "the minimum residaul life before traction decay kicks in");
   // params.addParam<MooseEnum>("interface_value_type",
   //                            InterfaceValueTools::InterfaceAverageOptions(),
   //                            "effective stress averaging type");
@@ -74,7 +77,8 @@ TimeDependentDamage::TimeDependentDamage(const InputParameters &parameters)
       _K_fail_old(
           getMaterialPropertyOld<RealVectorValue>("stiffness_at_failure")),
       _residual_life_scaling_factor(
-          getParam<Real>("residual_life_scaling_factor"))
+          getParam<Real>("residual_life_scaling_factor")),
+      _min_allowed_residual_life(getParam<Real>("min_allowed_residual_life"))
 
 {
   // check stifness reduction factor
@@ -119,25 +123,27 @@ RealVectorValue TimeDependentDamage::computeTraction() {
 
   // update damage and check if element has failed
   updateDamage();
-  _element_failed[_qp] = 0;
-  if (_damage[_qp] >= _max_damage)
-    _element_failed[_qp] = 1;
-
   if (_element_failed_old[_qp] == 0) {
     for (unsigned int i = 0; i < 3; i++)
       traction_local(i) =
           _stiffness[i] * (1. - _damage[_qp]) * _displacement_jump[_qp](i);
-    if (_displacement_jump[_qp](0) < 0)
-      traction_local(0) *= _copenetration_penalty;
 
     computeDecayRelatedVariables(traction_local);
-  } else {
-    updateDamage();
+  } else
     traction_local = computeExpTractionDecay();
-  }
+
+  if (_displacement_jump[_qp](0) < 0)
+    traction_local(0) *= _copenetration_penalty;
 
   if (_element_failed_old[_qp] > 0)
     traction_local(0) -= _fluid_pressure;
+
+  _element_failed[_qp] = 0;
+  if ((_element_failed_old[_qp] == 1) ||
+      ((_element_failed_old[_qp] == 0) &&
+       ((_damage[_qp] >= _max_damage) ||
+        _residual_life[_qp] < _min_allowed_residual_life)))
+    _element_failed[_qp] = 1;
 
   return traction_local;
 }
@@ -150,11 +156,11 @@ RankTwoTensor TimeDependentDamage::computeTractionDerivatives() {
       traction_jump_derivatives_local(i, i) =
           _stiffness[i] * (1. - _damage[_qp]);
 
-    if (_displacement_jump[_qp](0) < 0)
-      traction_jump_derivatives_local(0, 0) *= _copenetration_penalty;
   } else
     traction_jump_derivatives_local = computeExpTractionDerivativeDecay();
 
+  if (_displacement_jump[_qp](0) < 0)
+    traction_jump_derivatives_local(0, 0) *= _copenetration_penalty;
   return traction_jump_derivatives_local;
 }
 
@@ -170,7 +176,7 @@ void TimeDependentDamage::initQpStatefulProperties() {
   _damage[_qp] = 0;
   _element_failed[_qp] = 0;
   _time_fail[_qp] = 0;
-  _residual_life[_qp] = 0;
+  _residual_life[_qp] = _linear_interp->sample(0.);
   for (unsigned int i = 0; i < 3; i++) {
     _du_fail[_qp](i) = 0;
     _T_fail[_qp](i) = 0;
@@ -182,7 +188,8 @@ void TimeDependentDamage::computeDecayRelatedVariables(
     const RealVectorValue &traction_local) {
   if (_element_failed_old[_qp] == 0) { // update values
     const Real max_life = _linear_interp->sample(_effective_stress_old[_qp]);
-    _residual_life[_qp] = (1. - _damage[_qp]) * max_life;
+    _residual_life[_qp] =
+        std::max((1. - _damage[_qp]) * max_life, _min_allowed_residual_life);
     _time_fail[_qp] = _t;
     _T_fail[_qp] = traction_local;
     _du_fail[_qp] = _displacement_jump[_qp];
@@ -204,17 +211,13 @@ RealVectorValue TimeDependentDamage::computeExpTractionDecay() {
 
   Real damage_exp = std::exp(-5. * _residual_life_scaling_factor *
                              (_t - _time_fail[_qp]) / _residual_life[_qp]);
-  // std::cout << "damage_exp= " << damage_exp << std::endl;
+
   for (unsigned int i = 0; i < 3; i++) {
     Real c_exp = std::max(_K_fail[_qp](i) * damage_exp, _minimum_stiffnes[i]);
-    // std::cout << "_K_fail[_qp](" << i << ")= " << _K_fail[_qp](i) <<
-    // std::endl;
+
     traction_local(i) =
         (_displacement_jump[_qp](i) - _du_fail[_qp](i)) * c_exp +
         _T_fail[_qp](i) * damage_exp;
-
-    // std::cout << "traction_local(" << i << ")= " << traction_local(i)
-    //           << std::endl;
   }
   return traction_local;
 }
@@ -226,7 +229,7 @@ RankTwoTensor TimeDependentDamage::computeExpTractionDerivativeDecay() {
   for (unsigned int i = 0; i < 3; i++) {
 
     Real c_exp = std::max(_K_fail[_qp](i) * damage_exp, _minimum_stiffnes[i]);
-    traction_jump_derivatives_local(i, i) += c_exp;
+    traction_jump_derivatives_local(i, i) = c_exp;
     // std::cout << "traction_jump_derivatives_local(" << i << "," << i
     //           << ")= " << traction_jump_derivatives_local(i, i) << std::endl;
   }

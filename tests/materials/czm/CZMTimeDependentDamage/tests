@@ -1,8 +1,8 @@
 [Tests]
-  [./3d]
+  [./TimeDependentDamage]
     type = Exodiff
-    input = 'eigenstrain_3d.i'
-    exodiff = 'eigenstrain_3d_out.e'
-    requirement = "Check on the thermal strain definition, 3d."
+    input = 'TimeDependentDamage.i'
+    exodiff = 'TimeDependentDamage_out.e'
+    requirement = "check the TimeDependentDamage czm material works properly"
   [../]
 []

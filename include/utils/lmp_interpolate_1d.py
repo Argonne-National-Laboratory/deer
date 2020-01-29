@@ -1,5 +1,6 @@
 import numpy as np
 import scipy.interpolate as spinterp
+import scipy.optimize as opt
 from matplotlib import pyplot as plt
 
 coeff = [-6.65303514e-09, 2.95224385e-04, -6.19561357e-01]
@@ -16,5 +17,11 @@ stress = 10**sfun(pval)
 
 print(stress[::-1], time[::-1]*3600, )
 
-plt.loglog(pval, stress)
-plt.show()
+stressfun = lambda x: 10**sfun(P(x))
+
+stress_list = [147, 143,150,147,146,167]
+trupture = []
+for s in stress_list:
+  optfun = lambda x: s - stressfun(x)
+  trupture.append(opt.brentq(optfun,1e3,1e8))
+print(trupture)

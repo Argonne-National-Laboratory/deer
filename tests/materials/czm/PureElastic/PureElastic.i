@@ -147,18 +147,6 @@
     variable = disp_z
     value = 0.0
   [../]
-  # [./x_top]
-  #   type = FunctionDirichletBC
-  #   boundary = front
-  #   variable = disp_x
-  #   function = disp_fun
-  # [../]
-  # [./y_top]
-  #   type = FunctionDirichletBC
-  #   boundary = front
-  #   variable = disp_y
-  #   function = disp_fun
-  # [../]
   [./x_top]
     type = DirichletBC
     boundary = front
