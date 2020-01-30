@@ -42,6 +42,8 @@ InputParameters NEMLMechanicsAction::validParams() {
       "eigenstrains", std::vector<MaterialPropertyName>(),
       "Names of the eigenstrains");
 
+  params.addParam<std::vector<SubdomainName>>(
+      "block", "The list of subdomain names where to apply this action");
   return params;
 }
 
@@ -53,7 +55,10 @@ NEMLMechanicsAction::NEMLMechanicsAction(const InputParameters &params)
       _add_all(getParam<bool>("add_all_output")),
       _kinematics(getParam<MooseEnum>("kinematics").getEnum<Kinematics>()),
       _eigenstrains(
-          getParam<std::vector<MaterialPropertyName>>("eigenstrains")) {}
+          getParam<std::vector<MaterialPropertyName>>("eigenstrains")),
+      _block(params.isParamSetByUser("block")
+                 ? getParam<std::vector<SubdomainName>>("block")
+                 : std::vector<SubdomainName>(0)) {}
 
 void NEMLMechanicsAction::act() {
   if (_current_task == "add_variable") {
@@ -90,6 +95,8 @@ void NEMLMechanicsAction::act() {
       params.set<NonlinearVariableName>("variable") = _displacements[i];
       params.set<unsigned int>("component") = i;
       params.set<bool>("use_displaced_mesh") = _kin_mapper[_kinematics];
+      if (_block.size() > 0)
+        params.set<std::vector<SubdomainName>>("block") = _block;
 
       std::string name = "SD_" + Moose::stringify(i);
 
@@ -138,6 +145,8 @@ void NEMLMechanicsAction::_add_tensor_aux(std::string name) {
     params.set<AuxVariableName>("variable") = name + "_" + entry.second;
     params.set<unsigned int>("index_i") = entry.first.first;
     params.set<unsigned int>("index_j") = entry.first.second;
+    if (_block.size() > 0)
+      params.set<std::vector<SubdomainName>>("block") = _block;
 
     _problem->addAuxKernel("RankTwoAux", name + "_" + entry.second, params);
   }
@@ -148,6 +157,8 @@ void NEMLMechanicsAction::_add_scalar_aux(std::string name) {
 
   params.set<MaterialPropertyName>("property") = name;
   params.set<AuxVariableName>("variable") = name;
+  if (_block.size() > 0)
+    params.set<std::vector<SubdomainName>>("block") = _block;
 
   _problem->addAuxKernel("MaterialRealAux", name, params);
 }
