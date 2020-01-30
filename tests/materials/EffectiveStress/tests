@@ -1,0 +1,14 @@
+[Tests]
+  [./effective_stress_material]
+    type = Exodiff
+    input = 'effective_stress_material.i'
+    exodiff = 'effective_stress_material_out.e'
+    requirement = "Deer shall be able compute effective stress as material property"
+  [../]
+  [./effective_stress_interface_material]
+    type = Exodiff
+    input = 'effective_stress_interface_materiall.i'
+    exodiff = 'effective_stress_interface_material_out.e'
+    requirement = "Deer shall be able compute effective stress as interface material property"
+  [../]
+[]
