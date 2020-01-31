@@ -1,0 +1,8 @@
+[Tests]
+  [./PureElastic]
+    type = Exodiff
+    input = 'PureElastic.i'
+    exodiff = 'PureElastic_out.e'
+    requirement = "check the pure elastic czm material works properly"
+  [../]
+[]

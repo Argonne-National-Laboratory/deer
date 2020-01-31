@@ -1,0 +1,8 @@
+[Tests]
+  [./PureElastic]
+    type = Exodiff
+    input = 'ViscousSliding.i'
+    exodiff = 'ViscousSliding_out.e'
+    requirement = "check the viscous sliding czm material works properly"
+  [../]
+[]
