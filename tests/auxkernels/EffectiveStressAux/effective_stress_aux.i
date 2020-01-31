@@ -1,132 +1,99 @@
 [Mesh]
-  displacements = 'disp_x disp_y disp_z'
   [generated_mesh]
     type = GeneratedMeshGenerator
-    elem_type = HEX8
     dim = 3
-    nx = 1
-    ny = 1
-    nz = 1
-    xmin = 0.0
-    xmax = 1.0
-    ymin = 0.0
-    ymax = 1.0
-    zmin = 0.0
-    zmax = 1.0
+    nx = 2
+    ny = 2
+    nz = 2
   []
-  [node]
-    type = ExtraNodesetGenerator
-    coord = '0.0 0.0 0.0'
-    new_boundary = 6
+  [./new_block]
+    type = SubdomainBoundingBoxGenerator
     input = generated_mesh
+    block_id = 1
+    bottom_left = '0 0 0.5'
+    top_right = '1 1 1'
   []
-  [snode]
-    type = ExtraNodesetGenerator
-    coord = '1.0 0.0 0.0'
-    new_boundary = 7
-    input = node
+  [./boundary]
+    type = SideSetsBetweenSubdomainsGenerator
+    input = new_block
+    master_block = '0 1'
+    paired_block = 1
+    new_boundary = 'interface'
   []
 []
 
-[Variables]
-  [./disp_x]
-    order = FIRST
-    family = LAGRANGE
-  [../]
- [./disp_y]
-    order = FIRST
-    family = LAGRANGE
-  [../]
-  [./disp_z]
-    order = FIRST
-    family = LAGRANGE
-  [../]
+[NEMLMechanics]
+  displacements = "disp_x disp_y disp_z"
+  kinematics = small
+  add_all_output = true
+  add_displacements = true
 []
-
-[Kernels]
-  [./TensorMechanics]
-    displacements = 'disp_x disp_y disp_z'
-  [../]
-[]
-
-
 
 [Materials]
-  [./fplastic]
-    type = FiniteStrainPlasticMaterial
-    block = 0
-    yield_stress='0. 445. 0.05 610. 0.1 680. 0.38 810. 0.95 920. 2. 950.'
-  [../]
-  [./elasticity_tensor]
-    type = ComputeElasticityTensor
-    block = 0
-    C_ijkl = '2.827e5 1.21e5 1.21e5 2.827e5 1.21e5 2.827e5 0.808e5 0.808e5 0.808e5'
-    fill_method = symmetric9
-  [../]
-  [./strain]
-    type = ComputeFiniteStrain
-    block = 0
-    displacements = 'disp_x disp_y disp_z'
+  [./stress]
+    type = ComputeNEMLStressUpdate
+    database = "../../test_materials.xml"
+    model = "elastic_model"
+    large_kinematics = false
   [../]
 []
 
 [Functions]
- [./topfunc]
-   type = ParsedFunction
-   value = 't'
+ [./topfunc_x]
+   type = PiecewiseLinear
+   x = '0 1'
+   y = '0 10'
+ [../]
+ [./topfunc_y]
+   type = PiecewiseLinear
+   x = '0 1'
+   y = '0 20'
+ [../]
+ [./topfunc_z]
+   type = PiecewiseLinear
+   x = '0 1'
+   y = '0 -30'
  [../]
 []
 
 [BCs]
-  [./bottom3]
-    type = DirichletBC
-    variable = disp_z
-    boundary = 0
-    value = 0.0
-    preset = true
-  [../]
-  [./top]
-    type = FunctionDirichletBC
-    variable = disp_z
-    boundary = 5
-    function = topfunc
-    preset = true
-  [../]
-  [./corner1]
+  [./x_0]
     type = DirichletBC
     variable = disp_x
-    boundary = 6
-    value = 0.0
-    preset = true
+    boundary = 'left'
+    value = 0
   [../]
-  [./corner2]
+  [./y_0]
     type = DirichletBC
     variable = disp_y
-    boundary = 6
-    value = 0.0
-    preset = true
+    boundary = 'bottom'
+    value = 0
   [../]
-  [./corner3]
+  [./z_0]
     type = DirichletBC
     variable = disp_z
-    boundary = 6
-    value = 0.0
-    preset = true
+    boundary = 'back'
+    value = 0
   [../]
-  [./side1]
-    type = DirichletBC
+  [./x_1]
+    type = FunctionNeumannBC
+    variable = disp_x
+    boundary = 'right'
+    function = topfunc_x
+  [../]
+  [./y_1]
+    type = FunctionNeumannBC
     variable = disp_y
-    boundary = 7
-    value = 0.0
-    preset = true
+    boundary = 'top'
+    function = topfunc_y
   [../]
-  [./side2]
-    type = DirichletBC
+  [./z_1]
+    type = FunctionNeumannBC
     variable = disp_z
-    boundary = 7
-    value = 0.0
-    preset = true
+    boundary = 'front'
+    function = topfunc_z
   [../]
+
 []
 
 [AuxVariables]
@@ -224,67 +191,60 @@
   [./vonmises]
     type = ElementAverageValue
     variable = vonmises
-    block = 'ANY_BLOCK_ID'
   [../]
   [./s1]
     type = ElementAverageValue
     variable = s1
-    block = 'ANY_BLOCK_ID'
   [../]
   [./tresca]
     type = ElementAverageValue
     variable = tresca
-    block = 'ANY_BLOCK_ID'
   [../]
   [./hydrostatic]
     type = ElementAverageValue
     variable = hydrostatic
-    block = 'ANY_BLOCK_ID'
   [../]
   [./huddleston]
     type = ElementAverageValue
     variable = huddleston
-    block = 'ANY_BLOCK_ID'
   [../]
   [./hayhurst]
     type = ElementAverageValue
     variable = hayhurst
-    block = 'ANY_BLOCK_ID'
   [../]
   [./rccmrx_mises]
     type = ElementAverageValue
     variable = rccmrx_mises
-    block = 'ANY_BLOCK_ID'
   [../]
   [./rccmrx_tresca]
     type = ElementAverageValue
     variable = rccmrx_tresca
-    block = 'ANY_BLOCK_ID'
   [../]
   [./max_s1_mises]
     type = ElementAverageValue
     variable = max_s1_mises
-    block = 'ANY_BLOCK_ID'
   [../]
 []
 
 [Executioner]
-
   type = Transient
 
-  dt=0.1
-  dtmin=0.1
-  dtmax=1
-  end_time=1.0
+  solve_type = NEWTON
+  line_search = none
 
-  #Preconditioned JFNK (default)
-  solve_type = 'PJFNK'
+  petsc_options_iname = '-pc_type'
+  petsc_options_value = 'lu'
 
-  nl_rel_tol = 1e-10
+  l_max_its = 2
+  l_tol = 1e-14
+  nl_max_its = 4
+  nl_rel_tol = 1e-8
   nl_abs_tol = 1e-10
-[]
 
+  dtmin = 1
+  dt = 1
+  end_time = 1.0
+[]
 [Outputs]
   exodus = true
-  csv = true
 []
