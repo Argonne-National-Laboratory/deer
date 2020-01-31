@@ -1,0 +1,8 @@
+[Tests]
+  [./boundary_properties_on_LD]
+    type = Exodiff
+    input = boundary_properties_on_LD.i
+    exodiff = boundary_properties_on_LD_out.e
+    requirement = 'Deer should be able to correctly dump interface and boundary material properties on lower dimesnional elements'
+  [../]
+[]
