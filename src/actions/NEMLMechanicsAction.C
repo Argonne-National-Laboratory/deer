@@ -43,7 +43,9 @@ template <> InputParameters validParams<NEMLMechanicsAction>() {
       "Names of the eigenstrains");
 
   params.addParam<std::vector<SubdomainName>>(
-      "block", "The list of subdomain names where to apply this action");
+      "block", "The list of subdomain names where neml mehcanisc must be used, "
+               "default all blocks. Helpful when different physiscs and "
+               "kernels are required on different blocks.");
   return params;
 }
 
