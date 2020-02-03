@@ -29,6 +29,9 @@ protected:
   virtual void
   ComputeShearTractionDerivatives(RankTwoTensor &traction_derivatives) override;
 
+  virtual Real ComputeShearViscosity();
+  virtual RankTwoTensor ComputeShearViscosityDerivatives();
+
   /// the displacement jump associated to the maximum traction
   const Real _shear_viscosity;
 

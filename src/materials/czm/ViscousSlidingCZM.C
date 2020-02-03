@@ -67,8 +67,8 @@ void ViscousSlidingCZM::initQpStatefulProperties() {
 
 void ViscousSlidingCZM::ComputeShearTraction(RealVectorValue &traction) {
   Real C = ComputeShearStiffness();
+  Real eta = ComputeShearViscosity();
   for (unsigned int i = 1; i < 3; i++) {
-    Real eta = _shear_viscosity;
     traction(i) =
         eta * _displacement_jump_dot[_qp](i) +
         std::exp(-_dt * C / eta) *
@@ -80,13 +80,28 @@ void ViscousSlidingCZM::ComputeShearTractionDerivatives(
     RankTwoTensor &traction_derivatives) {
   Real C = ComputeShearStiffness();
   RankTwoTensor dC_dui = ComputeShearStiffnessDerivatives();
+  Real eta = ComputeShearViscosity();
+  RankTwoTensor deta_dui = ComputeShearViscosityDerivatives();
   for (unsigned int i = 1; i < 3; i++) {
-    Real eta = _shear_viscosity;
+
     Real dTsi_dui = eta * (1. - std::exp(-_dt * C / eta)) / _dt;
     Real dTsi_dC =
         -_dt / eta * std::exp(-_dt * C / eta) *
         (_traction_old[_qp](i) - eta * _displacement_jump_dot[_qp](i));
+    Real dTsi_deta =
+        _displacement_jump_dot[_qp](i) -
+        _dt * C / (eta * eta) * std::exp(-_dt * C / eta) *
+            (_traction_old[_qp](i) - eta * _displacement_jump_dot[_qp](i)) -
+        std::exp(-_dt * C / eta) * _displacement_jump_dot[_qp](i);
 
-    traction_derivatives(i, i) = dTsi_dui + dTsi_dC * dC_dui(i, i);
+    traction_derivatives(i, i) =
+        dTsi_dui + dTsi_dC * dC_dui(i, i) + dTsi_deta * deta_dui(i, i);
   }
 }
+
+Real ViscousSlidingCZM::ComputeShearViscosity() { return _shear_viscosity; };
+
+RankTwoTensor ViscousSlidingCZM::ComputeShearViscosityDerivatives() {
+  RankTwoTensor deta_dui;
+  return deta_dui;
+};
