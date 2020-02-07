@@ -11,5 +11,10 @@ install:
       - cd ..
       - export MOOSE_DIR=$PWD/moose
       - git clone https://github.com/idaholab/moose.git $MOOSE_DIR
+      - cd $MOOSE_DIR/scripts
+      - ./update_and_rebuild_petsc.sh
+      - ./update_and_rebuild_libmesh.sh
+      - cd ../..
+      - echo $PWD
 script:
       - echo 'hi'
