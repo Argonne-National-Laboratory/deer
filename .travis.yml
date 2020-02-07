@@ -1,7 +1,7 @@
 git:
       submodules: false
 before_install:
-      - sudo apt-get install -y build-essential cmake libboost-dev libblas-dev liblapack-dev
+      - sudo apt-get install -y build-essential cmake libboost-dev libblas-dev liblapack-dev mpich libmpich-dev
       - sed -i 's/git@github.com:/https:\/\/github.com\//' .gitmodules
       - git submodule update --init --recursive
 install:
@@ -15,6 +15,6 @@ install:
       - ./update_and_rebuild_petsc.sh
       - ./update_and_rebuild_libmesh.sh
       - cd ../..
-      - echo $PWD
+      - make
 script:
       - echo 'hi'
