@@ -1,6 +1,5 @@
 git:
       submodules: false
-sudo: enabled
 before_install:
       - sudo apt-get install -y build-essential cmake libboost-dev libblas-dev liblapack-dev
       - sed -i 's/git@github.com:/https:\/\/github.com\//' .gitmodules
@@ -9,3 +8,8 @@ install:
       - cd neml
       - cmake -DCMAKE_BUILD_TYPE=Release .
       - make
+      - cd ..
+      - export MOOSE_DIR=$PWD/moose
+      - git clone https://github.com/idaholab/moose.git $MOOSE_DIR
+script:
+      - echo 'hi'
