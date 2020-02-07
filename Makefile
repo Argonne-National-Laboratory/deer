@@ -46,8 +46,11 @@ include $(MOOSE_DIR)/modules/modules.mk
 ###############################################################################
 
 # linking NEML, NEML_DIR=/path/to/neml
-ADDITIONAL_INCLUDES := -I$(NEML_DIR)/src/ -I$(NEML_DIR)/src/math
-ADDITIONAL_LIBS 	  := -L$(NEML_DIR)/lib/ -lneml
+ifndef $(NEML_DIR)
+      NEML_DIR = neml
+endif
+ADDITIONAL_INCLUDES := -I$(NEML_DIR)/src -I$(NEML_DIR)/src/math
+ADDITIONAL_LIBS := -L$(NEML_DIR)/lib -lneml
 
 # dep apps
 APPLICATION_DIR     := $(CURDIR)
