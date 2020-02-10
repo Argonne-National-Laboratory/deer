@@ -6,7 +6,7 @@ before_install:
       - sed -i 's/git@github.com:/https:\/\/github.com\//' .gitmodules
       - git submodule update --init --recursive
 install:
-      - ls /usr/lib/petscdir
+      - export PETSC_DIR=/usr/lib/petscdir/3.6.2
       - cd neml
       - cmake -DCMAKE_BUILD_TYPE=Release .
       - make
