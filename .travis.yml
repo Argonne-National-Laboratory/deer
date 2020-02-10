@@ -17,6 +17,6 @@ install:
       - ./update_and_rebuild_petsc.sh
       - ./update_and_rebuild_libmesh.sh
       - cd ../..
-      - make
+      - make -j 4
 script:
       - echo 'hi'
