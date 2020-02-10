@@ -14,9 +14,12 @@ install:
       - git clone https://github.com/idaholab/moose.git $MOOSE_DIR
       - cd $MOOSE_DIR/scripts
       - export MOOSE_JOBS=4
-      - unset PETSC_DIR
-      - unset PETSC_ARCH
       - ./update_and_rebuild_petsc.sh
+      - export CC=mpicc
+      - export CXX=mpicxx
+      - export F90=mpif90
+      - export F77=mpif77
+      - export FC=mpif90
       - ./update_and_rebuild_libmesh.sh || cat ../libmesh/build/config.log
       - cd ../..
       - make -j 4
