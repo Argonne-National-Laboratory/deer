@@ -20,7 +20,8 @@ install:
       - export F90=mpif90
       - export F77=mpif77
       - export FC=mpif90
-      - ./update_and_rebuild_libmesh.sh METHOD=opt
+      - export METHODS=opt
+      - ./update_and_rebuild_libmesh.sh
       - cd ../..
       - make -j 4
 script:
