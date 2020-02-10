@@ -25,4 +25,5 @@ install:
       - cd ../..
       - make -j 4
 script:
+      - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD/neml/lib
       - ./run_tests
