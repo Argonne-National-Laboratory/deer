@@ -1,7 +1,8 @@
+language: cpp
 git:
       submodules: false
 before_install:
-      - sudo apt-get install -y build-essential cmake libboost-dev libblas-dev liblapack-dev mpich libmpich-dev
+      - sudo apt-get install -y build-essential cmake libboost-dev libblas-dev liblapack-dev mpich libmpich-dev petsc-dev
       - sed -i 's/git@github.com:/https:\/\/github.com\//' .gitmodules
       - git submodule update --init --recursive
 install:
@@ -12,7 +13,7 @@ install:
       - export MOOSE_DIR=$PWD/moose
       - git clone https://github.com/idaholab/moose.git $MOOSE_DIR
       - cd $MOOSE_DIR/scripts
-      - ./update_and_rebuild_petsc.sh
+      - export MOOSE_JOBS=4
       - ./update_and_rebuild_libmesh.sh
       - cd ../..
       - make
