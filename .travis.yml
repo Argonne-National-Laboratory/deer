@@ -17,7 +17,7 @@ install:
       - unset PETSC_DIR
       - unset PETSC_ARCH
       - ./update_and_rebuild_petsc.sh
-      - ./update_and_rebuild_libmesh.sh
+      - ./update_and_rebuild_libmesh.sh || cat ../libmesh/build/config.log
       - cd ../..
       - make -j 4
 script:
