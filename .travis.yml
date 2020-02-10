@@ -25,4 +25,4 @@ install:
       - cd ../..
       - make -j 4
 script:
-      - echo 'hi'
+      - ./run_tests
