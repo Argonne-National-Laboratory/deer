@@ -1,0 +1,3 @@
+[submodule "neml"]
+	path = neml
+	url = git@github.com:Argonne-National-Laboratory/neml.git
