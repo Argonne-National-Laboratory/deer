@@ -1,0 +1,29 @@
+language: cpp
+git:
+      submodules: false
+before_install:
+      - sudo apt-get install -y build-essential cmake libboost-dev libblas-dev liblapack-dev mpich libmpich-dev
+      - sed -i 's/git@github.com:/https:\/\/github.com\//' .gitmodules
+      - git submodule update --init --recursive
+install:
+      - cd neml
+      - cmake -DCMAKE_BUILD_TYPE=Release .
+      - make
+      - cd ..
+      - export MOOSE_DIR=$PWD/moose
+      - git clone https://github.com/idaholab/moose.git $MOOSE_DIR
+      - cd $MOOSE_DIR/scripts
+      - export MOOSE_JOBS=2
+      - ./update_and_rebuild_petsc.sh
+      - export CC=mpicc
+      - export CXX=mpicxx
+      - export F90=mpif90
+      - export F77=mpif77
+      - export FC=mpif90
+      - export METHODS=opt
+      - ./update_and_rebuild_libmesh.sh
+      - cd ../..
+      - make -j 2
+script:
+      - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD/neml/lib
+      - ./run_tests
