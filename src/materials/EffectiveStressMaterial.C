@@ -20,19 +20,11 @@ template <> InputParameters validParams<EffectiveStressMaterial>() {
                                      EffectiveStressTools::scalarOptions(),
                                      "Type of effective stress to be computed");
   params.addParam<std::vector<Real>>("params_vector",
-                                     "vector of effective stress parameters");
-  params.addParam<Point>("point1", Point(0, 0, 0),
-                         "Start point for axis used to calculate some "
-                         "cylindrical material tensor quantities");
+                                     "Vector of effective stress parameters");
   params.addRequiredParam<MaterialPropertyName>(
-      "effective_stress_mp_name", "the name of the new  material_property");
-  params.addParam<Point>(
-      "point2", Point(0, 1, 0),
-      "End point for axis used to calculate some material tensor quantities");
-  params.addParam<Point>("direction", Point(0, 0, 1), "Direction vector");
-  params.addParam<bool>(
-      "stateful", false,
-      "a boolean saying if we want a stateful material property or not");
+      "effective_stress_mp_name", "The name of the new  material_property");
+  params.addParam<bool>("stateful", false,
+                        "If true make the material property stateful");
 
   return params;
 }
@@ -45,27 +37,25 @@ EffectiveStressMaterial::EffectiveStressMaterial(
           getParam<MaterialPropertyName>("effective_stress_mp_name"))),
       _effective_stress_type(getParam<MooseEnum>("effective_stress_type")),
       _params_vector(getParam<std::vector<Real>>("params_vector")),
-      _point1(parameters.get<Point>("point1")),
-      _point2(parameters.get<Point>("point2")),
-      _input_direction(parameters.get<Point>("direction") /
-                       parameters.get<Point>("direction").norm()),
+      _point1(Point(0, 0, 0)), _point2(Point(0, 1, 0)),
+      _input_direction(Point(0, 0, 1) / Point(0, 0, 1).norm()),
       _stateful(getParam<bool>("stateful")) {
   if (_effective_stress_type == 2 && _params_vector.size() != 1)
-    mooseError("the huddleston effective stress requires the parameters b to "
+    mooseError("The Huddleston effective stress requires the parameters b to "
                "be defined");
   if (_effective_stress_type == 3) {
     if (_params_vector.size() != 2)
-      mooseError("the hayhurs effective stress requires the parameters alpha, "
-                 "beta and gamma to be defined");
+      mooseError("The Hayhurst effective stress requires the parameters alpha, "
+                 "beta to be defined. Gamme is compute as 1-alpha-beta");
     _params_vector.push_back(1. - _params_vector[0] - _params_vector[1]);
   }
   if (_effective_stress_type == 6 && _params_vector.size() != 1)
     mooseError(
-        "the RCCMRXMises effective stress requires the parameters alpha to "
+        "The RCCMRx-Mises effective stress requires the parameters alpha to "
         "be defined");
   if (_effective_stress_type == 7 && _params_vector.size() != 1)
     mooseError(
-        "the RCCMRXTresca effective stress requires the parameters alpha to "
+        "The RCCMRx-Tresca effective stress requires the parameters alpha to "
         "be defined");
 }
 
