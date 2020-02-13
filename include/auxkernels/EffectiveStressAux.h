@@ -38,9 +38,4 @@ protected:
    */
   MooseEnum _effective_stress_type;
   std::vector<Real> _params_vector;
-
-  /// dummy parameters for RankTwoTensorUtils
-  const Point _point1;
-  const Point _point2;
-  Point _input_direction;
 };

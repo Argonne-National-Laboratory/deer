@@ -83,8 +83,8 @@ T RCCMRXTresca(const RankTwoTensorTempl<T> &stress, const Real &alpha) {
 
 template <typename T>
 T getQuantity(const RankTwoTensorTempl<T> &stress, const MooseEnum &scalar_type,
-              const std::vector<Real> &params_vector, const Point &point1,
-              const Point &point2, Point &direction) {
+              const std::vector<Real> &params_vector) {
+  Point direction(1, 0, 0);
   switch (scalar_type) {
   case 0:
     return RankTwoScalarTools::vonMisesStress(stress);

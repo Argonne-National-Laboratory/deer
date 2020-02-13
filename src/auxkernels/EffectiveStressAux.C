@@ -29,9 +29,7 @@ EffectiveStressAux::EffectiveStressAux(const InputParameters &parameters)
     : NodalPatchRecovery(parameters),
       _tensor(getMaterialProperty<RankTwoTensor>("stress")),
       _effective_stress_type(getParam<MooseEnum>("effective_stress_type")),
-      _params_vector(getParam<std::vector<Real>>("params_vector")),
-      _point1(Point(0, 0, 0)), _point2(Point(0, 1, 0)),
-      _input_direction(Point(0, 0, 1) / Point(0, 0, 1).norm()) {
+      _params_vector(getParam<std::vector<Real>>("params_vector")) {
   if (_effective_stress_type == 2 && _params_vector.size() != 1)
     mooseError("The Huddleston effective stress requires the parameters b to "
                "be defined");
@@ -54,6 +52,5 @@ EffectiveStressAux::EffectiveStressAux(const InputParameters &parameters)
 Real EffectiveStressAux::computeValue() {
 
   return EffectiveStressTools::getQuantity(_tensor[_qp], _effective_stress_type,
-                                           _params_vector, _point1, _point2,
-                                           _input_direction);
+                                           _params_vector);
 }

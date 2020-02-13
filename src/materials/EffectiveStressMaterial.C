@@ -37,8 +37,6 @@ EffectiveStressMaterial::EffectiveStressMaterial(
           getParam<MaterialPropertyName>("effective_stress_mp_name"))),
       _effective_stress_type(getParam<MooseEnum>("effective_stress_type")),
       _params_vector(getParam<std::vector<Real>>("params_vector")),
-      _point1(Point(0, 0, 0)), _point2(Point(0, 1, 0)),
-      _input_direction(Point(0, 0, 1) / Point(0, 0, 1).norm()),
       _stateful(getParam<bool>("stateful")) {
   if (_effective_stress_type == 2 && _params_vector.size() != 1)
     mooseError("The Huddleston effective stress requires the parameters b to "
@@ -62,8 +60,7 @@ EffectiveStressMaterial::EffectiveStressMaterial(
 void EffectiveStressMaterial::computeQpProperties() {
 
   _effective_stress[_qp] = EffectiveStressTools::getQuantity(
-      _stress[_qp], _effective_stress_type, _params_vector, _point1, _point2,
-      _input_direction);
+      _stress[_qp], _effective_stress_type, _params_vector);
 }
 
 void EffectiveStressMaterial::initQpStatefulProperties() {

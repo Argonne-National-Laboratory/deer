@@ -33,8 +33,5 @@ protected:
   /// vector of paramters
   std::vector<Real> _params_vector;
 
-  const Point _point1;
-  const Point _point2;
-  Point _input_direction;
   const bool _stateful;
 };

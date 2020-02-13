@@ -41,8 +41,6 @@ EffectiveStressInterfaceMaterial::EffectiveStressInterfaceMaterial(
       _effective_stress_type(getParam<MooseEnum>("effective_stress_type")),
       _interface_value_type(parameters.get<MooseEnum>("interface_value_type")),
       _params_vector(getParam<std::vector<Real>>("params_vector")),
-      _point1(Point(0, 0, 0)), _point2(Point(0, 1, 0)),
-      _input_direction(Point(0, 0, 1) / Point(0, 0, 1).norm()),
       _stateful(getParam<bool>("stateful")) {
   if (_effective_stress_type == 2 && _params_vector.size() != 1)
     mooseError("The Huddleston effective stress requires the parameters b to "
@@ -66,12 +64,10 @@ EffectiveStressInterfaceMaterial::EffectiveStressInterfaceMaterial(
 void EffectiveStressInterfaceMaterial::computeQpProperties() {
 
   Real eff_stress_master = EffectiveStressTools::getQuantity(
-      _stress_master[_qp], _effective_stress_type, _params_vector, _point1,
-      _point2, _input_direction);
+      _stress_master[_qp], _effective_stress_type, _params_vector);
 
   Real eff_stress_slave = EffectiveStressTools::getQuantity(
-      _stress_slave[_qp], _effective_stress_type, _params_vector, _point1,
-      _point2, _input_direction);
+      _stress_slave[_qp], _effective_stress_type, _params_vector);
 
   _effective_stress[_qp] = InterfaceValueTools::getQuantity(
       _interface_value_type, eff_stress_master, eff_stress_slave);
