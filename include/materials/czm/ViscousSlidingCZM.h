@@ -32,13 +32,11 @@ protected:
   virtual Real ComputeShearViscosity();
   virtual RankTwoTensor ComputeShearViscosityDerivatives();
 
-  /// the displacement jump associated to the maximum traction
+  /// the shear viscosisty [Pressure time / length]
   const Real _shear_viscosity;
 
   /// the value of the old traction in local coordinates
-  ///@{
   const MaterialProperty<RealVectorValue> &_traction_old;
-  ///@}
 
   /// the coupled displacement and neighbor displacement values
   ///@{
@@ -46,7 +44,7 @@ protected:
   MaterialProperty<RealVectorValue> &_displacement_jump_global_dot;
   ///@}
 
-  /// the coupled displacement and neighbor displacement values
+  /// the coupled displacement and neighbor displacement rates
   ///@{
   std::vector<const VariableValue *> _disp_dot;
   std::vector<const VariableValue *> _disp_neighbor_dot;

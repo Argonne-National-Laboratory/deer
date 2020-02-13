@@ -26,12 +26,6 @@ protected:
 
   virtual RankTwoTensor computeTractionDerivatives() override;
 
-  /// the displacement jump associated to the maximum traction
-  const Real _E;
-  const Real _G;
-  const Real _interface_thickness;
-  const Real _penetration_penalty;
-
   virtual void ComputeNormalTraction(RealVectorValue &traction);
   virtual void
   ComputeNormalTractionDerivatives(RankTwoTensor &traction_derivatives);
@@ -44,4 +38,12 @@ protected:
 
   virtual Real ComputeShearStiffness();
   virtual RankTwoTensor ComputeShearStiffnessDerivatives();
+
+  /// interface normal stiffness [Pressure]
+  const Real _E;
+  /// interface shear stiffness  [Pressure]
+  const Real _G;
+
+  const Real _interface_thickness;
+  const Real _penetration_penalty;
 };

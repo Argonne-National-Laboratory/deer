@@ -7,7 +7,6 @@
 //* Licensed under LGPL 2.1, please see LICENSE for details
 //* https://www.gnu.org/licenses/lgpl-2.1.html
 
-#include "InterfaceValueTools.h"
 #include "RotationMatrix.h"
 #include "ViscousSlidingCZM.h"
 
@@ -16,11 +15,9 @@ registerMooseObject("DeerApp", ViscousSlidingCZM);
 template <> InputParameters validParams<ViscousSlidingCZM>() {
   InputParameters params = validParams<PureElasticCZM>();
   params.addClassDescription(
-      "time dependent interface damage model with linear interpolation");
-  params.addRequiredParam<Real>(
-      "shear_viscosity", "interface shear viscosity [Pressure time / length]");
-  params.addRequiredParam<Real>("interface_thickness",
-                                "the interface thickness [length]");
+      "Cohesive model with linear leastic opening and viscous sliding");
+  params.addRequiredParam<Real>("shear_viscosity", "Interface shear viscosity");
+
   return params;
 }
 
@@ -32,10 +29,11 @@ ViscousSlidingCZM::ViscousSlidingCZM(const InputParameters &parameters)
           declareProperty<RealVectorValue>("displacement_jump_dot")),
       _displacement_jump_global_dot(
           declareProperty<RealVectorValue>("displacement_jump_global_dot")),
-      _disp_dot(_ndisp), _disp_neighbor_dot(_ndisp)
-
-{
+      _disp_dot(_ndisp), _disp_neighbor_dot(_ndisp) {
   // initializing the displacement vectors
+  // note that according to the CZM implementaion in MOOSE we always work with
+  // 3D objects for disaplcement jump, traction and derivatives.
+  // The rotation takes care of the rest
   for (unsigned int i = 0; i < _ndisp; ++i) {
     _disp_dot[i] = &coupledDot("displacements", i);
     _disp_neighbor_dot[i] = &coupledNeighborValueDot("displacements", i);
@@ -43,7 +41,6 @@ ViscousSlidingCZM::ViscousSlidingCZM(const InputParameters &parameters)
 }
 
 void ViscousSlidingCZM::computeQpProperties() {
-
   RealTensorValue RotationGlobalToLocal =
       RotationMatrix::rotVec1ToVec2(_normals[_qp], RealVectorValue(1, 0, 0));
 
@@ -83,7 +80,6 @@ void ViscousSlidingCZM::ComputeShearTractionDerivatives(
   Real eta = ComputeShearViscosity();
   RankTwoTensor deta_dui = ComputeShearViscosityDerivatives();
   for (unsigned int i = 1; i < 3; i++) {
-
     Real dTsi_dui = eta * (1. - std::exp(-_dt * C / eta)) / _dt;
     Real dTsi_dC =
         -_dt / eta * std::exp(-_dt * C / eta) *
@@ -102,6 +98,6 @@ void ViscousSlidingCZM::ComputeShearTractionDerivatives(
 Real ViscousSlidingCZM::ComputeShearViscosity() { return _shear_viscosity; };
 
 RankTwoTensor ViscousSlidingCZM::ComputeShearViscosityDerivatives() {
-  RankTwoTensor deta_dui;
-  return deta_dui;
+  // in this case derivatives are all zero so we just retrun a zero tensor;
+  return RankTwoTensor::initNone;
 };

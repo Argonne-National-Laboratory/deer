@@ -7,7 +7,6 @@
 //* Licensed under LGPL 2.1, please see LICENSE for details
 //* https://www.gnu.org/licenses/lgpl-2.1.html
 
-#include "InterfaceValueTools.h"
 #include "PureElasticCZM.h"
 
 registerMooseObject("DeerApp", PureElasticCZM);
@@ -15,14 +14,14 @@ registerMooseObject("DeerApp", PureElasticCZM);
 template <> InputParameters validParams<PureElasticCZM>() {
   InputParameters params = validParams<CZMMaterialBase>();
   params.addClassDescription(
-      "time dependent interface damage model with linear interpolation");
-  params.addRequiredParam<Real>("E", "interface normal elastic moduls");
-  params.addRequiredParam<Real>("G", "interface shear elastic moduls");
+      "Cohesive model with linear elastic opening and shearing");
+  params.addRequiredParam<Real>("E", "Interface normal elastic modulus");
+  params.addRequiredParam<Real>("G", "Interface shear elastic modulus");
   params.addRequiredParam<Real>("interface_thickness",
-                                "initial interface thickness");
+                                "Initial interface thickness");
   params.addParam<Real>(
       "penetration_penalty", 1e2,
-      "the penetration penalty applied after (duN < -interface_thickness)");
+      "The penetration penalty applied after (duN < -interface_thickness)");
   return params;
 }
 
@@ -30,13 +29,10 @@ PureElasticCZM::PureElasticCZM(const InputParameters &parameters)
     : CZMMaterialBase(parameters), _E(getParam<Real>("E")),
       _G(getParam<Real>("G")),
       _interface_thickness(getParam<Real>("interface_thickness")),
-      _penetration_penalty(getParam<Real>("penetration_penalty"))
-
-{}
+      _penetration_penalty(getParam<Real>("penetration_penalty")) {}
 
 RealVectorValue PureElasticCZM::computeTraction() {
-  // The convention for ordering the traction is N, T, S, where N is the normal
-  // direction, and T and S are two arbitrary tangential directions.
+
   RealVectorValue traction;
 
   ComputeNormalTraction(traction);
@@ -55,6 +51,9 @@ RankTwoTensor PureElasticCZM::computeTractionDerivatives() {
 }
 
 void PureElasticCZM::ComputeShearTraction(RealVectorValue &traction) {
+  // note that according to the CZM implementaion in MOOSE we always work with
+  // 3D objects for disaplcement jump, traction and derivatives.
+  // The rotation takes care of the rest
   Real C = ComputeShearStiffness();
   for (unsigned int i = 1; i < 3; i++)
     traction(i) = C * _displacement_jump[_qp](i);

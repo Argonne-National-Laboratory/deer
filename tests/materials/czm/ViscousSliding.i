@@ -79,10 +79,64 @@
   [../]
 []
 
+[BCs]
+  [./x]
+    type = DirichletBC
+    boundary = back
+    variable = disp_x
+    value = 0.0
+  [../]
+  [./y]
+    type = DirichletBC
+    boundary = back
+    variable = disp_y
+    value = 0.0
+  [../]
+  [./z]
+    type = DirichletBC
+    boundary = back
+    variable = disp_z
+    value = 0.0
+  [../]
+  [./z_top]
+    type = DirichletBC
+    boundary = front
+    variable = disp_z
+    value = 0.0
+  [../]
+  [./x_top]
+    type = FunctionDirichletBC
+    boundary = front
+    variable = disp_x
+    function = disp_fun
+  [../]
+  [./y_top]
+    type = FunctionDirichletBC
+    boundary = front
+    variable = disp_y
+    function = disp_fun_neg
+  [../]
+[]
+
+[Functions]
+  [./disp_fun]
+    type = PiecewiseLinear
+    x = '0 1 10 11 20'
+    y = '0 1 1 0 0'
+  [../]
+  [./disp_fun_neg]
+    type = PiecewiseLinear
+    x = '0 1 10 11 20'
+    y = '0 -1.5 -1 -1 0'
+  [../]
+[]
+
+
+
 [Materials]
   [./stress]
     type = ComputeNEMLStressUpdate
-    database = "../../../neml_test_material.xml"
+    database = "../../neml_test_material.xml"
     model = "elastic_model"
     large_kinematics = false
   [../]
@@ -122,61 +176,12 @@
   nl_max_its = 15
   nl_rel_tol = 1e-8
   nl_abs_tol = 1e-6
-  dtmin = 1
-  dtmax = 1
-  end_time = 6
+  dtmin = 0.5
+  dtmax = 9
+  end_time = 20
 []
-
-[BCs]
-  [./x]
-    type = DirichletBC
-    boundary = left
-    variable = disp_x
-    value = 0.0
-  [../]
-  [./y]
-    type = DirichletBC
-    boundary = bottom
-    variable = disp_y
-    value = 0.0
-  [../]
-  [./z]
-    type = DirichletBC
-    boundary = back
-    variable = disp_z
-    value = 0.0
-  [../]
-  [./x_top]
-    type = DirichletBC
-    boundary = front
-    variable = disp_x
-    value = 0.0
-  [../]
-  [./y_top]
-    type = DirichletBC
-    boundary = front
-    variable = disp_y
-    value = 0.0
-  [../]
-  [./z_top]
-    type = FunctionDirichletBC
-    boundary = front
-    variable = disp_z
-    function = disp_fun
-  [../]
-[]
-
-[Functions]
-  [./disp_fun]
-    type = PiecewiseLinear
-    x = '0 1  3  4 6'
-    y = '0 1 -1 -2 0'
-  [../]
-[]
-
-
 
 [Outputs]
   exodus = true
-  sync_times = '1 2 4 6'
+  sync_times = '0 1 10 11 20'
 []
