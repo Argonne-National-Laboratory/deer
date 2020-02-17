@@ -11,12 +11,9 @@
 
 #include "Function.h"
 
-class CycleFraction;
-
-template <> InputParameters validParams<CycleFraction>();
-
 class CycleFraction : public Function {
 public:
+  static InputParameters validParams();
   CycleFraction(const InputParameters &parameters);
 
   Real value(Real t, const Point &p) const override;

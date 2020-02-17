@@ -13,8 +13,8 @@
 
 registerMooseObject("DeerApp", CycleNumber);
 
-template <> InputParameters validParams<CycleNumber>() {
-  InputParameters params = validParams<Function>();
+InputParameters CycleNumber::validParams() {
+  InputParameters params = Function::validParams();
   params.addRequiredParam<Real>("cycle_period", "period of the cycle");
   params.addClassDescription("Function providing the cycle number given "
                              "simulation time and cycle period");

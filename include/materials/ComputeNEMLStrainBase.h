@@ -1,24 +1,18 @@
-#ifndef COMPUTENEMLSTRAINBASE_H
-#define COMPUTENEMLSTRAINBASE_H
+#pragma once
 
-#include "Material.h"
 #include "DerivativeMaterialInterface.h"
+#include "Material.h"
 
-#include "RankTwoTensor.h"
 #include "RankFourTensor.h"
+#include "RankTwoTensor.h"
 
-class ComputeNEMLStrainBase;
+class ComputeNEMLStrainBase : public DerivativeMaterialInterface<Material> {
+public:
+  static InputParameters validParams();
+  ComputeNEMLStrainBase(const InputParameters &parameters);
+  virtual ~ComputeNEMLStrainBase(){};
 
-template <>
-InputParameters validParams<ComputeNEMLStrainBase>();
-
-class ComputeNEMLStrainBase: public DerivativeMaterialInterface<Material>
-{
- public:
-  ComputeNEMLStrainBase(const InputParameters & parameters);
-  virtual ~ComputeNEMLStrainBase() {};
-
- protected:
+protected:
   virtual void initialSetup() override;
   virtual void initQpStatefulProperties() override;
   virtual void computeProperties() override;
@@ -28,7 +22,7 @@ class ComputeNEMLStrainBase: public DerivativeMaterialInterface<Material>
 
   RankTwoTensor eigenstrainIncrement();
 
- protected:
+protected:
   unsigned int _ndisp;
 
   std::vector<const VariableValue *> _disp;
@@ -36,20 +30,18 @@ class ComputeNEMLStrainBase: public DerivativeMaterialInterface<Material>
   std::vector<const VariableValue *> _disp_old;
   std::vector<const VariableGradient *> _grad_disp_old;
 
-  MaterialProperty<RankTwoTensor> & _strain_inc;
-  MaterialProperty<RankTwoTensor> & _mechanical_strain_inc;
-  MaterialProperty<RankTwoTensor> & _vorticity_inc;
+  MaterialProperty<RankTwoTensor> &_strain_inc;
+  MaterialProperty<RankTwoTensor> &_mechanical_strain_inc;
+  MaterialProperty<RankTwoTensor> &_vorticity_inc;
 
-  MaterialProperty<RankTwoTensor> & _def_grad;
-  const MaterialProperty<RankTwoTensor> & _def_grad_old;
+  MaterialProperty<RankTwoTensor> &_def_grad;
+  const MaterialProperty<RankTwoTensor> &_def_grad_old;
 
-  MaterialProperty<RankTwoTensor> & _df;
+  MaterialProperty<RankTwoTensor> &_df;
 
   std::vector<MaterialPropertyName> _eigenstrain_names;
-  std::vector<const MaterialProperty<RankTwoTensor>*> _eigenstrains;
-  std::vector<const MaterialProperty<RankTwoTensor>*> _eigenstrains_old;
+  std::vector<const MaterialProperty<RankTwoTensor> *> _eigenstrains;
+  std::vector<const MaterialProperty<RankTwoTensor> *> _eigenstrains_old;
 
   bool _ld;
 };
-
-#endif // COMPUTENEMLSTRAINBASE_H

@@ -5,21 +5,17 @@
 
 class TimeDerivAuxKernel;
 
-template <>
-InputParameters validParams<TimeDerivAuxKernel>();
+class TimeDerivAuxKernel : public AuxKernel {
+public:
+  static InputParameters validParams();
+  TimeDerivAuxKernel(const InputParameters &parameters);
 
-class TimeDerivAuxKernel: public AuxKernel
-{
- public:
-  TimeDerivAuxKernel(const InputParameters & parameters);
-
- protected:
+protected:
   virtual Real computeValue() override;
 
- protected:
-  const VariableValue & _coupled_new;
-  const VariableValue & _coupled_old;
+protected:
+  const VariableValue &_coupled_new;
+  const VariableValue &_coupled_old;
 };
-
 
 #endif // TIMEDERIVAUXKERNEL_H

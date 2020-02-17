@@ -1,22 +1,14 @@
-#ifndef COMPUTENEMLSTRAIN_H
-#define COMPUTENEMLSTRAIN_H
+#pragma once
 
-#include "RankTwoTensor.h"
 #include "ComputeNEMLStrainBase.h"
+#include "RankTwoTensor.h"
 
-class ComputeNEMLStrain;
+class ComputeNEMLStrain : public ComputeNEMLStrainBase {
+public:
+  static InputParameters validParams();
+  ComputeNEMLStrain(const InputParameters &parameters);
+  virtual ~ComputeNEMLStrain(){};
 
-template <>
-InputParameters validParams<ComputeNEMLStrain>();
-
-class ComputeNEMLStrain: public ComputeNEMLStrainBase
-{
- public:
-  ComputeNEMLStrain(const InputParameters & parameters);
-  virtual ~ComputeNEMLStrain() {};
-
- protected:
+protected:
   virtual void computeQpProperties() override;
 };
-
-#endif // COMPUTENEMLSTRAIN_H

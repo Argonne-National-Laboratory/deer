@@ -19,11 +19,9 @@ class TractionAux;
  * material property, for example stress or strain, and output the value for the
  * supplied indices.
  */
-
-template <> InputParameters validParams<TractionAux>();
-
 class TractionAux : public MaterialAuxBase<RankTwoTensor> {
 public:
+  static InputParameters validParams();
   TractionAux(const InputParameters &parameters);
 
 protected:
@@ -32,5 +30,5 @@ protected:
   const MooseEnum _scalar_type;
 
 private:
-  MooseEnum traction_component();
+  static MooseEnum traction_component();
 };

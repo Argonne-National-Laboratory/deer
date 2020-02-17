@@ -16,13 +16,14 @@
 
 registerMooseObject("DeerApp", TractionAux);
 
-MooseEnum traction_component() {
+MooseEnum TractionAux::traction_component() {
   return MooseEnum("normal shear1 shear2 shear_norm");
 }
 
-template <> InputParameters validParams<TractionAux>() {
-  InputParameters params = validParams<MaterialAuxBase<>>();
-  params.addRequiredParam<MooseEnum>("scalar_type", traction_component(),
+InputParameters TractionAux::validParams() {
+  InputParameters params = MaterialAuxBase<RankTwoTensor>::validParams();
+  params.addRequiredParam<MooseEnum>("scalar_type",
+                                     TractionAux::traction_component(),
                                      "Type of scalar output");
 
   params.addClassDescription("Compute traction components on a boundary and "

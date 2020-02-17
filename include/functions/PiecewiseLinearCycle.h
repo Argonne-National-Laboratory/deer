@@ -13,11 +13,6 @@
 #include "FunctionInterface.h"
 #include "PiecewiseLinear.h"
 
-// Forward declarations
-class PiecewiseLinearCycle;
-
-template <> InputParameters validParams<PiecewiseLinearCycle>();
-
 /**
  * Function which provides a PiecewiseLinear continuous linear interpolation
  * of a provided (x,y) point data set.
@@ -25,6 +20,7 @@ template <> InputParameters validParams<PiecewiseLinearCycle>();
 class PiecewiseLinearCycle : public PiecewiseLinear,
                              protected FunctionInterface {
 public:
+  static InputParameters validParams();
   PiecewiseLinearCycle(const InputParameters &parameters);
 
   /**
