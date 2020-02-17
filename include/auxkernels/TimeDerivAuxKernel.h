@@ -1,9 +1,6 @@
-#ifndef TIMEDERIVAUXKERNEL_H
-#define TIMEDERIVAUXKERNEL_H
+#pragma once
 
 #include "AuxKernel.h"
-
-class TimeDerivAuxKernel;
 
 class TimeDerivAuxKernel : public AuxKernel {
 public:
@@ -17,5 +14,3 @@ protected:
   const VariableValue &_coupled_new;
   const VariableValue &_coupled_old;
 };
-
-#endif // TIMEDERIVAUXKERNEL_H

@@ -1,9 +1,6 @@
-#ifndef NEMLMECHANICSACTION_H
-#define NEMLMECHANICSACTION_H
+#pragma once
 
 #include "Action.h"
-
-class NEMLMechanicsAction;
 
 class NEMLMechanicsAction : public Action {
 public:
@@ -31,5 +28,3 @@ protected:
 
   std::vector<MaterialPropertyName> _eigenstrains;
 };
-
-#endif // NEMLMECHANICSACTION_H

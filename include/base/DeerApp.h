@@ -1,5 +1,4 @@
-#ifndef DEERAPP_H
-#define DEERAPP_H
+#pragma once
 
 #include "MooseApp.h"
 
@@ -12,5 +11,3 @@ public:
   static void registerApps();
   static void registerAll(Factory &f, ActionFactory &af, Syntax &s);
 };
-
-#endif /* DEERAPP_H */
