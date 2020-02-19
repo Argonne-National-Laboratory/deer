@@ -13,11 +13,6 @@
 #include "AuxKernel.h"
 #include "Map2LDInterfaceMaterialPropertyUO.h"
 
-class Boundary2LDAux;
-
-// Forward declarations
-template <> InputParameters validParams<Boundary2LDAux>();
-
 /**
  * A base class for the various Material related AuxKernal objects
  */

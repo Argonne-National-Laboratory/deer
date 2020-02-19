@@ -12,8 +12,6 @@
 
 registerMooseObject("DeerApp", Boundary2LDAux);
 
-defineLegacyParams(Boundary2LDAux);
-
 InputParameters Boundary2LDAux::validParams() {
   InputParameters params = AuxKernel::validParams();
   params.addParam<UserObjectName>(

@@ -31,14 +31,14 @@ Map2LDelem::Map2LDelem(const InputParameters &parameters)
 Map2LDelem::~Map2LDelem() {}
 
 void Map2LDelem::initialSetup() {
-  // define the boundary map nad retrieve element side and boundary_ID
+  // define the boundary map and retrieve element side and boundary_ID
   std::vector<std::tuple<dof_id_type, unsigned short int, boundary_id_type>>
       elem_side_bid = _mesh.buildSideList();
 
   const std::map<dof_id_type, std::vector<dof_id_type>> &n_2_elem_map =
       _mesh.nodeToElemMap();
 
-  // retrieve on which boudnary this UO operates
+  // retrieve on which boundary this UO operates
   std::set<BoundaryID> boundaryList = boundaryIDs();
 
   // clear map values
