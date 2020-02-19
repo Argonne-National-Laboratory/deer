@@ -10,27 +10,47 @@
     type = SubdomainBoundingBoxGenerator
     input = msh
     bottom_left = '0 0 0'
-    block_id = 1
     top_right = '0.5 1 1'
+    block_id = 1
   []
   [./subdomain_2]
     type = SubdomainBoundingBoxGenerator
     input = subdomain_1
     bottom_left = '0.5 0 0'
+    top_right = '1 0.5 1'
     block_id = 2
+  []
+  [./subdomain_3]
+    type = SubdomainBoundingBoxGenerator
+    input = subdomain_2
+    bottom_left = '0.5 0.5 0'
     top_right = '1 1 1'
+    block_id = 3
   []
   [./breakmesh]
-    input = subdomain_2
+    input = subdomain_3
     type = BreakMeshByBlockGenerator
   [../]
+  [./add_side_sets]
+    input = breakmesh
+    type = ExtraNodesetGenerator
+    new_boundary = 'y1_block3'
+    nodes = '16 35 17 36 26 41'
+  [../]
+  [./add_side_sets_2]
+    input = add_side_sets
+    type = ExtraNodesetGenerator
+    new_boundary = 'y0_block2'
+    nodes = '22 37 10 30 8 28'
+  [../]
   [./lower]
-     input = breakmesh
+     input = add_side_sets_2
      type = LowerDBlockFromSidesetGenerator
      new_block_name = 'LD_interface'
      new_block_id = 1000
      sidesets = 6
   [../]
+
 []
 
 [GlobalParams]
@@ -60,7 +80,7 @@
     strain = SMALL
     add_variables = true
     generate_output = 'stress_xx stress_yy stress_zz stress_yz stress_xz stress_xy'
-    block = '1 2'
+    block = '1 2 3'
   [../]
 []
 
@@ -82,21 +102,21 @@
   [./left_x]
     type = DirichletBC
     variable = disp_x
-    preset = false
+    preset = true
     boundary = left
     value = 0.0
   [../]
   [./left_y]
     type = DirichletBC
     variable = disp_y
-    preset = false
+    preset = true
     boundary = left
     value = 0.0
   [../]
   [./left_z]
     type = DirichletBC
     variable = disp_z
-    preset = false
+    preset = true
     boundary = left
     value = 0.0
   [../]
@@ -107,12 +127,19 @@
     boundary = right
     function = '1*t'
   [../]
-  [./right_y]
+  [./top_3_forced_y]
     type = FunctionDirichletBC
     variable = disp_y
     preset = false
-    boundary = right
-    function = '0*t'
+    boundary = y1_block3
+    function = '0.5*t'
+  [../]
+  [./bottom_2_y0]
+    type = DirichletBC
+    variable = disp_y
+    preset = true
+    boundary = y0_block2
+    value = 0
   [../]
   [./right_z]
     type = FunctionDirichletBC
@@ -146,13 +173,13 @@
 [Materials]
   [./Elasticity_tensor]
     type = ComputeElasticityTensor
-    block = '1 2'
+    block = '1 2 3'
     fill_method = symmetric_isotropic
     C_ijkl = '0.3 0.5e8'
   [../]
   [./stress]
     type = ComputeLinearElasticStress
-    block = '1 2'
+    block = '1 2 3'
   [../]
   [./czm_3dc]
     type = SalehaniIrani3DCTraction
@@ -190,7 +217,7 @@
   l_max_its = 50
   start_time = 0.0
   dt = 0.2
-  end_time = 5
+  end_time = 0.4
   dtmin = 0.2
   line_search = none
 []

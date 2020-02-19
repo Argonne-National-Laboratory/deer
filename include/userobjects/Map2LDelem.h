@@ -11,10 +11,6 @@
 
 #include "InterfaceUserObject.h"
 
-class Map2LDelem;
-
-template <> InputParameters validParams<Map2LDelem>();
-
 /**
  *
  */

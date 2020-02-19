@@ -10,11 +10,6 @@
 #pragma once
 
 #include "Map2LDInterfaceMaterialPropertyUO.h"
-
-class Map2LDInterfaceMPReal;
-
-template <> InputParameters validParams<Map2LDInterfaceMPReal>();
-
 /**
  *
  */

@@ -10,8 +10,6 @@
 #include "Map2LDInterfaceMaterialPropertyUO.h"
 #include "MooseMesh.h"
 
-defineLegacyParams(Map2LDInterfaceMaterialPropertyUO);
-
 InputParameters Map2LDInterfaceMaterialPropertyUO::validParams() {
   InputParameters params = Map2LDelem::validParams();
   params.addRequiredParam<MaterialPropertyName>("mp_name",

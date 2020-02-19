@@ -11,10 +11,6 @@
 
 #include "Map2LDInterfaceMaterialPropertyUO.h"
 
-class Map2LDInterfaceMPRealVectorValue;
-
-template <> InputParameters validParams<Map2LDInterfaceMPRealVectorValue>();
-
 /**
  *
  */

@@ -11,10 +11,6 @@
 
 #include "Map2LDelem.h"
 
-class Map2LDInterfaceMaterialPropertyUO;
-
-template <> InputParameters validParams<Map2LDInterfaceMaterialPropertyUO>();
-
 /**
  *
  */

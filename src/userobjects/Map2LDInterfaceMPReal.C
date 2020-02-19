@@ -11,8 +11,6 @@
 #include "MooseMesh.h"
 registerMooseObject("DeerApp", Map2LDInterfaceMPReal);
 
-defineLegacyParams(Map2LDInterfaceMPReal);
-
 InputParameters Map2LDInterfaceMPReal::validParams() {
   InputParameters params = Map2LDInterfaceMaterialPropertyUO::validParams();
   params.addClassDescription(
