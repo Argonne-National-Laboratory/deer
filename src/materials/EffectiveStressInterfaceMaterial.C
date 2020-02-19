@@ -13,8 +13,8 @@
 
 registerMooseObject("DeerApp", EffectiveStressInterfaceMaterial);
 
-template <> InputParameters validParams<EffectiveStressInterfaceMaterial>() {
-  InputParameters params = validParams<InterfaceMaterial>();
+InputParameters EffectiveStressInterfaceMaterial::validParams() {
+  InputParameters params = InterfaceMaterial::validParams();
   params.addClassDescription("Compute an effective stress across an interface");
   params.addRequiredParam<MooseEnum>("effective_stress_type",
                                      EffectiveStressTools::scalarOptions(),

@@ -12,8 +12,6 @@
 
 registerMooseObject("DeerApp", EffectiveStressAux);
 
-defineLegacyParams(EffectiveStressAux);
-
 InputParameters EffectiveStressAux::validParams() {
   InputParameters params = NodalPatchRecovery::validParams();
   params.addClassDescription("Compute an effective stress");

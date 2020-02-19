@@ -11,8 +11,6 @@
 
 #include "InterfaceMaterial.h"
 #include "RankTwoTensor.h"
-class EffectiveStressMaterial;
-template <> InputParameters validParams<EffectiveStressMaterial>();
 
 /**
  * EffectiveStressMaterial uses the namespace EffectiveStressTools to compute
@@ -20,6 +18,7 @@ template <> InputParameters validParams<EffectiveStressMaterial>();
  */
 class EffectiveStressMaterial : public Material {
 public:
+  static InputParameters validParams();
   EffectiveStressMaterial(const InputParameters &parameters);
 
 protected:

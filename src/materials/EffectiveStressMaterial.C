@@ -13,8 +13,8 @@
 
 registerMooseObject("DeerApp", EffectiveStressMaterial);
 
-template <> InputParameters validParams<EffectiveStressMaterial>() {
-  InputParameters params = validParams<Material>();
+InputParameters EffectiveStressMaterial::validParams() {
+  InputParameters params = Material::validParams();
   params.addClassDescription("Compute an effective at each quadrature point");
   params.addRequiredParam<MooseEnum>("effective_stress_type",
                                      EffectiveStressTools::scalarOptions(),

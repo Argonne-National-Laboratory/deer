@@ -12,10 +12,6 @@
 #include "NodalPatchRecovery.h"
 #include "RankTwoTensor.h"
 
-class EffectiveStressAux;
-
-template <> InputParameters validParams<EffectiveStressAux>();
-
 /**
  * EffectiveStressAux uses the namespace EffectiveStressTools to compute scalar
  * values from Rank-2 tensors.
