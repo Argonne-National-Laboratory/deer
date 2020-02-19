@@ -46,10 +46,11 @@
     value = 0.0
   [../]
   [./pull_z]
-    type = FunctionPresetBC
+    type = FunctionDirichletBC
     boundary = top
     variable = disp_z
     function = pfn
+    preset = true
   [../]
 []
 

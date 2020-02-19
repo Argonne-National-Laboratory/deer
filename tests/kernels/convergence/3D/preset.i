@@ -82,22 +82,25 @@
     value = 0.0
   [../]
   [./pull_x]
-    type = FunctionPresetBC
+    type = FunctionDirichletBC
     boundary = right
     variable = disp_x
     function = pullx
+    preset = true
   [../]
   [./pull_y]
-    type = FunctionPresetBC
+    type = FunctionDirichletBC
     boundary = top
     variable = disp_y
     function = pully
+    preset = true
   [../]
   [./pull_z]
-    type = FunctionPresetBC
+    type = FunctionDirichletBC
     boundary = right
     variable = disp_z
     function = pullz
+    preset = true
   [../]
 []
 

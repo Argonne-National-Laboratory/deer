@@ -67,10 +67,11 @@
             boundary = 'bottom'
       [../]
       [./top]
-            type = FunctionPresetBC
+            type = FunctionDirichletBC
             variable = disp_z
             boundary = 'top'
             function = straining
+            preset = true
       [../]
 []
 

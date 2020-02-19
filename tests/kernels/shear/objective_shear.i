@@ -224,10 +224,11 @@
     value = 0.0
   [../]
   [./shear]
-    type = FunctionPresetBC
+    type = FunctionDirichletBC
     variable = disp_x
     boundary = top
     function = shearme
+    preset = true
   [../]
   [./hmm]
     type = DirichletBC

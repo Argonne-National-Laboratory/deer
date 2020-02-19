@@ -71,10 +71,11 @@
   [../]
 
   [./front]
-    type = FunctionPresetBC
+    type = FunctionDirichletBC
     variable = disp_z
     boundary = pull
     function = pfn
+    preset = true
   [../]
 []
 

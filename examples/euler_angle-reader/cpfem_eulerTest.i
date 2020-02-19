@@ -126,10 +126,11 @@
   [../]
 
   [./front]
-    type = FunctionPresetBC
+    type = FunctionDirichletBC
     variable = disp_y
     boundary = top
     function = pfn
+    preset = true
   [../]
 []
 
