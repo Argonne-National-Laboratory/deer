@@ -1,0 +1,27 @@
+[Tests]
+  [./effective_stress_material]
+    type = Exodiff
+    input = 'effective_stress_material.i'
+    exodiff = 'effective_stress_material_out.e'
+    requirement = "Deer shall be able to compute effective stress as material property"
+  [../]
+  [./effective_stress_interface_material]
+    type = Exodiff
+    cli_args = "
+    AuxKernels/vonmises/boundary='interface' AuxKernels/s1/boundary='interface' AuxKernels/tresca/boundary='interface' AuxKernels/hydrostatic/boundary='interface' AuxKernels/huddleston/boundary='interface' AuxKernels/hayhurst/boundary='interface' AuxKernels/rccmrx_mises/boundary='interface'
+
+    Materials/vonmises/boundary='interface' Materials/s1/boundary='interface' Materials/tresca/boundary='interface' Materials/hydrostatic/boundary='interface' Materials/huddleston/boundary='interface' Materials/hayhurst/boundary='interface'    Materials/rccmrx_mises/boundary='interface'
+
+    Materials/vonmises/type=EffectiveStressInterfaceMaterial
+    Materials/s1/type=EffectiveStressInterfaceMaterial Materials/tresca/type=EffectiveStressInterfaceMaterial Materials/hydrostatic/type=EffectiveStressInterfaceMaterial Materials/huddleston/type=EffectiveStressInterfaceMaterial Materials/hayhurst/type=EffectiveStressInterfaceMaterial Materials/rccmrx_mises/type=EffectiveStressInterfaceMaterial
+
+    Postprocessors/vonmises/type=SideAverageValue Postprocessors/s1/type=SideAverageValue Postprocessors/tresca/type=SideAverageValue Postprocessors/hydrostatic/type=SideAverageValue Postprocessors/huddleston/type=SideAverageValue Postprocessors/hayhurst/type=SideAverageValue Postprocessors/rccmrx_mises/type=SideAverageValue
+
+    Postprocessors/vonmises/boundary='interface' Postprocessors/s1/boundary='interface' Postprocessors/tresca/boundary='interface' Postprocessors/hydrostatic/boundary='interface' Postprocessors/huddleston/boundary='interface' Postprocessors/hayhurst/boundary='interface' Postprocessors/rccmrx_mises/boundary='interface'
+
+    Outputs/file_base='effective_stress_interface_material_out'"
+    input = 'effective_stress_material.i'
+    exodiff = 'effective_stress_interface_material_out.e'
+    requirement = "Deer shall be able to compute effective stress as interface material property"
+  [../]
+[]

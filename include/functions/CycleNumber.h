@@ -13,13 +13,10 @@
 
 class CycleNumber;
 
-template <>
-InputParameters validParams<CycleNumber>();
-
-class CycleNumber : public Function
-{
+class CycleNumber : public Function {
 public:
-  CycleNumber(const InputParameters & parameters);
+  static InputParameters validParams();
+  CycleNumber(const InputParameters &parameters);
 
   Real value(Real t, const Point &p) const override;
 

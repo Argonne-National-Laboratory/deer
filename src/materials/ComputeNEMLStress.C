@@ -2,44 +2,41 @@
 
 registerMooseObject("DeerApp", ComputeNEMLStress);
 
-template <>
-InputParameters
-validParams<ComputeNEMLStress>()
-{
-  InputParameters params = validParams<Material>();
+InputParameters ComputeNEMLStress::validParams() {
+  InputParameters params = Material::validParams();
   params.addRequiredParam<FileName>("database", "Path to NEML XML database.");
   params.addRequiredParam<std::string>("model", "Model name in NEML database.");
   params.addCoupledVar("temperature", 0.0, "Coupled temperature");
   return params;
 }
 
-ComputeNEMLStress::ComputeNEMLStress(const InputParameters & parameters) :
-    DerivativeMaterialInterface<Material>(parameters),
-    _stress(declareProperty<RankTwoTensor>("stress")),
-    _elastic_strain(declareProperty<RankTwoTensor>("elastic_strain")),
-    _mechanical_strain(getMaterialPropertyByName<RankTwoTensor>("mechanical_strain")),
-    _extra_stress(getDefaultMaterialProperty<RankTwoTensor>("extra_stress")),
-    _Jacobian_mult(declareProperty<RankFourTensor>("Jacobian_mult")),
-    _fname(getParam<FileName>("database")),
-    _mname(getParam<std::string>("model")),
-    _hist(declareProperty<std::vector<Real>>("hist")),
-    _hist_old(getMaterialPropertyOld<std::vector<Real>>("hist")),
-    _mechanical_strain_old(getMaterialPropertyOldByName<RankTwoTensor>("mechanical_strain")),
-    _stress_old(getMaterialPropertyOld<RankTwoTensor>("stress")),
-    _energy(declareProperty<Real>("energy")),
-    _energy_old(getMaterialPropertyOld<Real>("energy")),
-    _dissipation(declareProperty<Real>("dissipation")),
-    _dissipation_old(getMaterialPropertyOld<Real>("dissipation")),
-    _temperature(coupledValue("temperature")),
-    _temperature_old(coupledValueOld("temperature")),
-    _inelastic_strain(declareProperty<RankTwoTensor>("inelastic_strain"))
-{
+ComputeNEMLStress::ComputeNEMLStress(const InputParameters &parameters)
+    : DerivativeMaterialInterface<Material>(parameters),
+      _stress(declareProperty<RankTwoTensor>("stress")),
+      _elastic_strain(declareProperty<RankTwoTensor>("elastic_strain")),
+      _mechanical_strain(
+          getMaterialPropertyByName<RankTwoTensor>("mechanical_strain")),
+      _extra_stress(getDefaultMaterialProperty<RankTwoTensor>("extra_stress")),
+      _Jacobian_mult(declareProperty<RankFourTensor>("Jacobian_mult")),
+      _fname(getParam<FileName>("database")),
+      _mname(getParam<std::string>("model")),
+      _hist(declareProperty<std::vector<Real>>("hist")),
+      _hist_old(getMaterialPropertyOld<std::vector<Real>>("hist")),
+      _mechanical_strain_old(
+          getMaterialPropertyOldByName<RankTwoTensor>("mechanical_strain")),
+      _stress_old(getMaterialPropertyOld<RankTwoTensor>("stress")),
+      _energy(declareProperty<Real>("energy")),
+      _energy_old(getMaterialPropertyOld<Real>("energy")),
+      _dissipation(declareProperty<Real>("dissipation")),
+      _dissipation_old(getMaterialPropertyOld<Real>("dissipation")),
+      _temperature(coupledValue("temperature")),
+      _temperature_old(coupledValueOld("temperature")),
+      _inelastic_strain(declareProperty<RankTwoTensor>("inelastic_strain")) {
   // I strongly hesitate to put this here, may change later
   _model = neml::parse_xml_unique(_fname, _mname);
 }
 
-void ComputeNEMLStress::computeQpProperties()
-{
+void ComputeNEMLStress::computeQpProperties() {
   // We must update:
   // 1) _stress
   // 2) _Jacobian_mult
@@ -61,12 +58,12 @@ void ComputeNEMLStress::computeQpProperties()
 
   double T_np1 = _temperature[_qp];
   double T_n = _temperature_old[_qp];
-  
-  double * h_np1 = &(_hist[_qp][0]);
-  const double * const h_n = &(_hist_old[_qp][0]);
+
+  double *h_np1 = &(_hist[_qp][0]);
+  const double *const h_n = &(_hist_old[_qp][0]);
 
   double A_np1[36];
-  
+
   double u_np1;
   double u_n = _energy_old[_qp];
 
@@ -78,9 +75,8 @@ void ComputeNEMLStress::computeQpProperties()
   int ier;
 
   // Actually call the update
-  ier = _model->update_sd(e_np1, e_n, T_np1, T_n, t_np1, t_n,
-                    s_np1, s_n, h_np1, h_n, A_np1, u_np1, u_n,
-                    p_np1, p_n);
+  ier = _model->update_sd(e_np1, e_n, T_np1, T_n, t_np1, t_n, s_np1, s_n, h_np1,
+                          h_n, A_np1, u_np1, u_n, p_np1, p_n);
 
   if (ier != neml::SUCCESS)
     throw MooseException("NEML stress update failed!");
@@ -103,7 +99,7 @@ void ComputeNEMLStress::computeQpProperties()
 
   // For EPP purposes calculate the inelastic strain
   double pstrain[6];
-  for (int i=0; i<6; i++) {
+  for (int i = 0; i < 6; i++) {
     pstrain[i] = e_np1[i] - estrain[i];
   }
   neml_tensor(pstrain, _inelastic_strain[_qp]);
@@ -113,8 +109,7 @@ void ComputeNEMLStress::computeQpProperties()
   _dissipation[_qp] = p_np1;
 }
 
-void ComputeNEMLStress::initQpStatefulProperties()
-{
+void ComputeNEMLStress::initQpStatefulProperties() {
   _elastic_strain[_qp].zero();
   _stress[_qp].zero();
 
@@ -122,7 +117,7 @@ void ComputeNEMLStress::initQpStatefulProperties()
   int ier;
   _hist[_qp].resize(_model->nhist());
   ier = _model->init_hist(&(_hist[_qp][0]));
-  
+
   // Various other junk
   _energy[_qp] = 0.0;
   _dissipation[_qp] = 0.0;
@@ -131,9 +126,8 @@ void ComputeNEMLStress::initQpStatefulProperties()
     mooseError("Error initializing NEML history!");
 }
 
-void tensor_neml(const RankTwoTensor & in, double * const out)
-{
-  double inds[6][2] = {{0,0}, {1,1}, {2,2}, {1,2}, {0,2}, {0,1}};
+void tensor_neml(const RankTwoTensor &in, double *const out) {
+  double inds[6][2] = {{0, 0}, {1, 1}, {2, 2}, {1, 2}, {0, 2}, {0, 1}};
   double mults[6] = {1.0, 1.0, 1.0, sqrt(2.0), sqrt(2.0), sqrt(2.0)};
 
   for (int i = 0; i < 6; i++) {
@@ -141,10 +135,8 @@ void tensor_neml(const RankTwoTensor & in, double * const out)
   }
 }
 
-
-void neml_tensor(const double * const in, RankTwoTensor & out)
-{
-  double inds[6][2] = {{0,0}, {1,1}, {2,2}, {1,2}, {0,2}, {0,1}};
+void neml_tensor(const double *const in, RankTwoTensor &out) {
+  double inds[6][2] = {{0, 0}, {1, 1}, {2, 2}, {1, 2}, {0, 2}, {0, 1}};
   double mults[6] = {1.0, 1.0, 1.0, sqrt(2.0), sqrt(2.0), sqrt(2.0)};
 
   for (int i = 0; i < 6; i++) {
@@ -153,47 +145,42 @@ void neml_tensor(const double * const in, RankTwoTensor & out)
   }
 }
 
-void neml_tangent(const double * const in, RankFourTensor & out)
-{
-  double inds[6][2] = {{0,0}, {1,1}, {2,2}, {1,2}, {0,2}, {0,1}};
+void neml_tangent(const double *const in, RankFourTensor &out) {
+  double inds[6][2] = {{0, 0}, {1, 1}, {2, 2}, {1, 2}, {0, 2}, {0, 1}};
   double mults[6] = {1.0, 1.0, 1.0, sqrt(2.0), sqrt(2.0), sqrt(2.0)};
 
   for (int i = 0; i < 6; i++) {
     for (int j = 0; j < 6; j++) {
-      out(inds[i][0], inds[i][1], inds[j][0], inds[j][1]) = in[i*6+j] / (
-          mults[i] * mults[j]);
-      out(inds[i][1], inds[i][0], inds[j][0], inds[j][1]) = in[i*6+j] / (
-          mults[i] * mults[j]);
-      out(inds[i][0], inds[i][1], inds[j][1], inds[j][0]) = in[i*6+j] / (
-          mults[i] * mults[j]);
-      out(inds[i][1], inds[i][0], inds[j][1], inds[j][0]) = in[i*6+j] / (
-          mults[i] * mults[j]);
+      out(inds[i][0], inds[i][1], inds[j][0], inds[j][1]) =
+          in[i * 6 + j] / (mults[i] * mults[j]);
+      out(inds[i][1], inds[i][0], inds[j][0], inds[j][1]) =
+          in[i * 6 + j] / (mults[i] * mults[j]);
+      out(inds[i][0], inds[i][1], inds[j][1], inds[j][0]) =
+          in[i * 6 + j] / (mults[i] * mults[j]);
+      out(inds[i][1], inds[i][0], inds[j][1], inds[j][0]) =
+          in[i * 6 + j] / (mults[i] * mults[j]);
     }
   }
 }
 
-void tensor_skew(const RankTwoTensor & in, double * const out)
-{
-  out[0] = -in(1,2);
-  out[1] = in(0,2);
-  out[2] = -in(0,1);
+void tensor_skew(const RankTwoTensor &in, double *const out) {
+  out[0] = -in(1, 2);
+  out[1] = in(0, 2);
+  out[2] = -in(0, 1);
 }
 
-void skew_tensor(const double * const in, RankTwoTensor & out)
-{
+void skew_tensor(const double *const in, RankTwoTensor &out) {
   out.zero();
-  out(0,1) = -in[2];
-  out(0,2) = in[1];
-  out(1,0) = in[2];
-  out(1,2) = -in[0];
-  out(2,0) = -in[1];
-  out(2,1) = in[0];
+  out(0, 1) = -in[2];
+  out(0, 2) = in[1];
+  out(1, 0) = in[2];
+  out(1, 2) = -in[0];
+  out(2, 0) = -in[1];
+  out(2, 1) = in[0];
 }
 
-void recombine_tangent(const double * const Dpart, 
-                       const double * const Wpart,
-                       RankFourTensor & out)
-{
+void recombine_tangent(const double *const Dpart, const double *const Wpart,
+                       RankFourTensor &out) {
   std::vector<double> data(81);
   neml::transform_fourth(Dpart, Wpart, &data[0]);
   out.fillFromInputVector(data, RankFourTensor::FillMethod::general);

@@ -203,19 +203,22 @@
 
 [BCs]
   [./back]
-     type = PresetBC
+     type = DirichletBC
+     preset = true
      variable = disp_z
      boundary = back
      value = 0.0
   [../]
   [./bottom_y]
-    type = PresetBC
+    type = DirichletBC
+    preset = true
     variable = disp_y
     boundary = bottom
     value = 0.0
   [../]
   [./bottom_x]
-    type = PresetBC
+    type = DirichletBC
+    preset = true
     variable = disp_x
     boundary = bottom
     value = 0.0
@@ -227,7 +230,8 @@
     function = shearme
   [../]
   [./hmm]
-    type = PresetBC
+    type = DirichletBC
+    preset = true
     variable = disp_y
     boundary = top
     value = 0.0

@@ -1,0 +1,8 @@
+[Tests]
+  [./effective_stress_aux]
+    type = Exodiff
+    input = 'effective_stress_aux.i'
+    exodiff = 'effective_stress_aux_out.e'
+    requirement = "Deer shall be able to use an aux kernel to compute effective stress"
+  [../]
+[]

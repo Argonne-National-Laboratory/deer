@@ -1,51 +1,49 @@
 #include "ComputeNEMLStressBase.h"
 
-template <>
-InputParameters
-validParams<ComputeNEMLStressBase>()
-{
-  InputParameters params = validParams<Material>();
+InputParameters ComputeNEMLStressBase::validParams() {
+  InputParameters params = Material::validParams();
   params.addRequiredParam<FileName>("database", "Path to NEML XML database.");
   params.addRequiredParam<std::string>("model", "Model name in NEML database.");
   params.addCoupledVar("temperature", 0.0, "Coupled temperature");
-  
-  params.addParam<bool>("large_kinematics", false, "Use large displacement kinematics");
+
+  params.addParam<bool>("large_kinematics", false,
+                        "Use large displacement kinematics");
   params.suppressParameter<bool>("use_displaced_mesh");
 
   return params;
 }
 
-ComputeNEMLStressBase::ComputeNEMLStressBase(const InputParameters & parameters) 
-  : DerivativeMaterialInterface<Material>(parameters),
-    _fname(getParam<FileName>("database")),
-    _mname(getParam<std::string>("model")),
-    _mechanical_strain_inc(getMaterialPropertyByName<RankTwoTensor>("mechanical_strain_inc")),
-    _vorticity_inc(getMaterialPropertyByName<RankTwoTensor>("vorticity_inc")),
-    _temperature(coupledValue("temperature")),
-    _temperature_old(coupledValueOld("temperature")),
-    _mechanical_strain(declareProperty<RankTwoTensor>("mechanical_strain")),
-    _mechanical_strain_old(getMaterialPropertyOld<RankTwoTensor>("mechanical_strain")),
-    _linear_rot(declareProperty<RankTwoTensor>("linear_rot")),
-    _linear_rot_old(getMaterialPropertyOld<RankTwoTensor>("linear_rot")),
-    _stress(declareProperty<RankTwoTensor>("stress")),
-    _stress_old(getMaterialPropertyOld<RankTwoTensor>("stress")),
-    _material_jacobian(declareProperty<RankFourTensor>("material_jacobian")),
-    _hist(declareProperty<std::vector<Real>>("hist")),
-    _hist_old(getMaterialPropertyOld<std::vector<Real>>("hist")),
-    _energy(declareProperty<Real>("energy")),
-    _energy_old(getMaterialPropertyOld<Real>("energy")),
-    _dissipation(declareProperty<Real>("dissipation")),
-    _dissipation_old(getMaterialPropertyOld<Real>("dissipation")),
-    _elastic_strain(declareProperty<RankTwoTensor>("elastic_strain")),
-    _inelastic_strain(declareProperty<RankTwoTensor>("inelastic_strain")),
-    _ld(getParam<bool>("large_kinematics"))
-{
+ComputeNEMLStressBase::ComputeNEMLStressBase(const InputParameters &parameters)
+    : DerivativeMaterialInterface<Material>(parameters),
+      _fname(getParam<FileName>("database")),
+      _mname(getParam<std::string>("model")),
+      _mechanical_strain_inc(
+          getMaterialPropertyByName<RankTwoTensor>("mechanical_strain_inc")),
+      _vorticity_inc(getMaterialPropertyByName<RankTwoTensor>("vorticity_inc")),
+      _temperature(coupledValue("temperature")),
+      _temperature_old(coupledValueOld("temperature")),
+      _mechanical_strain(declareProperty<RankTwoTensor>("mechanical_strain")),
+      _mechanical_strain_old(
+          getMaterialPropertyOld<RankTwoTensor>("mechanical_strain")),
+      _linear_rot(declareProperty<RankTwoTensor>("linear_rot")),
+      _linear_rot_old(getMaterialPropertyOld<RankTwoTensor>("linear_rot")),
+      _stress(declareProperty<RankTwoTensor>("stress")),
+      _stress_old(getMaterialPropertyOld<RankTwoTensor>("stress")),
+      _material_jacobian(declareProperty<RankFourTensor>("material_jacobian")),
+      _hist(declareProperty<std::vector<Real>>("hist")),
+      _hist_old(getMaterialPropertyOld<std::vector<Real>>("hist")),
+      _energy(declareProperty<Real>("energy")),
+      _energy_old(getMaterialPropertyOld<Real>("energy")),
+      _dissipation(declareProperty<Real>("dissipation")),
+      _dissipation_old(getMaterialPropertyOld<Real>("dissipation")),
+      _elastic_strain(declareProperty<RankTwoTensor>("elastic_strain")),
+      _inelastic_strain(declareProperty<RankTwoTensor>("inelastic_strain")),
+      _ld(getParam<bool>("large_kinematics")) {
   // I strongly hesitate to put this here, may change later
   _model = neml::parse_xml_unique(_fname, _mname);
 }
 
-void ComputeNEMLStressBase::computeQpProperties()
-{
+void ComputeNEMLStressBase::computeQpProperties() {
   // Get the strains added together
   updateStrain();
 
@@ -70,32 +68,30 @@ void ComputeNEMLStressBase::computeQpProperties()
 
   double T_np1 = _temperature[_qp];
   double T_n = _temperature_old[_qp];
-  
-  double * h_np1;
-  const double * h_n;
-  
+
+  double *h_np1;
+  const double *h_n;
+
   // MOOSE vector debug doesn't like this
   if (_model->nstore() > 0) {
     h_np1 = &(_hist[_qp][0]);
     h_n = &(_hist_old[_qp][0]);
-  }
-  else {
+  } else {
     h_np1 = nullptr;
     h_n = nullptr;
   }
 
   double A_np1[36];
   double B_np1[18];
-  
+
   double u_np1;
   double u_n = _energy_old[_qp];
 
   double p_np1;
   double p_n = _dissipation_old[_qp];
 
-  stressUpdate(e_np1, e_n, w_np1, w_n, T_np1, T_n, t_np1, t_n,
-               s_np1, s_n, h_np1, h_n, A_np1, B_np1, u_np1, u_n,
-               p_np1, p_n);
+  stressUpdate(e_np1, e_n, w_np1, w_n, T_np1, T_n, t_np1, t_n, s_np1, s_n,
+               h_np1, h_n, A_np1, B_np1, u_np1, u_n, p_np1, p_n);
 
   // Do more translation, now back to tensors
   neml_tensor(s_np1, _stress[_qp]);
@@ -113,7 +109,7 @@ void ComputeNEMLStressBase::computeQpProperties()
 
   // For EPP purposes calculate the inelastic strain
   double pstrain[6];
-  for (int i=0; i<6; i++) {
+  for (int i = 0; i < 6; i++) {
     pstrain[i] = e_np1[i] - estrain[i];
   }
   neml_tensor(pstrain, _inelastic_strain[_qp]);
@@ -123,8 +119,7 @@ void ComputeNEMLStressBase::computeQpProperties()
   _dissipation[_qp] = p_np1;
 }
 
-void ComputeNEMLStressBase::initQpStatefulProperties()
-{
+void ComputeNEMLStressBase::initQpStatefulProperties() {
   // Basic variables maintained here
   _mechanical_strain[_qp].zero();
   _linear_rot[_qp].zero();
@@ -135,8 +130,7 @@ void ComputeNEMLStressBase::initQpStatefulProperties()
   _hist[_qp].resize(_model->nstore());
   if (_model->nstore() > 0) {
     ier = _model->init_store(&_hist[_qp].front());
-  }
-  else {
+  } else {
     ier = 0;
   }
 
@@ -149,11 +143,8 @@ void ComputeNEMLStressBase::initQpStatefulProperties()
   _dissipation[_qp] = 0.0;
 }
 
-void
-ComputeNEMLStressBase::updateStrain()
-{
-  _mechanical_strain[_qp] = _mechanical_strain_old[_qp] +
-      _mechanical_strain_inc[_qp];
-  _linear_rot[_qp] = _linear_rot_old[_qp] + 
-      _vorticity_inc[_qp];
+void ComputeNEMLStressBase::updateStrain() {
+  _mechanical_strain[_qp] =
+      _mechanical_strain_old[_qp] + _mechanical_strain_inc[_qp];
+  _linear_rot[_qp] = _linear_rot_old[_qp] + _vorticity_inc[_qp];
 }

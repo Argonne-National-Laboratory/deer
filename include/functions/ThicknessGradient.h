@@ -1,29 +1,18 @@
-#ifndef THICKNESSGRADIENT_H
-#define THICKNESSGRADIENT_H
+#pragma once
 
 #include "Function.h"
 
-class ThicknessGradient;
+class ThicknessGradient : public Function {
+public:
+  static InputParameters validParams();
+  ThicknessGradient(const InputParameters &parameters);
 
-template <>
-InputParameters validParams<ThicknessGradient>();
+  virtual Real value(Real t, const Point &p);
 
-class ThicknessGradient : public Function
-{
- public:
-  ThicknessGradient(const InputParameters & parameters);
-
-  virtual Real value(Real t, const Point & p);
-
- private:
+private:
   Real _getTemp(Real T2p, Real nx);
 
- protected:
+protected:
   Real _delay, _T1, _T2, _tramp1, _thold1, _tramp2, _thold2, _x1, _x2;
   int _index;
-
 };
-
-
-
-#endif // THICKNESSGRADIENT_H

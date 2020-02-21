@@ -1,25 +1,16 @@
-#ifndef TIMEDERIVAUXKERNEL_H
-#define TIMEDERIVAUXKERNEL_H
+#pragma once
 
 #include "AuxKernel.h"
 
-class TimeDerivAuxKernel;
+class TimeDerivAuxKernel : public AuxKernel {
+public:
+  static InputParameters validParams();
+  TimeDerivAuxKernel(const InputParameters &parameters);
 
-template <>
-InputParameters validParams<TimeDerivAuxKernel>();
-
-class TimeDerivAuxKernel: public AuxKernel
-{
- public:
-  TimeDerivAuxKernel(const InputParameters & parameters);
-
- protected:
+protected:
   virtual Real computeValue() override;
 
- protected:
-  const VariableValue & _coupled_new;
-  const VariableValue & _coupled_old;
+protected:
+  const VariableValue &_coupled_new;
+  const VariableValue &_coupled_old;
 };
-
-
-#endif // TIMEDERIVAUXKERNEL_H

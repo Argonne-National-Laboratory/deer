@@ -11,8 +11,8 @@
 
 registerMooseObject("DeerApp", PiecewiseLinearCycle);
 
-template <> InputParameters validParams<PiecewiseLinearCycle>() {
-  InputParameters params = validParams<PiecewiseLinear>();
+InputParameters PiecewiseLinearCycle::validParams() {
+  InputParameters params = PiecewiseLinear::validParams();
   params.addRequiredParam<FunctionName>("cycle_time_func",
                                         "The CycleTime function name");
   params.addClassDescription("linearly interpolate a function cyclicly");

@@ -35,7 +35,8 @@
 
 [BCs]
   [./leftx]
-    type = PresetBC
+    type = DirichletBC
+    preset = true
     boundary = right
     variable = disp_x
     value = 0.0

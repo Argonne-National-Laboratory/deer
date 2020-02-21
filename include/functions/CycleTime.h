@@ -11,12 +11,9 @@
 
 #include "Function.h"
 
-class CycleTime;
-
-template <> InputParameters validParams<CycleTime>();
-
 class CycleTime : public Function {
 public:
+  static InputParameters validParams();
   CycleTime(const InputParameters &parameters);
 
   Real value(Real t, const Point &p) const override;

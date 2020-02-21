@@ -59,25 +59,29 @@
 
 [BCs]
       [./left]
-            type = PresetBC
+            type = DirichletBC
+            preset = true
             variable = disp_x
             value = 0.0
             boundary = 'left'
       [../]
       [./back]
-            type = PresetBC
+            type = DirichletBC
+            preset = true
             variable = disp_y
             value = 0.0
             boundary = 'back'
       [../]
       [./bottom]
-            type = PresetBC
+            type = DirichletBC
+            preset = true
             variable = disp_z
             value = 0.0
             boundary = 'bottom'
       [../]
       [./top]
-            type = PresetBC
+            type = DirichletBC
+            preset = true
             variable = disp_z
             boundary = 'top'
             value = 0.0
@@ -87,10 +91,10 @@
 [Executioner]
       type = Transient
       solve_type = PJFNK
-      
+
       petsc_options_iname = '-pc_type -pc_hypre_type -ksp_gmres_restart'
       petsc_options_value = 'hypre boomeramg 101'
-      
+
       nl_max_its = 20
       nl_rel_tol = 1.0e-6
       nl_abs_tol = 1.0e-10

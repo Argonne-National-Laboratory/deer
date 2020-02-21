@@ -1,21 +1,15 @@
-#ifndef NEMLMECHANICSACTION_H
-#define NEMLMECHANICSACTION_H
+#pragma once
 
 #include "Action.h"
 
-class NEMLMechanicsAction;
-
-template <>
-InputParameters validParams<NEMLMechanicsAction>();
-
-class NEMLMechanicsAction : public Action
-{
- public:
-  NEMLMechanicsAction(const InputParameters & params);
+class NEMLMechanicsAction : public Action {
+public:
+  static InputParameters validParams();
+  NEMLMechanicsAction(const InputParameters &params);
 
   virtual void act();
 
- protected:
+protected:
   void _add_tensor_variable(std::string name);
   void _add_scalar_variable(std::string name);
 
@@ -27,17 +21,10 @@ class NEMLMechanicsAction : public Action
   bool _add_disp;
   bool _add_all;
 
-  enum class Kinematics
-  {
-    Small,
-    Large
-  } _kinematics;
+  enum class Kinematics { Small, Large } _kinematics;
 
-  std::map<Kinematics, bool> _kin_mapper = {
-    {Kinematics::Small, false},
-    {Kinematics::Large, true}};
+  std::map<Kinematics, bool> _kin_mapper = {{Kinematics::Small, false},
+                                            {Kinematics::Large, true}};
 
-  std::vector<MaterialPropertyName> _eigenstrains;  
+  std::vector<MaterialPropertyName> _eigenstrains;
 };
-
-#endif // NEMLMECHANICSACTION_H

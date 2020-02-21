@@ -21,25 +21,29 @@
 
 [BCs]
   [./leftx]
-    type = PresetBC
+    type = DirichletBC
+    preset = true
     boundary = left
     variable = disp_x
     value = 0.0
   [../]
   [./lefty]
-    type = PresetBC
+    type = DirichletBC
+    preset = true
     boundary = bottom
     variable = disp_y
     value = 0.0
   [../]
   [./leftz]
-    type = PresetBC
+    type = DirichletBC
+    preset = true
     boundary = back
     variable = disp_z
     value = 0.0
   [../]
   [./pull_z]
-    type = PresetBC
+    type = DirichletBC
+    preset = true
     boundary = front
     variable = disp_z
     value = 0.1

@@ -107,7 +107,8 @@
 
 [BCs]
   [./fix]
-    type = PresetBC
+    type = DirichletBC
+    preset = true
     value = 0.0
     boundary = left
     variable = disp_x
