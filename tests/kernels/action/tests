@@ -11,4 +11,10 @@
     exodiff = 'large_action_out.e'
     requirement = "Check to make sure the action does everything, large strain."
   [../]
+  [./block_restricted]
+    type = Exodiff
+    input = 'block_restricted.i'
+    exodiff = 'block_restricted_out.e'
+    requirement = "Check that neml action can be block restricted"
+  [../]
 []

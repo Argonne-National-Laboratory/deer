@@ -27,4 +27,5 @@ protected:
                                             {Kinematics::Large, true}};
 
   std::vector<MaterialPropertyName> _eigenstrains;
+  std::vector<SubdomainName> _block;
 };
