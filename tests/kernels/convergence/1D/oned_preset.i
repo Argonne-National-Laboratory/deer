@@ -42,10 +42,11 @@
     value = 0.0
   [../]
   [./pull]
-    type = FunctionPresetBC
+    type = FunctionDirichletBC
     boundary = left
     variable = disp_x
     function = pull
+    preset = true
   [../]
 []
 
