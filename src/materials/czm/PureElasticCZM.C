@@ -11,8 +11,8 @@
 
 registerMooseObject("DeerApp", PureElasticCZM);
 
-template <> InputParameters validParams<PureElasticCZM>() {
-  InputParameters params = validParams<CZMMaterialBase>();
+InputParameters PureElasticCZM::validParams() {
+  InputParameters params = CZMMaterialBase::validParams();
   params.addClassDescription(
       "Cohesive model with linear elastic opening and shearing");
   params.addRequiredParam<Real>("E", "Interface normal elastic modulus");

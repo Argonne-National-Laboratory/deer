@@ -84,9 +84,9 @@ Real StressDivergenceNEML::matJacobianComponent(const RankFourTensor &C,
                                                 const RankTwoTensor &df) {
   Real value = 0.0;
 
-  for (int j = 0; j < _ndisp; j++) {
-    for (int k = 0; k < _ndisp; k++) {
-      for (int l = 0; l < _ndisp; l++) {
+  for (unsigned int j = 0; j < _ndisp; j++) {
+    for (unsigned int k = 0; k < _ndisp; k++) {
+      for (unsigned int l = 0; l < _ndisp; l++) {
         value += C(i, j, k, l) * grad_psi(j) * df(k, m) * grad_phi(l);
       }
     }
@@ -102,7 +102,7 @@ Real StressDivergenceNEML::geomJacobianComponent(unsigned int i, unsigned int m,
 
   Real value = 0.0;
 
-  for (int k = 0; k < _ndisp; k++) {
+  for (unsigned int k = 0; k < _ndisp; k++) {
     value += stress(i, k) * grad_psi(k) * grad_phi(m);
     value -= stress(i, k) * grad_phi(k) * grad_psi(m);
   }

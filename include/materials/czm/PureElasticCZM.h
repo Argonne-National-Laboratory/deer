@@ -12,13 +12,13 @@
 #include "CZMMaterialBase.h"
 
 class PureElasticCZM;
-template <> InputParameters validParams<PureElasticCZM>();
 /**
  * Implementation of the non-stateful exponential traction separation law
  * proposed by Salehani, Mohsen Khajeh and Irani, Nilgoon 2018
  **/
 class PureElasticCZM : public CZMMaterialBase {
 public:
+  static InputParameters validParams();
   PureElasticCZM(const InputParameters &parameters);
 
 protected:

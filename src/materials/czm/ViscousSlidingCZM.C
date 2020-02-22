@@ -12,8 +12,8 @@
 
 registerMooseObject("DeerApp", ViscousSlidingCZM);
 
-template <> InputParameters validParams<ViscousSlidingCZM>() {
-  InputParameters params = validParams<PureElasticCZM>();
+InputParameters ViscousSlidingCZM::validParams() {
+  InputParameters params = PureElasticCZM::validParams();
   params.addClassDescription(
       "Cohesive model with linear leastic opening and viscous sliding");
   params.addRequiredParam<Real>("shear_viscosity", "Interface shear viscosity");
