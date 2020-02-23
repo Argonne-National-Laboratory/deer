@@ -12,13 +12,14 @@
 #include "PureElasticCZM.h"
 
 class ViscousSlidingCZM;
-template <> InputParameters validParams<ViscousSlidingCZM>();
+
 /**
  * Implementation of the non-stateful exponential traction separation law
  * proposed by Salehani, Mohsen Khajeh and Irani, Nilgoon 2018
  **/
 class ViscousSlidingCZM : public PureElasticCZM {
 public:
+  static InputParameters validParams();
   ViscousSlidingCZM(const InputParameters &parameters);
 
 protected:
