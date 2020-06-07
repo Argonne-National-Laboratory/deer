@@ -25,9 +25,17 @@ public:
   TractionAux(const InputParameters &parameters);
 
 protected:
+  virtual void initialSetup() override;
   virtual Real getRealValue() override;
   const MooseArray<Point> &_normals;
   const MooseEnum _scalar_type;
+  const bool _PK1;
+  const bool _large_kinematics;
+  /// number of displacement components
+  const unsigned int _ndisp;
+
+  /// the coupled displacement gradient
+  std::vector<const VariableGradient *> _grad_disp;
 
 private:
   static MooseEnum traction_component();

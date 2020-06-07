@@ -27,6 +27,7 @@ DeerApp::~DeerApp() {}
 static void associateSyntaxInner(Syntax &syntax,
                                  ActionFactory & /*action_factory*/) {
   registerSyntax("NEMLMechanicsAction", "NEMLMechanics");
+  registerSyntax("CohesiveZoneMasterActionDeer", "CohesiveZoneDeer");
 }
 
 void DeerApp::registerApps() { registerApp(DeerApp); }
