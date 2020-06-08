@@ -86,7 +86,7 @@ Real TractionAux::getRealValue() {
   traction *= dadA;
 
   // extract components
-  Real val;
+  Real val = 0;
   switch (_scalar_type) {
   case 0:
     val = traction(0);

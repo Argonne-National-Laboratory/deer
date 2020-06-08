@@ -12,4 +12,11 @@
     exodiff = 'simple_shear_rotated_out.e'
     requirement = "Traction on the top surface must be the same as in simple_shear test."
   [../]
+  [./PK1_traction_and_large_rotation]
+    type = CSVDiff
+    input = 'largekinematics.i'
+    csvdiff = 'largekinematics_out.csv'
+    requirement = "Under large area changes the PK1 traction shall vary accordingly.
+    Under large rotation traction should reorient proeprly"
+  [../]
 []
