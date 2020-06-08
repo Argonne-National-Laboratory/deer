@@ -92,7 +92,6 @@
     component = 0
     variable = disp_x
     angular_velocity = true
-    incremental = true
   [../]
   [./rotate_y]
     type = DisplacementAboutAxis
@@ -104,7 +103,6 @@
     component = 1
     variable = disp_y
     angular_velocity = true
-    incremental = true
   [../]
   [./rotate_z]
     type = DisplacementAboutAxis
@@ -116,7 +114,6 @@
     component = 2
     variable = disp_z
     angular_velocity = true
-    incremental = true
   [../]
 []
 
@@ -370,7 +367,7 @@
     large_kinematics = true
   [../]
   [./czm_mat]
-    type = PureElasticPK1
+    type = PureElasticCZMIncremental
     E = 1e7
     G = 1e6
     boundary = 'interface'
@@ -521,5 +518,6 @@
 []
 
 [Outputs]
+  csv = true
   exodus = true
 []

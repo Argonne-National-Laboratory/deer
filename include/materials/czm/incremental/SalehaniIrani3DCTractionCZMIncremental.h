@@ -15,14 +15,21 @@
  * Implementation of the non-stateful exponential traction separation law
  * proposed by Salehani, Mohsen Khajeh and Irani, Nilgoon 2018
  **/
-class PureElasticPK1 : public CZMMaterialBasePK1
-{
+class SalehaniIrani3DCTractionCZMIncremental : public CZMMaterialBasePK1 {
 public:
   static InputParameters validParams();
-  PureElasticPK1(const InputParameters & parameters);
+  SalehaniIrani3DCTractionCZMIncremental(const InputParameters &parameters);
 
 protected:
   virtual void computeTractionIncrementAndDerivatives() override;
 
-  const RankTwoTensor _K;
+  /// the displacement jump associated to the maximum traction
+  const std::vector<Real> _delta_u0;
+
+  /// the vector representing the maximum allowed traction in each direction
+  const std::vector<Real> _max_allowable_traction;
+
+private:
+  RealVectorValue computeTraction();
+  RankTwoTensor computeTractionDerivatives();
 };
