@@ -217,6 +217,7 @@
     boundary = interface
     execute_on = 'TIMESTEP_END'
     scaling_factor_PP = area
+    use_displaced_mesh = true
   [../]
   [./s_undef_interface_new]
     type = MaterialTensorIntegralInterfaceScaled
@@ -226,6 +227,7 @@
     boundary = interface
     execute_on = 'TIMESTEP_END'
     scaling_factor_PP = area0
+    use_displaced_mesh = true
   [../]
 []
 
