@@ -1,4 +1,6 @@
 language: cpp
+compiler: gcc
+dist: bionic
 git:
       submodules: false
 before_install:
