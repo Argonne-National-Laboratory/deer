@@ -18,3 +18,4 @@ build
 *.lyx~
 *.csv
 *.previous_test_results.json
+*~
