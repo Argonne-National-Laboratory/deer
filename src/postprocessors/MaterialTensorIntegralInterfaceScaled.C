@@ -33,7 +33,6 @@ MaterialTensorIntegralInterfaceScaledTempl<is_ad>::validParams() {
   params.addParam<PostprocessorName>(
       "scaling_factor_PP",
       "a postprocessor used as scaling factor for the integral");
-  params.set<bool>("use_displaced_mesh") = true;
   return params;
 }
 

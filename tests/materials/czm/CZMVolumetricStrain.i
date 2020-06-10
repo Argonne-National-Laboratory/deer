@@ -22,6 +22,10 @@
   []
 []
 
+[GlobalParams]
+  displacements = 'disp_x disp_y disp_z'
+[]
+
 [AuxVariables]
   [./T_N]
     family = MONOMIAL
@@ -93,15 +97,15 @@
     type = PureElasticCZM
     displacements = 'disp_x disp_y disp_z'
     boundary = 'interface'
-    E = 1e2
-    G = 1e2
+    E = 1e0
+    G = 1e0
     interface_thickness = 1
   [../]
   [./czm_voluemtric_strain]
     type = CZMVolumetricStrain
     displacements = 'disp_x disp_y disp_z'
     boundary = 'interface'
-    use_displaced_mesh = false
+    large_kinematics = true
   []
 []
 
@@ -125,47 +129,81 @@
   nl_max_its = 15
   nl_rel_tol = 1e-8
   nl_abs_tol = 1e-6
-  dtmin = 1
-  dtmax = 1
-  end_time = 1
+  [./TimeStepper]
+    type = FunctionDT
+    function = dt_fun
+  [../]
+  end_time = 2
 []
 
 [BCs]
-  [./x]
+  [./fix_x]
     type = DirichletBC
     boundary = left
     variable = disp_x
     value = 0.0
   [../]
-  [./y]
+  [./fix_y]
     type = DirichletBC
     boundary = bottom
     variable = disp_y
     value = 0.0
   [../]
-  [./z]
+  [./fix_z]
     type = DirichletBC
     boundary = back
     variable = disp_z
     value = 0.0
   [../]
-  [./x_top]
-    type = DirichletBC
-    boundary = front
-    variable = disp_x
-    value = 0.0
-  [../]
-  [./y_top]
-    type = DirichletBC
-    boundary = front
-    variable = disp_y
-    value = 0.0
-  [../]
-  [./z_top]
+  [./move_top]
     type = FunctionDirichletBC
     boundary = front
     variable = disp_z
     function = disp_fun
+  [../]
+
+  [./rotate_x]
+  type = DisplacementAboutAxis
+  boundary = 'front back left right top bottom'
+  function = '90.'
+  angle_units = degrees
+  axis_origin = '0. 0. 0.'
+  axis_direction = '0. 1. 0.'
+  component = 0
+  variable = disp_x
+  angular_velocity = true
+[../]
+[./rotate_y]
+  type = DisplacementAboutAxis
+  boundary = 'front back left right top bottom'
+  function = '90.'
+  angle_units = degrees
+  axis_origin = '0. 0. 0.'
+  axis_direction = '0. 1. 0.'
+  component = 1
+  variable = disp_y
+  angular_velocity = true
+[../]
+[./rotate_z]
+  type = DisplacementAboutAxis
+  boundary = 'front back left right top bottom'
+  function = '90.'
+  angle_units = degrees
+  axis_origin = '0. 0. 0.'
+  axis_direction = '0. 1. 0.'
+  component = 2
+  variable = disp_z
+  angular_velocity = true
+[../]
+[]
+
+[Controls]
+  [./c1]
+    type = TimePeriod
+    enable_objects = 'BCs::fix_x BCs::fix_y BCs::fix_z BCs::move_top'
+    disable_objects = 'BCs::rotate_x BCs::rotate_y BCs::rotate_z'
+    start_time = '0'
+    end_time = '1'
   [../]
 []
 
@@ -175,34 +213,36 @@
     x = '0 1'
     y = '0 0.1'
   [../]
+  [./dt_fun]
+    type = PiecewiseConstant
+    x = '0 0.99 2'
+    y = '0.01 0.001 0.001'
+  []
 []
 
 [Postprocessors]
-  [./A0]
-    type = AreaPostprocessor
-    boundary = interface
-    use_displaced_mesh = false
-  []
   [./V0]
     type = VolumePostprocessor
     use_displaced_mesh = false
     execute_on = 'INITIAL'
   []
-  [./czm_strain_rate_total_xx]
+  [./czm_strain_rate_total_x-x]
     type = MaterialTensorIntegralInterfaceScaled
     rank_two_tensor = czm_total_strain_rate
     index_i = 0
     index_j = 0
     boundary = interface
+    scaling_factor_PP = V0
   [../]
-  [./czm_strain_rate_total_yy]
+  [./czm_strain_rate_total_y-y]
     type = MaterialTensorIntegralInterfaceScaled
     rank_two_tensor = czm_total_strain_rate
     index_i = 1
     index_j = 1
     boundary = interface
+    scaling_factor_PP = V0
   [../]
-  [./czm_strain_rate_total_zz]
+  [./czm_strain_rate_total_z-z]
     type = MaterialTensorIntegralInterfaceScaled
     rank_two_tensor = czm_total_strain_rate
     index_i = 2
@@ -211,7 +251,25 @@
     execute_on = 'TIMESTEP_END'
     scaling_factor_PP = V0
   [../]
-  [./czm_normal_strain_rate_zz]
+  [./czm_normal_strain_rate_x-x]
+    type = MaterialTensorIntegralInterfaceScaled
+    rank_two_tensor = czm_normal_strain_rate
+    index_i = 0
+    index_j = 0
+    boundary = interface
+    execute_on = 'TIMESTEP_END'
+    scaling_factor_PP = V0
+  [../]
+  [./czm_normal_strain_rate_y-y]
+    type = MaterialTensorIntegralInterfaceScaled
+    rank_two_tensor = czm_normal_strain_rate
+    index_i = 1
+    index_j = 1
+    boundary = interface
+    execute_on = 'TIMESTEP_END'
+    scaling_factor_PP = V0
+  [../]
+  [./czm_normal_strain_rate_z-z]
     type = MaterialTensorIntegralInterfaceScaled
     rank_two_tensor = czm_normal_strain_rate
     index_i = 2
@@ -220,7 +278,25 @@
     execute_on = 'TIMESTEP_END'
     scaling_factor_PP = V0
   [../]
-  [./czm_sliding_strain_rate_zz]
+  [./czm_sliding_strain_rate_x-x]
+    type = MaterialTensorIntegralInterfaceScaled
+    rank_two_tensor = czm_sliding_strain_rate
+    index_i = 0
+    index_j = 0
+    boundary = interface
+    execute_on = 'TIMESTEP_END'
+    scaling_factor_PP = V0
+  [../]
+  [./czm_sliding_strain_rate_y-y]
+    type = MaterialTensorIntegralInterfaceScaled
+    rank_two_tensor = czm_sliding_strain_rate
+    index_i = 1
+    index_j = 1
+    boundary = interface
+    execute_on = 'TIMESTEP_END'
+    scaling_factor_PP = V0
+  [../]
+  [./czm_sliding_strain_rate_z-z]
     type = MaterialTensorIntegralInterfaceScaled
     rank_two_tensor = czm_sliding_strain_rate
     index_i = 2
@@ -228,14 +304,6 @@
     boundary = interface
     execute_on = 'TIMESTEP_END'
     scaling_factor_PP = V0
-  [../]
-  [./czm_sliding_strain_rate_zz2]
-    type = MaterialTensorIntegralInterfaceScaled
-    rank_two_tensor = czm_sliding_strain_rate
-    index_i = 2
-    index_j = 2
-    boundary = interface
-    execute_on = 'TIMESTEP_END'
   [../]
 []
 
