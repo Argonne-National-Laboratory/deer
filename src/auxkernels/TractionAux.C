@@ -16,20 +16,20 @@
 
 registerMooseObject("DeerApp", TractionAux);
 
-MooseEnum TractionAux::traction_component() {
-  return MooseEnum("normal shear1 shear2 shear_norm X Y Z");
-}
+MooseEnum scalar_type("normal shear1 shear2 shear_norm X Y Z");
 
 InputParameters TractionAux::validParams() {
   InputParameters params = MaterialAuxBase<RankTwoTensor>::validParams();
-  params.addRequiredParam<MooseEnum>("scalar_type",
-                                     TractionAux::traction_component(),
-                                     "Type of scalar output");
+  params.addRequiredParam<MooseEnum>(
+      "scalar_type", scalar_type,
+      "Type of scalar output, possible options are: normal, shear1, shear2, "
+      "shear_norm, X, Y, Z");
   params.addParam<bool>("PK1", false, "traction value on the undeformed area.");
   params.addParam<bool>("large_kinematics", true,
-                        "use updated geometry to compute the traction");
-  params.addClassDescription("Compute traction components on a boundary and "
-                             "save it to an aux variable");
+                        "use the updated geometry to compute the traction");
+  params.addClassDescription("Compute a traction component on a boundary and "
+                             "save it to an aux variable eihter in global or "
+                             "interface natural cooridantes");
   params.addRequiredCoupledVar(
       "displacements",
       "The string of displacements suitable for the problem statement");
@@ -38,12 +38,12 @@ InputParameters TractionAux::validParams() {
 
 TractionAux::TractionAux(const InputParameters &parameters)
     : MaterialAuxBase<RankTwoTensor>(parameters), _normals(_assembly.normals()),
-      _scalar_type(getParam<MooseEnum>("scalar_type")),
       _PK1(getParam<bool>("PK1")),
       _large_kinematics(getParam<bool>("large_kinematics")),
-      _ndisp(coupledComponents("displacements")) {
+      _ndisp(coupledComponents("displacements")),
+      _scalar_type(getParam<MooseEnum>("scalar_type").getEnum<scalarType>()) {
   if (!this->boundaryRestricted())
-    mooseError("TractionAux Kernle must be boundary restricted ");
+    mooseError("TractionAux Kernel must be boundary restricted!");
 }
 
 void TractionAux::initialSetup() {
@@ -72,7 +72,8 @@ Real TractionAux::getRealValue() {
       dadA = F.det() * (F.inverse().transpose() * _normals[_qp]).norm();
   }
 
-  // compute rotation matrix required to aligne the normal with the 1,0,0 vector
+  // compute rotation matrix required to align the normal with the {1,0,0}
+  // vector
   RealTensorValue RotationGlobal2Local =
       RotationMatrix::rotVec1ToVec2(normal, local_normal);
 
@@ -88,27 +89,27 @@ Real TractionAux::getRealValue() {
   // extract components
   Real val = 0;
   switch (_scalar_type) {
-  case 0:
+  case scalarType::normal:
     val = traction(0);
     break;
-  case 1:
+  case scalarType::shear1:
     val = traction(1);
     break;
-  case 2:
+  case scalarType::shear2:
     val = traction(2);
     break;
-  case 3:
+  case scalarType::shear_norm:
     val = std::sqrt(traction(1) * traction(1) + traction(2) * traction(2));
     break;
-  case 4:
+  case scalarType::X:
     traction = RotationGlobal2Local.transpose() * traction;
     val = traction(0);
     break;
-  case 5:
+  case scalarType::Y:
     traction = RotationGlobal2Local.transpose() * traction;
     val = traction(1);
     break;
-  case 6:
+  case scalarType::Z:
     traction = RotationGlobal2Local.transpose() * traction;
     val = traction(2);
     break;
