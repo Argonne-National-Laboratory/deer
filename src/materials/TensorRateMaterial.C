@@ -5,7 +5,7 @@ registerMooseObject("DeerApp", TensorRateMaterial);
 InputParameters TensorRateMaterial::validParams() {
   InputParameters params = Material::validParams();
   params.addRequiredParam<MaterialPropertyName>(
-      "rank_two_tensor", "the tensorial material property");
+      "rank_two_tensor", "The tensor material property name");
 
   return params;
 }

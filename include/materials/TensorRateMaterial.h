@@ -12,7 +12,7 @@
 #include "Material.h"
 
 /**
- * Material class calcualting a tensor rate component by componet
+ * Material class calculating a tensor rate component by componet
  */
 class TensorRateMaterial : public Material {
 public:
