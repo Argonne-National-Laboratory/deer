@@ -29,6 +29,9 @@ protected:
 
 private:
   void updateStrain();
+  // Extract the polarization stress from the provided scalar values
+  // Ordering (per MOOSE) is 11 22 33 23 13 12
+  RankTwoTensor setupPolarizationStress();
 
 protected:
   FileName _fname;
@@ -47,6 +50,9 @@ protected:
   MaterialProperty<RankTwoTensor> &_linear_rot;
   const MaterialProperty<RankTwoTensor> &_linear_rot_old;
 
+  MaterialProperty<RankTwoTensor> &_base_stress;
+  const MaterialProperty<RankTwoTensor> &_base_stress_old;
+
   MaterialProperty<RankTwoTensor> &_stress;
   const MaterialProperty<RankTwoTensor> &_stress_old;
 
@@ -62,6 +68,9 @@ protected:
 
   MaterialProperty<RankTwoTensor> &_elastic_strain;
   MaterialProperty<RankTwoTensor> &_inelastic_strain;
-
+ 
   const bool _ld;
+
+  unsigned int _num_polarization;
+  std::vector<const VariableValue*> _polarization_stress;
 };
