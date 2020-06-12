@@ -125,7 +125,7 @@ HomogenizationConstraintKernel::computeResidual()
         }
         else {
           re_scalar(0) += (_F[_qp](_pinds[_h].first,_pinds[_h].second) - 
-                           _targets[_h]->value(_t, _q_point[_qp])) * dV;
+                           (_sfacts[_h] + _targets[_h]->value(_t, _q_point[_qp]))) * dV;
         }
       }
     }

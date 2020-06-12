@@ -43,6 +43,9 @@ NullScalarKernel::computeResidual()
 void
 NullScalarKernel::computeJacobian()
 {
-  return;
+  // Amusingly you need an explicit zero or PETSC whines
+  DenseMatrix<Number> & ke = _assembly.jacobianBlock(_var.number(), _var.number());
+  for (_i = 0; _i < ke.m(); _i++)
+    ke(_i, _i) += 0.0;
 }
 
