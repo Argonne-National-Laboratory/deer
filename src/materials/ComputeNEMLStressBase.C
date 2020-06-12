@@ -9,11 +9,6 @@ InputParameters ComputeNEMLStressBase::validParams() {
   params.addParam<bool>("large_kinematics", false,
                         "Use large displacement kinematics");
   params.suppressParameter<bool>("use_displaced_mesh");
-
-  params.addCoupledVar("polarization_stress", 0.0, 
-                       "The scalar variables giving the polarization stress, "
-                       "these default to zero if not provided");
-
   return params;
 }
 
@@ -31,8 +26,6 @@ ComputeNEMLStressBase::ComputeNEMLStressBase(const InputParameters &parameters)
           getMaterialPropertyOld<RankTwoTensor>("mechanical_strain")),
       _linear_rot(declareProperty<RankTwoTensor>("linear_rot")),
       _linear_rot_old(getMaterialPropertyOld<RankTwoTensor>("linear_rot")),
-      _base_stress(declareProperty<RankTwoTensor>("base_stress")),
-      _base_stress_old(getMaterialPropertyOld<RankTwoTensor>("base_stress")),
       _stress(declareProperty<RankTwoTensor>("stress")),
       _stress_old(getMaterialPropertyOld<RankTwoTensor>("stress")),
       _material_jacobian(declareProperty<RankFourTensor>("material_jacobian")),
@@ -44,20 +37,10 @@ ComputeNEMLStressBase::ComputeNEMLStressBase(const InputParameters &parameters)
       _dissipation_old(getMaterialPropertyOld<Real>("dissipation")),
       _elastic_strain(declareProperty<RankTwoTensor>("elastic_strain")),
       _inelastic_strain(declareProperty<RankTwoTensor>("inelastic_strain")),
-      _ld(getParam<bool>("large_kinematics")),
-      _num_polarization(coupledScalarComponents("polarization_stress")),
-      _polarization_stress(6) {
+      _ld(getParam<bool>("large_kinematics"))
+{
   // I strongly hesitate to put this here, may change later
   _model = neml::parse_xml_unique(_fname, _mname);
-
-  // Trust the user and just fill in extras with zeros
-  unsigned int i;
-  for (i = 0; i < _num_polarization; i++) {
-    _polarization_stress[i] = &coupledValue("polarization_stress", i);
-  }
-  for (; i < 6; i++) {
-    _polarization_stress[i] = &_zero;
-  }
 }
 
 void ComputeNEMLStressBase::computeQpProperties() {
@@ -67,7 +50,7 @@ void ComputeNEMLStressBase::computeQpProperties() {
   // First do some declaration and translation
   double s_np1[6];
   double s_n[6];
-  tensor_neml(_base_stress_old[_qp], s_n);
+  tensor_neml(_stress_old[_qp], s_n);
 
   double e_np1[6];
   tensor_neml(_mechanical_strain[_qp], e_np1);
@@ -111,7 +94,7 @@ void ComputeNEMLStressBase::computeQpProperties() {
                h_np1, h_n, A_np1, B_np1, u_np1, u_n, p_np1, p_n);
 
   // Do more translation, now back to tensors
-  neml_tensor(s_np1, _base_stress[_qp]);
+  neml_tensor(s_np1, _stress[_qp]);
   recombine_tangent(A_np1, B_np1, _material_jacobian[_qp]);
 
   // Get the elastic strain
@@ -134,16 +117,12 @@ void ComputeNEMLStressBase::computeQpProperties() {
   // Store dissipation
   _energy[_qp] = u_np1;
   _dissipation[_qp] = p_np1;
-
-  // Deal with the polarization stress
-  _stress[_qp] = _base_stress[_qp] + setupPolarizationStress();
 }
 
 void ComputeNEMLStressBase::initQpStatefulProperties() {
   // Basic variables maintained here
   _mechanical_strain[_qp].zero();
   _linear_rot[_qp].zero();
-  _base_stress[_qp].zero();
   _stress[_qp].zero();
 
   // Figure out initial history
@@ -168,14 +147,4 @@ void ComputeNEMLStressBase::updateStrain() {
   _mechanical_strain[_qp] =
       _mechanical_strain_old[_qp] + _mechanical_strain_inc[_qp];
   _linear_rot[_qp] = _linear_rot_old[_qp] + _vorticity_inc[_qp];
-}
-
-RankTwoTensor ComputeNEMLStressBase::setupPolarizationStress() {
-  return RankTwoTensor(
-      (*_polarization_stress[0])[_qp],
-      (*_polarization_stress[1])[_qp],
-      (*_polarization_stress[2])[_qp],
-      (*_polarization_stress[3])[_qp],
-      (*_polarization_stress[4])[_qp],
-      (*_polarization_stress[5])[_qp]);
 }
