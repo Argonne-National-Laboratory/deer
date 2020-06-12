@@ -1,13 +1,10 @@
 #
-# Rotation Test
+# Stretch + rotation test
 #
 # This test is designed to compute a uniaxial stress and then follow that
 # stress as the mesh is rotated 90 degrees.
 #
-# The mesh is composed of one block with a single element.  The nodal
-# displacements in the x and y directions are prescribed.  Poisson's
-# ratio is zero.
-#
+# The mesh is composed of two blocks, each with a single element.
 
 [Mesh]
   [./msh]
@@ -48,7 +45,7 @@
   [../]
   [./dt_fun]
     type = PiecewiseConstant
-    x = '0 0.9 2'
+    x = '0 0.99 2'
     y = '0.01 0.001 0.001'
   []
 []
@@ -346,7 +343,6 @@
 
 [CohesiveZoneDeer]
    boundary = 'interface'
-   displacements = 'disp_x disp_y disp_z'
 []
 
 [Controls]
@@ -519,5 +515,5 @@
 
 [Outputs]
   csv = true
-  exodus = true
+  exodus = false
 []

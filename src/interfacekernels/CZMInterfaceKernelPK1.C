@@ -14,7 +14,7 @@ registerMooseObject("DeerApp", CZMInterfaceKernelPK1);
 InputParameters CZMInterfaceKernelPK1::validParams() {
   InputParameters params = InterfaceKernel::validParams();
   params.addRequiredParam<unsigned int>(
-      "component", "the component of the "
+      "component", "The component of the "
                    "displacement vector this kernel is working on:"
                    " component == 0, ==> X"
                    " component == 1, ==> Y"
@@ -22,11 +22,11 @@ InputParameters CZMInterfaceKernelPK1::validParams() {
   params.set<bool>("_use_undisplaced_reference_points") = true;
 
   params.addRequiredCoupledVar("displacements",
-                               "the string containing displacement variables");
+                               "The string containing displacement variables");
 
   params.addClassDescription(
-      "Interface kernel for use with cohesive zone models (CZMs) that "
-      "compute traction as a function of the displacement jump");
+      "Interface kernel for use with incremental cohesive zone models (CZMs) "
+      "that compute traction as a function of the displacement jump");
 
   return params;
 }
@@ -69,7 +69,7 @@ Real CZMInterfaceKernelPK1::computeQpResidual(Moose::DGResidualType type) {
 }
 
 Real CZMInterfaceKernelPK1::computeQpJacobian(Moose::DGJacobianType type) {
-  // retrieve the diagonal Jacobian coefficient dependning on the displacement
+  // Retrieve the diagonal jacobian coefficient depennding on the displacement
   // component (_component) this kernel is working on
   Real jacsd = _dPK1traction_djumpglobal[_qp](_component, _component);
   Real jac = 0;

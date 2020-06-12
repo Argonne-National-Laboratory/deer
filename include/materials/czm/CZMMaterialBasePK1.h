@@ -44,7 +44,8 @@ protected:
   virtual void initQpStatefulProperties() override;
   virtual void computeQpProperties() override;
 
-  /// normal to the interface
+  /// outward normal to the interface on the master side, i.e. where the sideset
+  /// is defined
   const MooseArray<Point> &_normals;
 
   /// number of displacement components
@@ -123,8 +124,51 @@ protected:
   /// the interface area change
   MaterialProperty<Real> &_da_dA_avg;
 
+  /// if true enables large kinematics. Notice that we are not using
+  /// _use_displaced_mesh as we always refer to the initial geometry
+  const bool _ld;
+  /// if true also consider area changes
+  const bool _use_area_change;
+
+private:
+  /// compute jump in global coordinates
+  void computeJumpGlobal();
+
+  /// initialize kinematic variables based on user inputs
+  void initKinematicsVariale();
+
+  /// compute jump in interface coordinates
+  void computeJumpInterface();
+
+  /// uptade all tractions
+  void updateTraction();
+
+  /// methods used to update basic kinematics quantities
+  ///@{
+  void computeF();
+  void computeRU();
+  void computeLJ();
+  ///@}
+
+  /// methods for computeing derivatives
+  ///@{
+  void computedTPK1dJumpGlobal();
+  void computedTPK1dF();
+  void assembledTPK1dF();
+  void computedCoefficientsdF();
+  void computedadF(const Real &Fitr_N_norm, const RealVectorValue &Fitr_N,
+                   const RankTwoTensor &F_itr, const RankFourTensor &dFinv_dF);
+  void computedBdF(const Real &Fitr_N_norm, const RealVectorValue &Fitr_N,
+                   const RankTwoTensor &F_itr, const RankFourTensor &dFinv_dF);
+  void computedCdF();
+  ///@}
+
   /// the inverse of the deforamtion gradient
   RankTwoTensor _F_avg_inv;
+
+  /// rotation matrix representing the initial interface orientation
+  RealTensorValue _Q0;
+
   /// determinant of _F_avg
   Real _J;
 
@@ -137,39 +181,18 @@ protected:
   RankTwoTensor _D;
   ///@}
 
-  /// if true enables large kinematics. Notice that we are not using
-  /// _use_displaced_mesh as we always refer to the initial geometry
-  const bool _ld;
-  /// if true also consider area changes
-  const bool _use_area_change;
+  /// coeffcients derivatives w.r.t. F. Notice that _dD_dF = _dC_dF.
+  ///@{
+  RankTwoTensor _da_dF;
+  RankFourTensor _dB_dF;
+  RankFourTensor _dC_dF;
+  ///@}
 
-  /// method used to calculate the deformation gradient, the velocity gradient
-  /// and other necessary kinematic quantities
-  void computeFandL();
-
-  /// method computing the derative of the interface rotation w.r.t. the
-  /// deformation gradient
-  RankFourTensor computedRdF(const RankTwoTensor &R,
-                             const RankTwoTensor &U) const;
-
-  RankFourTensor computedFinversedF(const RankTwoTensor &F_inv) const {
-    return -RikRlj(F_inv, F_inv);
-  };
+  /// derivative of the rotation w.r.t F
+  RankFourTensor _dR_dF;
 
   /// methods used to perform unsual tensor multiplications in indicail notation
   ///@{
-
-  RankFourTensor RikRlj(const RankTwoTensor &R2,
-                        const RankTwoTensor &R2_2) const {
-    RankFourTensor res;
-    for (unsigned int i = 0; i < 3; i++)
-      for (unsigned int j = 0; j < 3; j++)
-        for (unsigned int k = 0; k < 3; k++)
-          for (unsigned int l = 0; l < 3; l++)
-            res(i, j, k, l) = R2(i, k) * R2_2(l, j);
-
-    return res;
-  }
 
   RankThreeTensor RijklVj(const RankFourTensor &R4,
                           const RealVectorValue &V) const {
@@ -231,17 +254,6 @@ protected:
           for (unsigned int m = 0; m < 3; m++)
             for (unsigned int j = 0; j < 3; j++)
               res(i, m, k, l) += R4(i, j, k, l) * R2(j, m);
-    return res;
-  }
-
-  RankTwoTensor RijklRij(const RankFourTensor &R4,
-                         const RankTwoTensor &R2) const {
-    RankTwoTensor res;
-    for (unsigned int k = 0; k < 3; k++)
-      for (unsigned int l = 0; l < 3; l++)
-        for (unsigned int i = 0; i < 3; i++)
-          for (unsigned int j = 0; j < 3; j++)
-            res(k, l) += R4(i, j, k, l) * R2(i, j);
     return res;
   }
 
