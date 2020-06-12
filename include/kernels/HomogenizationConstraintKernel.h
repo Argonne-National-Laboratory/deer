@@ -25,11 +25,9 @@ class HomogenizationConstraintKernel : public Kernel
 
  protected:
   virtual Real computeQpResidual() {return 0;};
-  virtual Real computeQpDispJacobian();
-  virtual Real computeQpScalarJacobian();
 
  protected:
-  unsigned int _ps;
+  unsigned int _h;
 
   bool _ld;
   unsigned int _component;
@@ -40,8 +38,8 @@ class HomogenizationConstraintKernel : public Kernel
   std::vector<MooseVariable *> _disp_vars;
   std::vector<const VariableGradient *> _grad_disp;
 
-  unsigned int _num_polarization;
-  std::vector<unsigned int> _polarization_nums;
+  unsigned int _num_hvars;
+  std::vector<unsigned int> _homogenization_nums;
 
   const std::vector<std::pair<unsigned int, unsigned int>> _pinds 
     {{0,0},{1,1},{2,2},{1,2},{0,2},{0,1}};
@@ -50,6 +48,9 @@ class HomogenizationConstraintKernel : public Kernel
 
   const MaterialProperty<RankTwoTensor> &_stress;
   const MaterialProperty<RankFourTensor> &_material_jacobian;
-  const MaterialProperty<RankTwoTensor> &_df;
-  const MaterialProperty<RankTwoTensor> & _base_stress;
+  const MaterialProperty<RankTwoTensor> &_F;
+
+  enum class ConstraintType { Stress, Strain };
+  std::vector<ConstraintType> _ctypes;
+
 };

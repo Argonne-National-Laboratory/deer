@@ -54,7 +54,7 @@ ComputeNEMLStrainBase::ComputeNEMLStrainBase(const InputParameters &parameters)
 
   unsigned int i;
   for (i = 0; i < _num_hvars; i++) {
-    _homogenization_vals[i] = &coupledScalarValue("polarization_stress", i);
+    _homogenization_vals[i] = &coupledScalarValue("homogenization_variables", i);
   }
   for (; i < total; i++) {
     _homogenization_vals[i] = &_zero;

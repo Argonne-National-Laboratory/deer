@@ -37,7 +37,7 @@ NullScalarKernel::reinit()
 void
 NullScalarKernel::computeResidual()
 {
-  return; // yes, do nothing, this is secretly done in the PolarizationVolumeAverageKernel
+  return;
 }
 
 void

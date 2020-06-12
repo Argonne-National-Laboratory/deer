@@ -24,11 +24,15 @@ InputParameters
 HomogenizationConstraintKernel::validParams()
 {
   InputParameters params = Kernel::validParams();
-  params.addRequiredCoupledVar("polarization_stress", "The scalar variables");
+  params.addRequiredCoupledVar("homogenization_variables", "The scalar "
+                               "variables with the extra gradient components");
+
   params.addRequiredParam<unsigned int>("component",
                                         "Which direction this kernel acts in");
   params.addRequiredCoupledVar("displacements", "The displacement components");
   
+  params.addRequiredParam<std::vector<unsigned int>>("constraint_types",
+    "Type of each constraint: strain (0) or stress (1)"); 
   params.addRequiredParam<std::vector<FunctionName>>("targets",
                                         "Functions giving the targets to hit");
 
@@ -43,25 +47,43 @@ HomogenizationConstraintKernel::HomogenizationConstraintKernel(const InputParame
     _disp_nums(_ndisp),
     _disp_vars(_ndisp),
     _grad_disp(_ndisp),
-    _num_polarization(coupledScalarComponents("polarization_stress")),
-    _polarization_nums(_num_polarization),
+    _num_hvars(coupledScalarComponents("homogenization_variables")),
+    _homogenization_nums(_num_hvars),
     _stress(getMaterialPropertyByName<RankTwoTensor>("stress")),
     _material_jacobian(
         getMaterialPropertyByName<RankFourTensor>("material_jacobian")),
-    _df(getMaterialPropertyByName<RankTwoTensor>("df")),
-    _base_stress(getMaterialPropertyByName<RankTwoTensor>("base_stress"))
+    _F(getMaterialPropertyByName<RankTwoTensor>("def_grad"))
 {
   const std::vector<FunctionName> & names =
       getParam<std::vector<FunctionName>>("targets");
+
   unsigned int nfns = names.size();
-  if (nfns != _num_polarization) {
+  if (nfns != _num_hvars) {
     mooseError("Number of target functions must match the number of "
-               "polarization stress components");
+               "homogenization variables");
   }
   for (unsigned int i = 0; i < nfns; i++) {
     const Function * const f = &getFunctionByName(names[i]);
     if (!f) mooseError("Function ", names[i], " not found.");
     _targets.push_back(f);
+  }
+
+  const std::vector<unsigned int> & types = 
+      getParam<std::vector<unsigned int>>("constraint_types");
+  if (types.size() != _num_hvars) {
+    mooseError("Number of constraint types must match the number of "
+               "homogenization variables");
+  }
+  for (unsigned int i = 0; i < _num_hvars; i++) {
+    if (types[i] == 0) {
+      _ctypes.push_back(ConstraintType::Strain);
+    }
+    else if (types[i] == 1) {
+      _ctypes.push_back(ConstraintType::Stress);
+    }
+    else {
+      mooseError("Constraint types must be either 0 (strain) or 1 (stress)");
+    }
   }
 }
 
@@ -73,15 +95,15 @@ HomogenizationConstraintKernel::initialSetup() {
     _grad_disp[i] = &coupledGradient("displacements", i);
   }
 
-  // Do some checking on the provided number of polarization variables
-  if ((_num_polarization != 0) && 
-      (_num_polarization != (_ndisp*_ndisp+_ndisp)/2)) {
-    mooseError("Number of polarization variables should be either zero or "
-               "enough to fill in a symmetric nxn tensor (1, 3, 6)");
+  // Do some checking on the number of homogenization variables
+  unsigned int needed = (_ld ? _ndisp*_ndisp : (_ndisp*_ndisp+_ndisp)/2);
+  if ((_num_hvars != 0) && (_num_hvars != needed)) {
+    mooseError("Strain calculator must either have 0 or ", needed, 
+               " homogenization scalar variables");
   }
 
-  for (unsigned int i = 0; i < _num_polarization; i++) {
-    _polarization_nums[i] = coupledScalar("polarization_stress", i);
+  for (unsigned int i = 0; i < _num_hvars; i++) {
+    _homogenization_nums[i] = coupledScalar("homogenization_variables", i);
   }
 }
 
@@ -90,15 +112,21 @@ HomogenizationConstraintKernel::computeResidual()
 {
   // Only do this once...
   if (_component == 0) {
-    // But do it for each polarization stress
-    for (_ps = 0; _ps < _num_polarization; _ps++) {
+    // But do it for each variable
+    for (_h = 0; _h < _num_hvars; _h++) {
       // The contribution for the scalar kernel (size 1)
       DenseVector<Number> & re_scalar =
-          _assembly.residualBlock(_polarization_nums[_ps]);
+          _assembly.residualBlock(_homogenization_nums[_h]);
       for (_qp = 0; _qp < _qrule->n_points(); _qp++) {
         Real dV = _JxW[_qp] * _coord[_qp];
-        re_scalar(0) += (_stress[_qp](_pinds[_ps].first,_pinds[_ps].second) -
-                         _targets[_ps]->value(_t, _q_point[_qp])) * dV;
+        if (_ctypes[_h] == ConstraintType::Stress) {
+          re_scalar(0) += (_stress[_qp](_pinds[_h].first,_pinds[_h].second) -
+                           _targets[_h]->value(_t, _q_point[_qp])) * dV;
+        }
+        else {
+          re_scalar(0) += (_F[_qp](_pinds[_h].first,_pinds[_h].second) - 
+                           _targets[_h]->value(_t, _q_point[_qp])) * dV;
+        }
       }
     }
   }
@@ -107,10 +135,10 @@ HomogenizationConstraintKernel::computeResidual()
 void
 HomogenizationConstraintKernel::computeOffDiagJacobianScalar(unsigned int jvar)
 {
-  for (_ps = 0; _ps < _num_polarization; _ps++) {
-    if (jvar == _polarization_nums[_ps]) break;
+  for (_h = 0; _h < _num_hvars; _h++) {
+    if (jvar == _homogenization_nums[_h]) break;
   }
-  if (_ps == _num_polarization) return; // Not our scalars apparently
+  if (_h == _num_hvars) return; // Not our scalars apparently
 
   DenseMatrix<Number> & ken = _assembly.jacobianBlock(_var.number(), jvar);
   DenseMatrix<Number> & kne = _assembly.jacobianBlock(jvar, _var.number());
@@ -121,33 +149,7 @@ HomogenizationConstraintKernel::computeOffDiagJacobianScalar(unsigned int jvar)
       for (_qp = 0; _qp < _qrule->n_points(); _qp++)
       {
         Real dV = _JxW[_qp] * _coord[_qp];
-        ken(_i, _j) += computeQpDispJacobian() * dV;
-        kne(_j, _i) += computeQpScalarJacobian() * dV;
+        ken(_i, _j) += 0;
+        kne(_j, _i) += 0;
       }
-}
-
-Real
-HomogenizationConstraintKernel::computeQpDispJacobian()
-{
-  if (_component == _pinds[_ps].first) {
-    return _grad_test[_i][_qp](_pinds[_ps].second);
-  }
-  else {
-    return 0;
-  }
-}
-
-Real
-HomogenizationConstraintKernel::computeQpScalarJacobian()
-{
-  // There some funny "we are a galerkin method" going on here
-  size_t i = _pinds[_ps].first;
-  size_t j = _pinds[_ps].second;
-  size_t k = _component;
-  Real value = 0.0;
-  for (size_t l = 0; l < _ndisp; l++) {
-    value += _material_jacobian[_qp](i,j,k,l) * _grad_phi[_i][_qp](l);
-  }
-
-  return 0.0;
 }
