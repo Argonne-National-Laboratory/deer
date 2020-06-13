@@ -57,7 +57,7 @@ RankTwoTensorIntegralAction::RankTwoTensorIntegralAction(
   if (_base_out_name.size() != _mp_names.size())
     mooseError("RankTwoTensorIntegralAction: The length of rank_two_tensor and "
                "base_out_names input "
-               "paramters must be the same! Please check yourt input file");
+               "paramters must be the same! Please check your input file");
 }
 
 void RankTwoTensorIntegralAction::act() {

@@ -10,10 +10,10 @@ public:
   virtual void act();
 
 protected:
-  std::vector<MaterialPropertyName> _mp_names;
+  const std::vector<MaterialPropertyName> _mp_names;
   const bool _use_displaced_mesh;
-  std::vector<SubdomainName> _block;
-  std::vector<BoundaryName> _boundary;
+  const std::vector<SubdomainName> _block;
+  const std::vector<BoundaryName> _boundary;
   const bool _scaled;
   const PostprocessorName _scaling_factor_PP;
   const std::string _PP_type;

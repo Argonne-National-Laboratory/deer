@@ -29,6 +29,8 @@ static void associateSyntaxInner(Syntax &syntax,
   registerSyntax("NEMLMechanicsAction", "NEMLMechanics");
   registerSyntax("RankTwoTensorIntegralAction",
                  "RankTwoTensorIntegralOnDomain/*");
+  registerSyntax("RankTwoTensorPostprocessorTimeIntegralAction",
+                 "RankTwoTensorPostprocessorTimeIntegral");
 }
 
 void DeerApp::registerApps() { registerApp(DeerApp); }
