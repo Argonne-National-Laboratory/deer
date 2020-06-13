@@ -5,4 +5,10 @@
     csvdiff = 'tensor_integral_scaled_out.csv'
     requirement = "The MaterialTensorIntegralScaled and the MaterialTensorIntegralInterfaceScaled should provide the correct PK1 stress"
   [../]
+  [./time_integral_postprocessor]
+    type = CSVDiff
+    input = 'time_integral_postprocessor.i'
+    csvdiff = 'time_integral_postprocessor_out.csv'
+    requirement = "The TimeIntegralPostprocessor shall properly compute compute the time integral of postprocessor representing a rate."
+  [../]
 []
