@@ -1,0 +1,64 @@
+[Tests]
+  [./rank_two_tensor_integral_on_volume]
+    type = CSVDiff
+    input = 'rank_two_tensor_integral_on_domain.i'
+    csvdiff = 'rank_two_tensor_integral_on_volume_out.csv'
+    requirement = "The RankTwoTensorIntegralOnDomain action shall add all the required postprocessor for the provided rank two tensor and compute the proper integral."
+    cli_args = "Postprocessors/inactive='area area0 volume volume0' RankTwoTensorIntegralOnDomain/inactive='integral2' Outputs/file_base=rank_two_tensor_integral_on_volume_out"
+  [../]
+  [./rank_two_tensor_integral_two_tensors]
+    type = CSVDiff
+    input = 'rank_two_tensor_integral_on_domain.i'
+    csvdiff = 'rank_two_tensor_integral_two_tensors_out.csv'
+    requirement = "The RankTwoTensorIntegralOnDomain action shall add all the required postprocessor for each provided rank two tensor and compute the proper integral."
+    cli_args = "Postprocessors/inactive='area area0 volume volume0'    RankTwoTensorIntegralOnDomain/integral1/rank_two_tensor='stress elastic_strain' RankTwoTensorIntegralOnDomain/integral1/base_out_names='stress elastic_strain' RankTwoTensorIntegralOnDomain/inactive='integral2' Outputs/file_base=rank_two_tensor_integral_two_tensors_out"
+  [../]
+  [./rank_two_tensor_integral_on_volume_scaled]
+    type = CSVDiff
+    input = 'rank_two_tensor_integral_on_domain.i'
+    csvdiff = 'rank_two_tensor_integral_on_volume_scaled_out.csv'
+    requirement = "The RankTwoTensorIntegralOnDomain action shall properly scale the integral when the scaling_factor_PP is provided."
+    cli_args = "Postprocessors/inactive='area area0' RankTwoTensorIntegralOnDomain/integral1/scaling_factor_PP=volume RankTwoTensorIntegralOnDomain/integral2/scaling_factor_PP=volume0 Outputs/file_base=rank_two_tensor_integral_on_volume_scaled_out"
+  [../]
+  [./rank_two_tensor_integral_block_resticted]
+    type = CSVDiff
+    input = 'rank_two_tensor_integral_on_domain.i'
+    csvdiff = 'rank_two_tensor_integral_block_resticted_out.csv'
+    requirement = "The RankTwoTensorIntegralOnDomain action shall work when block restricted."
+    cli_args = "Postprocessors/inactive='area area0 volume volume0'  RankTwoTensorIntegralOnDomain/integral2/block=1 Outputs/file_base=rank_two_tensor_integral_block_resticted_out"
+  [../]
+  [./rank_two_tensor_integral_on_surface]
+    type = CSVDiff
+    input = 'rank_two_tensor_integral_on_domain.i'
+    csvdiff = 'rank_two_tensor_integral_on_surface_out.csv'
+    requirement = "The RankTwoTensorIntegralOnDomain action shall add all the required postprocessor for the provided rank two tensor when boundary restricted and compute the proper integral."
+    cli_args = "Postprocessors/inactive='area area0 volume volume0' RankTwoTensorIntegralOnDomain/integral1/boundary='interface'
+    RankTwoTensorIntegralOnDomain/inactive='integral2' Outputs/file_base=rank_two_tensor_integral_on_surface_out"
+  [../]
+  [./rank_two_tensor_integral_on_surface_scaled]
+    type = CSVDiff
+    input = 'rank_two_tensor_integral_on_domain.i'
+    csvdiff = 'rank_two_tensor_integral_on_surface_scaled_out.csv'
+    requirement = "The RankTwoTensorIntegralOnDomain action shall add all the required postprocessor for the provided rank two tensor when boundary restricted and compute the proper scaled integral when the scaling_factor_PP is provided."
+    cli_args = "Postprocessors/inactive='volume volume0' RankTwoTensorIntegralOnDomain/integral1/boundary='interface'
+    RankTwoTensorIntegralOnDomain/integral1/scaling_factor_PP='area'
+    RankTwoTensorIntegralOnDomain/integral2/boundary='interface'
+    RankTwoTensorIntegralOnDomain/integral2/scaling_factor_PP='area0' Outputs/file_base=rank_two_tensor_integral_on_surface_scaled_out"
+  [../]
+  [./rank_two_tensor_error_boundary_block]
+    type = RunException
+    expect_err = "RankTwoTensorIntegralAction: you can't specify both boundaries and blocks."
+    input = 'rank_two_tensor_integral_on_domain.i'
+    requirement = "The RankTwoTensorIntegralOnDomain action shall raise an exception when providing both boundary and block inputs."
+    cli_args = "Postprocessors/inactive='area area0 volume volume0' RankTwoTensorIntegralOnDomain/integral1/boundary='interface' RankTwoTensorIntegralOnDomain/integral1/block='1'
+    RankTwoTensorIntegralOnDomain/inactive='integral2'"
+  [../]
+  [./rank_two_tensor_error_property_names]
+    type = RunException
+    expect_err = "RankTwoTensorIntegralAction: The length of rank_two_tensor and base_out_names input paramters must be the same! Please check yourt input file"
+    input = 'rank_two_tensor_integral_on_domain.i'
+    requirement = "The RankTwoTensorIntegralOnDomain action shall raise an exception when the number of output variable names does not match the number of provided tensors"
+    cli_args = "Postprocessors/inactive='area area0 volume volume0' RankTwoTensorIntegralOnDomain/integral1/rank_two_tensor='stress elastic_strain' RankTwoTensorIntegralOnDomain/integral1/base_out_names='stress'
+    RankTwoTensorIntegralOnDomain/inactive='integral2'"
+  [../]
+[]
