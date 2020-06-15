@@ -111,23 +111,46 @@ RankTwoTensor
 ComputeNEMLStrainBase::homogenizationContribution()
 {
   if (_ld) {
-    return RankTwoTensor((*_homogenization_vals[0])[0],
-                         (*_homogenization_vals[1])[0],
-                         (*_homogenization_vals[2])[0],
-                         (*_homogenization_vals[3])[0],
-                         (*_homogenization_vals[4])[0],
-                         (*_homogenization_vals[5])[0],
-                         (*_homogenization_vals[6])[0],
-                         (*_homogenization_vals[7])[0],
-                         (*_homogenization_vals[8])[0]);
+    if ((_ndisp == 1) || (_ndisp == 3)) {
+      return RankTwoTensor((*_homogenization_vals[0])[0],
+                           (*_homogenization_vals[1])[0],
+                           (*_homogenization_vals[2])[0],
+                           (*_homogenization_vals[3])[0],
+                           (*_homogenization_vals[4])[0],
+                           (*_homogenization_vals[5])[0],
+                           (*_homogenization_vals[6])[0],
+                           (*_homogenization_vals[7])[0],
+                           (*_homogenization_vals[8])[0]);
+    }
+    else {
+      return RankTwoTensor((*_homogenization_vals[0])[0],
+                           (*_homogenization_vals[1])[0],
+                           (*_homogenization_vals[4])[0],
+                           (*_homogenization_vals[2])[0],
+                           (*_homogenization_vals[3])[0],
+                           (*_homogenization_vals[5])[0],
+                           (*_homogenization_vals[6])[0],
+                           (*_homogenization_vals[7])[0],
+                           (*_homogenization_vals[8])[0]);
+    }
   }
   else {
-    return RankTwoTensor((*_homogenization_vals[0])[0],
-                         (*_homogenization_vals[1])[0],
-                         (*_homogenization_vals[2])[0],
-                         (*_homogenization_vals[3])[0],
-                         (*_homogenization_vals[4])[0],
-                         (*_homogenization_vals[5])[0]);
+    if ((_ndisp == 1) || (_ndisp == 3)) {
+      return RankTwoTensor((*_homogenization_vals[0])[0],
+                           (*_homogenization_vals[1])[0],
+                           (*_homogenization_vals[2])[0],
+                           (*_homogenization_vals[3])[0],
+                           (*_homogenization_vals[4])[0],
+                           (*_homogenization_vals[5])[0]);
+    }
+    else {
+      return RankTwoTensor((*_homogenization_vals[0])[0],
+                           (*_homogenization_vals[1])[0],
+                           (*_homogenization_vals[3])[0],
+                           (*_homogenization_vals[4])[0],
+                           (*_homogenization_vals[5])[0],
+                           (*_homogenization_vals[2])[0]);
+    }
   }
 }
 

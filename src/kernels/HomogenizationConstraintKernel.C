@@ -69,6 +69,8 @@ HomogenizationConstraintKernel::HomogenizationConstraintKernel(const InputParame
       mooseError("Constraint types must be either 0 (strain) or 1 (stress)");
     }
   }
+
+  _pinds = _bpinds[_ndisp-1];
 }
 
 void

@@ -41,10 +41,13 @@ class HomogenizationConstraintKernel : public Kernel
   unsigned int _num_hvars;
   std::vector<unsigned int> _homogenization_nums;
 
-  const std::vector<std::pair<unsigned int, unsigned int>> _pinds 
-    {{0,0},{1,1},{2,2},{1,2},{0,2},{0,1}};
-  const std::vector<double> _sfacts 
-    {1.0,1.0,1.0,0.0,0.0,0.0};
+  const std::vector<std::vector<std::pair<unsigned int, unsigned int>>> _bpinds 
+    {
+      {{0,0}},
+      {{0,0},{1,1},{0,1}},
+      {{0,0},{1,1},{2,2},{1,2},{0,2},{0,1}}
+    };
+  std::vector<std::pair<unsigned int, unsigned int>> _pinds;
 
   std::vector<const Function*> _targets;
 

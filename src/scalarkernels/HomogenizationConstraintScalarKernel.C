@@ -20,7 +20,8 @@ InputParameters
 HomogenizationConstraintScalarKernel::validParams()
 {
   InputParameters params = ScalarKernel::validParams();
-
+  
+  params.addRequiredParam<unsigned int>("ndim", "Number of problem dimensions");
   params.addRequiredCoupledVar("homogenization_variables", "The scalar "
                                "variables with the extra gradient components");
   params.addRequiredParam<unsigned int>("component", 
@@ -34,6 +35,7 @@ HomogenizationConstraintScalarKernel::validParams()
 
 HomogenizationConstraintScalarKernel::HomogenizationConstraintScalarKernel(const InputParameters & parameters)
   : ScalarKernel(parameters),
+    _ndisp(getParam<unsigned int>("ndim")),
     _num_hvars(coupledScalarComponents("homogenization_variables")),
     _homogenization_nums(_num_hvars),
     _h(getParam<unsigned int>("component")),
@@ -47,6 +49,8 @@ HomogenizationConstraintScalarKernel::HomogenizationConstraintScalarKernel(const
     mooseError("The homogenization variable number must be in between ",
                0, " and ", _num_hvars);
   }
+
+  _pinds = _bpinds[_ndisp-1];
 }
 
 void

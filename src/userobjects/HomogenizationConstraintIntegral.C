@@ -17,6 +17,7 @@ InputParameters
 HomogenizationConstraintIntegral::validParams()
 {
   InputParameters params = ElementUserObject::validParams();
+  params.addRequiredParam<unsigned int>("ndim", "Number of problem dimensions");
   params.addRequiredCoupledVar("homogenization_variables", "The scalar "
                                "variables with the extra gradient components");
   params.addRequiredParam<std::vector<unsigned int>>("constraint_types",
@@ -31,6 +32,7 @@ HomogenizationConstraintIntegral::HomogenizationConstraintIntegral(const
                                                                    InputParameters
                                                                    & parameters)
   : ElementUserObject(parameters),
+    _ndisp(getParam<unsigned int>("ndim")),
     _num_hvars(coupledScalarComponents("homogenization_variables")),
     _stress(getMaterialPropertyByName<RankTwoTensor>("stress")),
     _material_jacobian(
@@ -70,6 +72,9 @@ HomogenizationConstraintIntegral::HomogenizationConstraintIntegral(const
       mooseError("Constraint types must be either 0 (strain) or 1 (stress)");
     }
   }
+
+  _pinds = _bpinds[_ndisp-1];
+  _sfacts = _bsfacts[_ndisp-1];
 }
 
 void

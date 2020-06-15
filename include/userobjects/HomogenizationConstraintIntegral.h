@@ -32,6 +32,7 @@ class HomogenizationConstraintIntegral : public ElementUserObject
   virtual Real computeResidual();
   virtual RankTwoTensor computeJacobian();
 
+  unsigned int _ndisp;
   unsigned int _num_hvars;
 
   const MaterialProperty<RankTwoTensor> &_stress;
@@ -50,8 +51,18 @@ class HomogenizationConstraintIntegral : public ElementUserObject
   std::vector<RankTwoTensor> _jacobian;
   
   // Useful Voigt stuff
-  const std::vector<std::pair<unsigned int, unsigned int>> _pinds 
-    {{0,0},{1,1},{2,2},{1,2},{0,2},{0,1}};
-  const std::vector<double> _sfacts 
-    {1.0,1.0,1.0,0.0,0.0,0.0};
+  const std::vector<std::vector<std::pair<unsigned int, unsigned int>>> _bpinds 
+    {
+      {{0,0}},
+      {{0,0},{1,1},{0,1}},
+      {{0,0},{1,1},{2,2},{1,2},{0,2},{0,1}}
+    };
+  std::vector<std::pair<unsigned int, unsigned int>> _pinds;
+  const std::vector<std::vector<double>> _bsfacts 
+    {
+      {1.0},
+      {1.0,1.0,0.0},
+      {1.0,1.0,1.0,0.0,0.0,0.0}
+    };
+  std::vector<double> _sfacts;
 };
