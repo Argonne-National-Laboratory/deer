@@ -17,7 +17,7 @@ InputParameters MaterialTensorIntegralScaledTempl<is_ad>::validParams() {
   InputParameters params = MaterialTensorIntegralTempl<is_ad>::validParams();
   params.addRequiredParam<PostprocessorName>(
       "scaling_factor_PP",
-      "a postprocessor used as scaling factor for the integral");
+      "A postprocessor used as scaling factor for the integral");
   params.addClassDescription(
       "Computes a volume integral of a material tensor component scaled "
       "by the value of another postprocessor.");

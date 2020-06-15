@@ -12,20 +12,10 @@
 #include "InterfaceMaterial.h"
 
 /**
- * This is the base Material class for implementing a traction separation
- * material model including large rotation and area changes. The responsibility
- * of this class is to rotate the displacement jump from global to local
- * coordinate and rotate back traction and traction derivatives. The local
- * coordinate system assumes the following order: opening, tangential1,
- * tangential2. Note that tangential1, tangential2 are arbitrary and therefore
- * the interface assumes an in-plane isotropic behavior. By overriding
- * computeTractionIncrementAndDerivatives in aderived class, different traction
- * separation laws can be implemented. The
- * computeTractionIncrementAndDerivatives method assumes calculations are
- * performed in the local frame. CZM laws should always be implemented in 3D
- * even if they are going to be used in 2D or 1D simulations. This class assumes
- * large rotation, large area changes, and that the traction separation law is
- * only dependent upon the the displacement jump.
+ * This material computes the interface strain tensor and separate it into its
+ * normal and tangential contribution. If the large_kinematic flag is true
+ * (default) area changes and large rotation are used to properly adjust the
+ * resulting strains.
  */
 class CZMVolumetricStrain : public InterfaceMaterial {
 
@@ -61,12 +51,64 @@ protected:
   std::vector<const VariableGradient *> _grad_disp_neighbor_old;
   ///@}
 
-  /// the value of the traction in global and local coordinates
+  /// interface strains
   ///@{
   MaterialProperty<RankTwoTensor> &_czm_total_strain_rate;
   MaterialProperty<RankTwoTensor> &_czm_normal_strain_rate;
   MaterialProperty<RankTwoTensor> &_czm_sliding_strain_rate;
   ///@}
 
-  const bool _large_kinematics;
+  /// flag for enabling large kinematics
+  const bool _ld;
+
+private:
+  /// method computing the displacement jump and its increment
+  void computeJumpInterface();
+
+  /// method computing the interface deformation gradient
+  void computeFInterface();
+
+  /// method computing interface rotation and its increment
+  void computeRInterface();
+
+  /// method computing deformedinterface normal and its increment
+  void computeNormalInterface();
+
+  /// method computing area change and area change increment
+  void computeAreaInterface();
+
+  /// method computing the interface strain contribution
+  void computeInterfaceStrainRates();
+
+  /// the current and incremental displacement jump
+  ///@{
+  RealVectorValue _jump;
+  RealVectorValue _Djump;
+  ///@}
+
+  /// the current and old midplane deformation gradient
+  ///@{
+  RankTwoTensor _F_average;
+  RankTwoTensor _F_average_old;
+  ///@}
+
+  /// interface incremental velocity gradient
+  RankTwoTensor _DL;
+
+  /// the interface total and incremental rotation
+  ///@{
+  RankTwoTensor _R_avg;
+  RankTwoTensor _DR_avg;
+  ///@}
+
+  /// the interface deformed normal and its increment
+  ///@{
+  RealVectorValue _n_average;
+  RealVectorValue _Dn_average;
+  ///@}
+
+  /// ratio between deformed and undeformed area
+  Real _dadA;
+  /// area increment
+  Real _Da;
 };

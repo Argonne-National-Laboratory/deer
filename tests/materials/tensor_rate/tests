@@ -1,0 +1,8 @@
+[Tests]
+  [./tensor_rate_material]
+    type = CSVDiff
+    input = 'tensor_rate_material.i'
+    csvdiff = 'tensor_rate_material_out.csv'
+    requirement = "Deer shall be able to compute tensor rate as a material property"
+  [../]
+[]

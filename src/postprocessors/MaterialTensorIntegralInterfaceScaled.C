@@ -32,7 +32,7 @@ MaterialTensorIntegralInterfaceScaledTempl<is_ad>::validParams() {
       "The index j of ij for the tensor to output (0, 1, 2)");
   params.addParam<PostprocessorName>(
       "scaling_factor_PP",
-      "a postprocessor used as scaling factor for the integral");
+      "A postprocessor used as scaling factor for the integral");
   return params;
 }
 

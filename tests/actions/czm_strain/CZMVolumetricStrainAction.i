@@ -134,6 +134,7 @@
     function = dt_fun
   [../]
   end_time = 2
+  # num_steps = 2
 []
 
 [BCs]
@@ -220,27 +221,10 @@
   []
 []
 
-[Postprocessors]
-  [./V0]
-    type = VolumePostprocessor
-    use_displaced_mesh = false
-    execute_on = 'INITIAL'
-  []
-[]
 
-[RankTwoTensorIntegralOnDomain]
- [czm]
+[CZMStrain]
    boundary = interface
-   rank_two_tensor = 'czm_total_strain_rate czm_normal_strain_rate czm_sliding_strain_rate'
-   use_displaced_mesh = false
-   base_out_names = 'czm_strain_total_rate czm_strain_normal_rate czm_strain_sliding_rate'
-   scaling_factor_PP =V0
- []
-[]
-
-[RankTwoTensorPostprocessorTimeIntegral]
-  pp_base_names = 'czm_strain_total_rate czm_strain_normal_rate czm_strain_sliding_rate'
-  base_out_names = 'czm_strain_total czm_strain_normal czm_strain_sliding'
+   block = '0 1'
 []
 
 [Outputs]
