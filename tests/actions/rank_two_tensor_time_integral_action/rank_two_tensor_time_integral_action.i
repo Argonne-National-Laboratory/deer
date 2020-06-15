@@ -108,8 +108,10 @@
 []
 
 [RankTwoTensorPostprocessorTimeIntegral]
-  pp_base_names = 'stress_rate'
-  base_out_names = 'stress_rate_int'
+  [timeintegral1]
+    pp_base_names = 'stress_rate'
+    base_out_names = 'stress_rate_int'
+  []
 []
 
 [Preconditioning]

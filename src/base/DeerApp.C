@@ -30,7 +30,7 @@ static void associateSyntaxInner(Syntax &syntax,
   registerSyntax("RankTwoTensorIntegralAction",
                  "RankTwoTensorIntegralOnDomain/*");
   registerSyntax("RankTwoTensorPostprocessorTimeIntegralAction",
-                 "RankTwoTensorPostprocessorTimeIntegral");
+                 "RankTwoTensorPostprocessorTimeIntegral/*");
 }
 
 void DeerApp::registerApps() { registerApp(DeerApp); }
