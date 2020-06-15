@@ -25,8 +25,8 @@ class HomogenizationConstraintIntegral : public ElementUserObject
   virtual void threadJoin(const UserObject & y) override;
   virtual void finalize() override;
 
-  virtual std::vector<Real> getResidual();
-  virtual std::vector<RankTwoTensor> getJacobian();
+  virtual Real getResidual(unsigned int h) const;
+  virtual RankTwoTensor getJacobian(unsigned int h) const;
 
  protected:
   virtual Real computeResidual();

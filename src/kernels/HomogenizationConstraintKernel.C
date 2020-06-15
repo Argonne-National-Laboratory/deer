@@ -103,8 +103,6 @@ HomogenizationConstraintKernel::computeOffDiagJacobianScalar(unsigned int jvar)
   DenseMatrix<Number> & kne = _assembly.jacobianBlock(jvar, _var.number());
   MooseVariableScalar & jv = _sys.getScalarVariable(_tid, jvar);
 
-  // We will visit this function once per displacement DoF
- 
   for (_qp = 0; _qp < _qrule->n_points(); _qp++) {
     for (_j = 0; _j < jv.order(); _j++) {
       for (_i = 0; _i < _test.size(); _i++) {
@@ -119,11 +117,30 @@ HomogenizationConstraintKernel::computeOffDiagJacobianScalar(unsigned int jvar)
 Real
 HomogenizationConstraintKernel::computeDisplacementJacobian()
 {
-  return 0.0;
+  Real val = 0.0;
+  if (_ctypes[_h] == ConstraintType::Stress) {
+    for (unsigned int l = 0; l < 3; l++) {
+      val +=
+          _material_jacobian[_qp](_pinds[_h].first,_pinds[_h].second,_component,l)
+          * _grad_phi[_i][_qp](l);
+    }
+    return val;
+  }
+  else {
+    if (_pinds[_h].first == _component)
+      val += _grad_phi[_i][_qp](_pinds[_h].second);
+  }
+  return val;
 }
 
 Real
 HomogenizationConstraintKernel::computeConstraintJacobian()
 {
-  return 0.0;
+  Real val = 0.0;
+  for (unsigned int j = 0; j < 3; j++) {
+    val +=
+        _material_jacobian[_qp](_component,j,_pinds[_h].first,_pinds[_h].second) 
+        * _grad_test[_i][_qp](j);
+  }
+  return val;
 }

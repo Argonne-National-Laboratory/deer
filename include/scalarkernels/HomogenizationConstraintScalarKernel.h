@@ -11,6 +11,8 @@
 
 #include "ScalarKernel.h"
 
+#include "HomogenizationConstraintIntegral.h"
+
 class HomogenizationConstraintScalarKernel : public ScalarKernel
 {
  public:
@@ -21,8 +23,16 @@ class HomogenizationConstraintScalarKernel : public ScalarKernel
   virtual void reinit();
   virtual void computeResidual();
   virtual void computeJacobian();
+  virtual void computeOffDiagJacobian(unsigned int jvar);
 
  protected:
-  unsigned int _h;
+  unsigned int _num_hvars;
+  std::vector<unsigned int> _homogenization_nums;
 
+  unsigned int _h;
+  const HomogenizationConstraintIntegral & _integrator;
+
+  // Useful Voigt stuff
+  const std::vector<std::pair<unsigned int, unsigned int>> _pinds 
+    {{0,0},{1,1},{2,2},{1,2},{0,2},{0,1}};
 };

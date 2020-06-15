@@ -35,7 +35,9 @@ HomogenizationConstraintIntegral::HomogenizationConstraintIntegral(const
     _stress(getMaterialPropertyByName<RankTwoTensor>("stress")),
     _material_jacobian(
         getMaterialPropertyByName<RankFourTensor>("material_jacobian")),
-    _F(getMaterialPropertyByName<RankTwoTensor>("def_grad"))
+    _F(getMaterialPropertyByName<RankTwoTensor>("def_grad")),
+    _residual(_num_hvars),
+    _jacobian(_num_hvars)
 {
   const std::vector<FunctionName> & names =
       getParam<std::vector<FunctionName>>("targets");
@@ -107,29 +109,26 @@ HomogenizationConstraintIntegral::threadJoin(const UserObject & y)
 void
 HomogenizationConstraintIntegral::finalize()
 {
-  return;
-}
-
-std::vector<Real>
-HomogenizationConstraintIntegral::getResidual()
-{
   for (_h = 0; _h < _num_hvars; _h++) {
     gatherSum(_residual[_h]);
-  }
-  return _residual;
-}
-
-std::vector<RankTwoTensor>
-HomogenizationConstraintIntegral::getJacobian()
-{
-  for (_h = 0; _h < _num_hvars; _h++) {
     for (unsigned int i = 0; i < 3; i++) {
       for (unsigned int j = 0; j < 3; j++) {
         gatherSum(_jacobian[_h](i,j));
       }
     }
   }
-  return _jacobian;
+}
+
+Real
+HomogenizationConstraintIntegral::getResidual(unsigned int h) const
+{
+  return _residual[h];
+}
+
+RankTwoTensor
+HomogenizationConstraintIntegral::getJacobian(unsigned int h) const
+{
+  return _jacobian[h];
 }
 
 Real
@@ -148,7 +147,24 @@ HomogenizationConstraintIntegral::computeResidual()
 RankTwoTensor
 HomogenizationConstraintIntegral::computeJacobian()
 {
-  RankTwoTensor a;
-  a.zero();
-  return a;
+  RankTwoTensor res;
+  res.zero();
+  if (_ctypes[_h] == ConstraintType::Stress) {
+    for (unsigned int k = 0; k < 3; k++) {
+      for (unsigned int l = 0; l < 3; l++) {
+        res(k,l) =
+            _material_jacobian[_qp](_pinds[_h].first,_pinds[_h].second,k,l);
+      }
+    }
+  }
+  else {
+    for (unsigned int k = 0; k < 3; k++) {
+      for (unsigned int l = 0; l < 3; l++) {
+        if ((k == _pinds[_h].first) && (l == _pinds[_h].second)) {
+          res(k,l) = 1.0;
+        }
+      }
+    }
+  }
+  return res;
 }
