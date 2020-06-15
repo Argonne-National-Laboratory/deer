@@ -14,7 +14,7 @@
 #include "MooseVariableFE.h"
 #include "MooseVariableScalar.h"
 #include "SystemBase.h"
-#include "Function.h"
+
 
 #include "libmesh/quadrature.h"
 
@@ -33,8 +33,6 @@ HomogenizationConstraintKernel::validParams()
   
   params.addRequiredParam<std::vector<unsigned int>>("constraint_types",
     "Type of each constraint: strain (0) or stress (1)"); 
-  params.addRequiredParam<std::vector<FunctionName>>("targets",
-                                        "Functions giving the targets to hit");
 
   return params;
 }
@@ -54,20 +52,6 @@ HomogenizationConstraintKernel::HomogenizationConstraintKernel(const InputParame
         getMaterialPropertyByName<RankFourTensor>("material_jacobian")),
     _F(getMaterialPropertyByName<RankTwoTensor>("def_grad"))
 {
-  const std::vector<FunctionName> & names =
-      getParam<std::vector<FunctionName>>("targets");
-
-  unsigned int nfns = names.size();
-  if (nfns != _num_hvars) {
-    mooseError("Number of target functions must match the number of "
-               "homogenization variables");
-  }
-  for (unsigned int i = 0; i < nfns; i++) {
-    const Function * const f = &getFunctionByName(names[i]);
-    if (!f) mooseError("Function ", names[i], " not found.");
-    _targets.push_back(f);
-  }
-
   const std::vector<unsigned int> & types = 
       getParam<std::vector<unsigned int>>("constraint_types");
   if (types.size() != _num_hvars) {
@@ -108,48 +92,38 @@ HomogenizationConstraintKernel::initialSetup() {
 }
 
 void
-HomogenizationConstraintKernel::computeResidual()
-{
-  // Only do this once...
-  if (_component == 0) {
-    // But do it for each variable
-    for (_h = 0; _h < _num_hvars; _h++) {
-      // The contribution for the scalar kernel (size 1)
-      DenseVector<Number> & re_scalar =
-          _assembly.residualBlock(_homogenization_nums[_h]);
-      for (_qp = 0; _qp < _qrule->n_points(); _qp++) {
-        Real dV = _JxW[_qp] * _coord[_qp];
-        if (_ctypes[_h] == ConstraintType::Stress) {
-          re_scalar(0) += (_stress[_qp](_pinds[_h].first,_pinds[_h].second) -
-                           _targets[_h]->value(_t, _q_point[_qp])) * dV;
-        }
-        else {
-          re_scalar(0) += (_F[_qp](_pinds[_h].first,_pinds[_h].second) - 
-                           (_sfacts[_h] + _targets[_h]->value(_t, _q_point[_qp]))) * dV;
-        }
-      }
-    }
-  }
-}
-
-void
 HomogenizationConstraintKernel::computeOffDiagJacobianScalar(unsigned int jvar)
 {
   for (_h = 0; _h < _num_hvars; _h++) {
     if (jvar == _homogenization_nums[_h]) break;
   }
   if (_h == _num_hvars) return; // Not our scalars apparently
-
+  
   DenseMatrix<Number> & ken = _assembly.jacobianBlock(_var.number(), jvar);
   DenseMatrix<Number> & kne = _assembly.jacobianBlock(jvar, _var.number());
   MooseVariableScalar & jv = _sys.getScalarVariable(_tid, jvar);
-  
-  for (_i = 0; _i < _test.size(); _i++)
-    for (_j = 0; _j < jv.order(); _j++)
-      for (_qp = 0; _qp < _qrule->n_points(); _qp++)
-      {
+
+  // We will visit this function once per displacement DoF
+ 
+  for (_qp = 0; _qp < _qrule->n_points(); _qp++) {
+    for (_j = 0; _j < jv.order(); _j++) {
+      for (_i = 0; _i < _test.size(); _i++) {
         Real dV = _JxW[_qp] * _coord[_qp];
-        ken(_i, _j) += 0;
-        kne(_j, _i) += 0;
+        ken(_i, _j) += computeConstraintJacobian() * dV;
+        kne(_j, _i) += computeDisplacementJacobian() * dV;
       }
+    }
+  }
+}
+
+Real
+HomogenizationConstraintKernel::computeDisplacementJacobian()
+{
+  return 0.0;
+}
+
+Real
+HomogenizationConstraintKernel::computeConstraintJacobian()
+{
+  return 0.0;
 }

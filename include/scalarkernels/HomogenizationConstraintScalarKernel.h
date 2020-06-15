@@ -11,15 +11,18 @@
 
 #include "ScalarKernel.h"
 
-class NullScalarKernel : public ScalarKernel
+class HomogenizationConstraintScalarKernel : public ScalarKernel
 {
  public:
   static InputParameters validParams();
 
-  NullScalarKernel(const InputParameters & parameters);
+  HomogenizationConstraintScalarKernel(const InputParameters & parameters);
 
   virtual void reinit();
   virtual void computeResidual();
   virtual void computeJacobian();
+
+ protected:
+  unsigned int _h;
 
 };

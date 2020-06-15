@@ -19,12 +19,12 @@ class HomogenizationConstraintKernel : public Kernel
   HomogenizationConstraintKernel(const InputParameters & parameters);
  
   virtual void initialSetup();
-
-  virtual void computeResidual();
   virtual void computeOffDiagJacobianScalar(unsigned int jvar);
 
  protected:
   virtual Real computeQpResidual() {return 0;};
+  virtual Real computeDisplacementJacobian();
+  virtual Real computeConstraintJacobian();
 
  protected:
   unsigned int _h;
