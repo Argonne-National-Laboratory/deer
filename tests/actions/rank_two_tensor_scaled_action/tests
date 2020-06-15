@@ -55,7 +55,7 @@
   [../]
   [./rank_two_tensor_error_property_names]
     type = RunException
-    expect_err = "RankTwoTensorIntegralAction: The length of rank_two_tensor and base_out_names input paramters must be the same! Please check your input file"
+    expect_err = "RankTwoTensorIntegralAction: The length of rank_two_tensor and base_out_names input parameters must be the same! Please check your input file"
     input = 'rank_two_tensor_integral_on_domain.i'
     requirement = "The RankTwoTensorIntegralOnDomain action shall raise an exception when the number of output variable names does not match the number of provided tensors"
     cli_args = "Postprocessors/inactive='area area0 volume volume0' RankTwoTensorIntegralOnDomain/integral1/rank_two_tensor='stress elastic_strain' RankTwoTensorIntegralOnDomain/integral1/base_out_names='stress'

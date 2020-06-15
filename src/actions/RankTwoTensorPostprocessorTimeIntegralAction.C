@@ -32,7 +32,7 @@ RankTwoTensorPostprocessorTimeIntegralAction::
     mooseError("RankTwoTensorPostprocessorTimeIntegralAction: The length of "
                "pp_base_names and "
                "base_out_names input "
-               "paramters must be the same! Please check your input file");
+               "parameters must be the same! Please check your input file");
 }
 
 void RankTwoTensorPostprocessorTimeIntegralAction::act() {
