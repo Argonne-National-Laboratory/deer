@@ -14,7 +14,7 @@ registerMooseObject("DeerApp", RankTwoTensorInvariantPostprocessor);
 InputParameters RankTwoTensorInvariantPostprocessor::validParams() {
   InputParameters params = GeneralPostprocessor::validParams();
   params.addClassDescription(
-      "Computes an invaraint of a symmetric rank two "
+      "Computes an invariant of a symmetric rank two "
       "tensor given a set of postprocessors"
       " representing tensorial components. This class "
       "leverages MOOSE RankTwoScalarTools::invariantOptions()");
@@ -24,8 +24,10 @@ InputParameters RankTwoTensorInvariantPostprocessor::validParams() {
       "invariant shall to be computed.");
   params.addParam<MooseEnum>(
       "invariant", RankTwoScalarTools::invariantOptions(),
-      "Type of inveriant (see RankTwoScalarTools::invariantOptions for "
-      "details)");
+      "Type of invariant, some examples are: VonMisesStress, EffectiveStrain, "
+      "VolumetricStrain, and"
+      "MaxShear. For the complete list see "
+      "RankTwoScalarTools::invariantOptions or enter an invalid argument.");
   params.set<ExecFlagEnum>("execute_on") = EXEC_TIMESTEP_END;
   return params;
 }
