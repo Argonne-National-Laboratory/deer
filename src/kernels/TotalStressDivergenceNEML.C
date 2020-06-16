@@ -51,8 +51,8 @@ Real
 TotalStressDivergenceNEML::largeDeformationResidual(unsigned int i,
                                                     const RealGradient & grad_phi)
 {
-  return _detJ[_qp] * _stress[_qp].row(i) * 
-      (_inv_def_grad[_qp].transpose() * grad_phi);
+  return _detJ[_qp] * _stress[_qp].row(i) * (_inv_def_grad[_qp].transpose()
+                                             * grad_phi);
 }
 
 Real
@@ -91,7 +91,7 @@ Real TotalStressDivergenceNEML::computeQpOffDiagJacobian(unsigned int jvar) {
         value += largeDeformationMatJac(_component, cc,
                                         _grad_test[_i][_qp],
                                         _disp_vars[cc]->gradPhi()[_j][_qp]);
-        value += largeDeformationGeoJac(_component, _component,
+        value += largeDeformationGeoJac(_component, cc,
                                         _grad_test[_i][_qp],
                                         _disp_vars[cc]->gradPhi()[_j][_qp]);
       }
@@ -155,7 +155,7 @@ TotalStressDivergenceNEML::largeDeformationGeoJac(
 
   for (unsigned int j = 0; j < _ndisp; j++) {
     value += _detJ[_qp] * _stress[_qp](i,j) * 
-        (GPsi(j) * GPhi(k) - GPsi(k) * GPhi(j));
+        (GPsi(k) * GPhi(j) - GPsi(j) * GPhi(k));
   }
 
   return value;

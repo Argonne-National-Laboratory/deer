@@ -90,5 +90,5 @@ void ComputeNEMLStrainBase::computeQpProperties() {
                     RankTwoTensor((*_grad_disp[0])[_qp], (*_grad_disp[1])[_qp],
                                   (*_grad_disp[2])[_qp]));
   _inv_def_grad[_qp] = _def_grad[_qp].inverse();
-  _detJ[_qp] = _def_grad[_qp].thirdInvariant();
+  _detJ[_qp] = _def_grad[_qp].det();
 }
