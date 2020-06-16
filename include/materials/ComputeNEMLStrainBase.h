@@ -40,6 +40,9 @@ protected:
 
   MaterialProperty<RankTwoTensor> &_df;
 
+  MaterialProperty<RankTwoTensor> &_inv_def_grad;
+  MaterialProperty<Real> &_detJ;
+
   std::vector<MaterialPropertyName> _eigenstrain_names;
   std::vector<const MaterialProperty<RankTwoTensor> *> _eigenstrains;
   std::vector<const MaterialProperty<RankTwoTensor> *> _eigenstrains_old;

@@ -31,6 +31,11 @@ InputParameters NEMLMechanicsAction::validParams() {
   params.addParam<MooseEnum>("kinematics", kinematicType,
                              "Kinematic formulation");
 
+  MooseEnum formulationType("updated total", "updated");
+  params.addParam<MooseEnum>("formulation", formulationType,
+                             "Equilibrium formulation: updated or total "
+                             "Lagrangian");
+
   params.addParam<bool>(
       "add_all_output", false,
       "Dump all the usual stress and strain variables to the output");
@@ -56,6 +61,7 @@ NEMLMechanicsAction::NEMLMechanicsAction(const InputParameters &params)
       _add_disp(getParam<bool>("add_displacements")),
       _add_all(getParam<bool>("add_all_output")),
       _kinematics(getParam<MooseEnum>("kinematics").getEnum<Kinematics>()),
+      _formulation(getParam<MooseEnum>("formulation").getEnum<Formulation>()),
       _eigenstrains(
           getParam<std::vector<MaterialPropertyName>>("eigenstrains")),
       _block(params.isParamSetByUser("block")
@@ -91,18 +97,38 @@ void NEMLMechanicsAction::act() {
   } else if (_current_task == "add_kernel") {
     // Add the kernels
     for (unsigned int i = 0; i < _ndisp; ++i) {
-      auto params = _factory.getValidParams("StressDivergenceNEML");
+      if (_formulation == Formulation::Updated) {
+        auto params = _factory.getValidParams("StressDivergenceNEML");
 
-      params.set<std::vector<VariableName>>("displacements") = _displacements;
-      params.set<NonlinearVariableName>("variable") = _displacements[i];
-      params.set<unsigned int>("component") = i;
-      params.set<bool>("use_displaced_mesh") = _kin_mapper[_kinematics];
-      if (_block.size() > 0)
-        params.set<std::vector<SubdomainName>>("block") = _block;
+        params.set<std::vector<VariableName>>("displacements") = _displacements;
+        params.set<NonlinearVariableName>("variable") = _displacements[i];
+        params.set<unsigned int>("component") = i;
+        params.set<bool>("use_displaced_mesh") = _kin_mapper[_kinematics];
+        if (_block.size() > 0)
+          params.set<std::vector<SubdomainName>>("block") = _block;
 
-      std::string name = "SD_" + Moose::stringify(i);
+        std::string name = "SD_" + Moose::stringify(i);
 
-      _problem->addKernel("StressDivergenceNEML", name, params);
+        _problem->addKernel("StressDivergenceNEML", name, params);
+      }
+      else if (_formulation == Formulation::Total) {
+        auto params = _factory.getValidParams("TotalStressDivergenceNEML");
+
+        params.set<std::vector<VariableName>>("displacements") = _displacements;
+        params.set<NonlinearVariableName>("variable") = _displacements[i];
+        params.set<unsigned int>("component") = i;
+        params.set<bool>("large_kinematics") = _kin_mapper[_kinematics];
+        if (_block.size() > 0)
+          params.set<std::vector<SubdomainName>>("block") = _block;
+
+        std::string name = "SD_" + Moose::stringify(i);
+
+        _problem->addKernel("TotalStressDivergenceNEML", name, params);
+      }
+      else {
+        mooseError("Unknown formulation type supplied to NEMLMechanics "
+                   "action!");
+      }
     }
   } else if (_current_task == "add_aux_variable") {
     if (_add_all) {
