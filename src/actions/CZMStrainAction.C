@@ -30,8 +30,8 @@ InputParameters CZMStrainAction::validParams() {
                         "If true (default) also add all the equivalnet strain");
   params.addRequiredParam<std::vector<VariableName>>(
       "displacements", "The displacement variables");
-  params.addParam<bool>("large_kinematics", true,
-                        "If true (default) uses large kinematics to "
+  params.addParam<bool>("large_kinematics", false,
+                        "If true uses large kinematics to "
                         "properly reorient and scale resulting strains");
   return params;
 }

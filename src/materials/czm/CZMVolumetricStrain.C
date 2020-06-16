@@ -31,7 +31,7 @@ CZMVolumetricStrain::CZMVolumetricStrain(const InputParameters &parameters)
           declareProperty<RankTwoTensor>("czm_normal_strain_rate")),
       _czm_sliding_strain_rate(
           declareProperty<RankTwoTensor>("czm_sliding_strain_rate")),
-      _ld(getParam<bool>("large_kinematics")) {
+      _ld(_ndisp == 1 ? false : getParam<bool>("large_kinematics")) {
 
   // Enforce consistency
   if (_ndisp != _mesh.dimension())

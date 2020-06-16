@@ -222,6 +222,7 @@
 
 [CZMStrain]
    boundary = interface
+   large_kinematics = true
 []
 
 [Outputs]
