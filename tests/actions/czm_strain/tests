@@ -1,0 +1,36 @@
+[Tests]
+  #enable after #15390 get merged in MOOSE
+  #[./czm_volumetric_strain_action]
+  #  type = CSVDiff
+  #  input = 'czm_volumetric_strain_action.i'
+  #  csvdiff = 'czm_volumetric_strain_action_out.csv'
+  #  requirement = "The CZMStrain action shall compute the propoer total, normal and tangential volumetric strain and strain rate due to the interface opening and sliding."
+  #  cli_args = "Postprocessors/inactive='V0' CZMStrain/block='0 1' Outputs/file_base=czm_volumetric_strain_action_out"
+  #[../]
+  #[./czm_volumetric_strain_action_V0PP]
+  #  type = CSVDiff
+  #  input = 'czm_volumetric_strain_action.i'
+  #  csvdiff = 'czm_volumetric_strain_action_V0PP_out.csv'
+  #  requirement = "The CZMStrain action shall properly work when an external scaling postprocessor is provided"
+  #  cli_args = "CZMStrain/bulk_volume_PP='V0' Outputs/file_base=czm_volumetric_strain_action_V0PP_out"
+  #[../]
+  [./czm_volumetric_strain_action_error_block_V0PP]
+    type = RunException
+    expect_err = "CZMStrainAction: The user can't provide both the bulk_volume_PP and the list of subdomains."
+    input = 'czm_volumetric_strain_action.i'
+    requirement = "The CZMStrain action shall raise an exception when providing both blocks and bulk_volume_PP"
+    cli_args = "CZMStrain/bulk_volume_PP='V0' CZMStrain/block='0 1'"
+  [../]
+  [./czm_volumetric_strain_action_2D]
+    type = CSVDiff
+    input = 'czm_volumetric_strain_action_2D.i'
+    csvdiff = 'czm_volumetric_strain_action_2D_out.csv'
+    requirement = "The CZMStrain action shall work in 2D"
+  [../]
+  [./czm_volumetric_strain_action_1D]
+    type = CSVDiff
+    input = 'czm_volumetric_strain_action_1D.i'
+    csvdiff = 'czm_volumetric_strain_action_1D_out.csv'
+    requirement = "The CZMStrain action shall work in 1D"
+  [../]
+[]
