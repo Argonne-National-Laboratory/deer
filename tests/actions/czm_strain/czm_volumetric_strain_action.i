@@ -73,7 +73,6 @@
 
 
 [NEMLMechanics]
-  displacements = 'disp_x disp_y disp_z'
   kinematics = small
   add_all_output = true
   add_displacements = true
@@ -82,7 +81,6 @@
 [Modules/TensorMechanics/CohesiveZoneMaster]
   [./czm]
     boundary = 'interface'
-    displacements = 'disp_x disp_y disp_z'
   [../]
 []
 
@@ -95,18 +93,11 @@
   [../]
   [./czm]
     type = PureElasticCZM
-    displacements = 'disp_x disp_y disp_z'
     boundary = 'interface'
     E = 1e0
     G = 1e0
     interface_thickness = 1
   [../]
-  [./czm_voluemtric_strain]
-    type = CZMVolumetricStrain
-    displacements = 'disp_x disp_y disp_z'
-    boundary = 'interface'
-    large_kinematics = true
-  []
 []
 
 [Preconditioning]
@@ -221,12 +212,18 @@
   []
 []
 
+[Postprocessors]
+  [./V0]
+    type = VolumePostprocessor
+    use_displaced_mesh = false
+    execute_on = 'INITIAL'
+  []
+[]
 
 [CZMStrain]
    boundary = interface
-   block = '0 1'
 []
 
 [Outputs]
-  exodus = true
+  csv = true
 []
