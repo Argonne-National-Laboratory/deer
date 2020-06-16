@@ -144,8 +144,9 @@ HomogenizationConstraintIntegral::computeResidual()
         _targets[_h]->value(_t, _q_point[_qp]);
   }
   else {
-    return _F[_qp](_pinds[_h].first,_pinds[_h].second) - 
-        (_sfacts[_h] + _targets[_h]->value(_t, _q_point[_qp]));
+    return 0.5*(  _F[_qp](_pinds[_h].first,_pinds[_h].second)
+                + _F[_qp](_pinds[_h].second,_pinds[_h].first)) - 
+        (_sfacts[_h] + (_targets[_h]->value(_t, _q_point[_qp])));
   }
 }
 

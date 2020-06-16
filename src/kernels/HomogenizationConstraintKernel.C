@@ -121,7 +121,7 @@ HomogenizationConstraintKernel::computeDisplacementJacobian()
 {
   Real val = 0.0;
   if (_ctypes[_h] == ConstraintType::Stress) {
-    for (unsigned int l = 0; l < 3; l++) {
+    for (unsigned int l = 0; l < _ndisp; l++) {
       val +=
           _material_jacobian[_qp](_pinds[_h].first,_pinds[_h].second,_component,l)
           * _grad_phi[_i][_qp](l);
@@ -139,7 +139,7 @@ Real
 HomogenizationConstraintKernel::computeConstraintJacobian()
 {
   Real val = 0.0;
-  for (unsigned int j = 0; j < 3; j++) {
+  for (unsigned int j = 0; j < _ndisp; j++) {
     val +=
         _material_jacobian[_qp](_component,j,_pinds[_h].first,_pinds[_h].second) 
         * _grad_test[_i][_qp](j);
