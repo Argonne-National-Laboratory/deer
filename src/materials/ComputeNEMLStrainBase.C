@@ -23,7 +23,7 @@ ComputeNEMLStrainBase::ComputeNEMLStrainBase(const InputParameters &parameters)
       _def_grad(declareProperty<RankTwoTensor>("def_grad")),
       _def_grad_old(getMaterialPropertyOld<RankTwoTensor>("def_grad")),
       _df(declareProperty<RankTwoTensor>("df")),
-        _inv_def_grad(declareProperty<RankTwoTensor>("inv_def_grad")),
+      _inv_def_grad(declareProperty<RankTwoTensor>("inv_def_grad")),
       _detJ(declareProperty<Real>("detJ")),
       _eigenstrain_names(
           getParam<std::vector<MaterialPropertyName>>("eigenstrain_names")),

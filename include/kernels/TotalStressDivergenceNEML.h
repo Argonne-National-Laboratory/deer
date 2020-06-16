@@ -20,11 +20,8 @@ protected:
   virtual Real computeQpOffDiagJacobian(unsigned int jvar) override;
 
 private:
-  Real largeDeformationResidual(unsigned int i,
-                                const RealGradient & grad_phi);
-  Real smallDeformationResidual(unsigned int i,
-                                const RealGradient & grad_phi);
-
+  Real largeDeformationResidual(const RealGradient & grad_phi);
+  Real smallDeformationResidual(const RealGradient & grad_phi);
   
   Real smallDeformationMatJac(unsigned int i, unsigned int k,
                               const RealGradient & grad_phi,
