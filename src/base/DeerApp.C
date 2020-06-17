@@ -27,6 +27,11 @@ DeerApp::~DeerApp() {}
 static void associateSyntaxInner(Syntax &syntax,
                                  ActionFactory & /*action_factory*/) {
   registerSyntax("NEMLMechanicsAction", "NEMLMechanics");
+  registerSyntax("RankTwoTensorIntegralAction",
+                 "RankTwoTensorIntegralOnDomain/*");
+  registerSyntax("RankTwoTensorPostprocessorTimeIntegralAction",
+                 "RankTwoTensorPostprocessorTimeIntegral/*");
+  registerSyntax("CZMStrainAction", "CZMStrain");
 }
 
 void DeerApp::registerApps() { registerApp(DeerApp); }

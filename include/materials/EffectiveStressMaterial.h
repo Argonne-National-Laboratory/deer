@@ -29,7 +29,7 @@ protected:
   MaterialProperty<Real> &_effective_stress;
   /// the type offective stress to be computed
   MooseEnum _effective_stress_type;
-  /// vector of paramters
+  /// vector of parameters
   std::vector<Real> _params_vector;
 
   const bool _stateful;

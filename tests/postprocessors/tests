@@ -1,0 +1,20 @@
+[Tests]
+  [./tensor_integral_scaled]
+    type = CSVDiff
+    input = 'tensor_integral_scaled.i'
+    csvdiff = 'tensor_integral_scaled_out.csv'
+    requirement = "The MaterialTensorIntegralScaled and the MaterialTensorIntegralInterfaceScaled should provide the correct PK1 stress"
+  [../]
+  [./time_integral_postprocessor]
+    type = CSVDiff
+    input = 'time_integral_postprocessor.i'
+    csvdiff = 'time_integral_postprocessor_out.csv'
+    requirement = "The TimeIntegralPostprocessor shall properly compute compute the time integral of postprocessor representing a rate."
+  [../]
+  [./tensor_invariant_postprocessor]
+    type = CSVDiff
+    input = 'rank_two_tensor_invariant_postprocessor.i'
+    csvdiff = 'rank_two_tensor_invariant_postprocessor_out.csv'
+    requirement = "The RankTwoTensorInvariantPostprocessor shall properly compute a tensor invariant from a set of postprocessor representing a symmetric tensor."
+  [../]
+[]

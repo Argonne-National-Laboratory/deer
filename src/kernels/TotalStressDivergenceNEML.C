@@ -39,27 +39,23 @@ TotalStressDivergenceNEML::initialSetup() {
 }
 
 Real TotalStressDivergenceNEML::computeQpResidual() {
-  if (_ld) {
-    return largeDeformationResidual(_component, _grad_test[_i][_qp]);
-  }
-  else {
-    return smallDeformationResidual(_component, _grad_test[_i][_qp]);
-  }
+  if (_ld) 
+    return largeDeformationResidual(_grad_test[_i][_qp]);
+  else 
+    return smallDeformationResidual(_grad_test[_i][_qp]);
 }
 
 Real
-TotalStressDivergenceNEML::largeDeformationResidual(unsigned int i,
-                                                    const RealGradient & grad_phi)
+TotalStressDivergenceNEML::largeDeformationResidual(const RealGradient & grad_phi)
 {
-  return _detJ[_qp] * _stress[_qp].row(i) * (_inv_def_grad[_qp].transpose()
-                                             * grad_phi);
+  return _detJ[_qp] * _stress[_qp].row(_component) * 
+      (_inv_def_grad[_qp].transpose() * grad_phi);
 }
 
 Real
-TotalStressDivergenceNEML::smallDeformationResidual(unsigned int i,
-                                                    const RealGradient & grad_phi)
+TotalStressDivergenceNEML::smallDeformationResidual(const RealGradient & grad_phi)
 {
-  return _stress[_qp].row(i) * grad_phi;
+  return _stress[_qp].row(_component) * grad_phi;
 }
 
 Real TotalStressDivergenceNEML::computeQpJacobian() {
@@ -113,11 +109,10 @@ TotalStressDivergenceNEML::smallDeformationMatJac(
     const RealGradient & grad_psi)
 {
   Real value = 0.0;
-  for (unsigned int j = 0; j < _ndisp; j++) {
-    for (unsigned int l = 0; l < _ndisp; l++) {
+  for (unsigned int j = 0; j < _ndisp; j++) 
+    for (unsigned int l = 0; l < _ndisp; l++) 
       value += _material_jacobian[_qp](i,j,k,l) * grad_phi(j) * grad_psi(l);
-    }
-  }
+    
   return value;
 }
 
@@ -131,15 +126,12 @@ TotalStressDivergenceNEML::largeDeformationMatJac(
 
   Real value = 0.0;
 
-  for (unsigned int j = 0; j < _ndisp; j++) {
-    for (unsigned int m = 0; m < _ndisp; m++) {
-      for (unsigned int n = 0; n < _ndisp; n++) {
+  for (unsigned int j = 0; j < _ndisp; j++) 
+    for (unsigned int m = 0; m < _ndisp; m++) 
+      for (unsigned int n = 0; n < _ndisp; n++) 
         value += _detJ[_qp] * _material_jacobian[_qp](i,j,m,n) * 
             _df[_qp](m,k) * GPsi(n) * GPhi(j);
-      }
-    }
-  }
-
+      
   return value;
 }
 
@@ -153,10 +145,9 @@ TotalStressDivergenceNEML::largeDeformationGeoJac(
   
   Real value = 0.0;
 
-  for (unsigned int j = 0; j < _ndisp; j++) {
+  for (unsigned int j = 0; j < _ndisp; j++) 
     value += _detJ[_qp] * _stress[_qp](i,j) * 
         (GPsi(k) * GPhi(j) - GPsi(j) * GPhi(k));
-  }
 
   return value;
 }
