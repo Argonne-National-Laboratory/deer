@@ -1,0 +1,8 @@
+[Tests]
+  [./preset]
+    type = CSVDiff
+    input = 'rotate.i'
+    csvdiff = 'rotate_out.csv'
+    requirement = "Stress state correctly rotates from step 10 to the final step"
+  [../]
+[]
