@@ -80,7 +80,7 @@
   [../]
 
   [./rotate_x]
-    type = DisplacementAboutAxis
+    type = DisplacementAboutAxisDeer
     boundary = 'front back'
     function = '90.'
     angle_units = degrees
@@ -91,7 +91,7 @@
     angular_velocity = true
   [../]
   [./rotate_y]
-    type = DisplacementAboutAxis
+    type = DisplacementAboutAxisDeer
     boundary = 'front back'
     function = '90.'
     angle_units = degrees
@@ -102,7 +102,7 @@
     angular_velocity = true
   [../]
   [./rotate_z]
-    type = DisplacementAboutAxis
+    type = DisplacementAboutAxisDeer
     boundary = 'front back'
     function = '90.'
     angle_units = degrees

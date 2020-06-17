@@ -17,7 +17,16 @@
     type = CSVDiff
     input = 'czm_large_deformation.i'
     csvdiff = 'czm_large_deformation_out.csv'
-    requirement = 'The CZM system shall track a changing global stress state when a model undergoes rigid body rotation   and area changes'
+    requirement = 'The CZM system shall track a changing global stress state when a model undergoes rigid body rotation and area changes'
+    cli_args = 'NEMLMechanics/formulation=total'
+    abs_zero = 1e-5
+  [../]
+  [./czm_PK1_large_deformation_updated_lagrangian]
+    type = CSVDiff
+    input = 'czm_large_deformation.i'
+    csvdiff = 'czm_large_deformation_updated_lagrangian_out.csv'
+    requirement = 'The CZM system shall track a changing global stress state when a model undergoes rigid body rotation and area changes'
+    cli_args =  'Outputs/file_base=czm_large_deformation_updated_lagrangian_out'
   [../]
   [./czm_ld_stretch_rotate_patch_convergence_eleastic]
     type = CSVDiff

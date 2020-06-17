@@ -32,6 +32,7 @@
   kinematics = large
   add_all_output = true
   add_displacements = true
+  formulation = total
 []
 
 [CohesiveZoneDeer]
