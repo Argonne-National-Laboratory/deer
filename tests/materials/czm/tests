@@ -4,12 +4,14 @@
     input = 'PureElastic.i'
     exodiff = 'PureElastic_out.e'
     requirement = "check the pure elastic czm material works properly"
+     abs_zero = 1e-6
   [../]
   [./ViscousSliding]
     type = Exodiff
     input = 'ViscousSliding.i'
     exodiff = 'ViscousSliding_out.e'
     requirement = "check the viscous sliding czm material works properly"
+    abs_zero = 1e-6
   [../]
   [./czm_PK1_large_deformation]
     type = CSVDiff

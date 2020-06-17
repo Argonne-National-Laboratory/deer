@@ -22,6 +22,7 @@ protected:
   bool _add_all;
 
   enum class Kinematics { Small, Large } _kinematics;
+  enum class Formulation {Updated, Total} _formulation;
 
   std::map<Kinematics, bool> _kin_mapper = {{Kinematics::Small, false},
                                             {Kinematics::Large, true}};

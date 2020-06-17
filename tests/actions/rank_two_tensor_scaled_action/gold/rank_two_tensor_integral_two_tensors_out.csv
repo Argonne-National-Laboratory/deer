@@ -1,0 +1,3 @@
+time,elastic_strain_x-x,elastic_strain_x-y,elastic_strain_x-z,elastic_strain_y-y,elastic_strain_y-z,elastic_strain_z-z,stress_x-x,stress_x-y,stress_x-z,stress_y-y,stress_y-z,stress_z-z
+0,0,0,0,0,0,0,0,0,0,0,0,0
+1,-0.1524444440428,5.5191913912096e-18,-2.4601381269188e-17,-0.1524444440428,-1.4139664302777e-17,0.6097777761712,-8.9302414566351e-14,4.4153531129677e-15,-1.968110501535e-14,-1.0025459748487e-13,-1.1311731442221e-14,609.7777761712
