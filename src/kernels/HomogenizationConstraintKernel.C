@@ -50,7 +50,8 @@ HomogenizationConstraintKernel::HomogenizationConstraintKernel(const InputParame
     _stress(getMaterialPropertyByName<RankTwoTensor>("stress")),
     _material_jacobian(
         getMaterialPropertyByName<RankFourTensor>("material_jacobian")),
-    _F(getMaterialPropertyByName<RankTwoTensor>("def_grad"))
+    _F(getMaterialPropertyByName<RankTwoTensor>("def_grad")),
+    _indices(HomogenizationConstants::indices.at(_ld)[_ndisp])
 {
   const std::vector<unsigned int> & types = 
       getParam<std::vector<unsigned int>>("constraint_types");
@@ -69,8 +70,6 @@ HomogenizationConstraintKernel::HomogenizationConstraintKernel(const InputParame
       mooseError("Constraint types must be either 0 (strain) or 1 (stress)");
     }
   }
-
-  _pinds = _bpinds[_ndisp-1];
 }
 
 void
@@ -122,15 +121,16 @@ HomogenizationConstraintKernel::computeDisplacementJacobian()
   Real val = 0.0;
   if (_ctypes[_h] == ConstraintType::Stress) {
     for (unsigned int l = 0; l < _ndisp; l++) {
-      val +=
-          _material_jacobian[_qp](_pinds[_h].first,_pinds[_h].second,_component,l)
-          * _grad_phi[_i][_qp](l);
+      val += _material_jacobian[_qp](_indices[_h].first, _indices[_h].second, 
+                                          _component, l) *
+          _grad_phi[_i][_qp](l);
     }
-    return val;
   }
   else {
-    if (_pinds[_h].first == _component)
-      val += _grad_phi[_i][_qp](_pinds[_h].second);
+    if (_indices[_h].first == _component)
+      val += 0.5 * _grad_phi[_i][_qp](_indices[_h].second);
+    if (_indices[_h].second == _component)
+      val += 0.5 * _grad_phi[_i][_qp](_indices[_h].first);
   }
   return val;
 }
@@ -140,9 +140,11 @@ HomogenizationConstraintKernel::computeConstraintJacobian()
 {
   Real val = 0.0;
   for (unsigned int j = 0; j < _ndisp; j++) {
-    val +=
-        _material_jacobian[_qp](_component,j,_pinds[_h].first,_pinds[_h].second) 
-        * _grad_test[_i][_qp](j);
+    val += 0.5*(
+        _material_jacobian[_qp](_component,j,_indices[_h].first,
+                                _indices[_h].second)
+       +_material_jacobian[_qp](_component,j,_indices[_h].second,
+                                _indices[_h].first)) * _grad_test[_i][_qp](j);
   }
   return val;
 }

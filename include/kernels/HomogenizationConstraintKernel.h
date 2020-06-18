@@ -11,6 +11,22 @@
 
 #include "Kernel.h"
 
+namespace HomogenizationConstants
+{
+  typedef std::vector<std::pair<unsigned int, unsigned int>> index_list;
+  const std::map<bool, std::vector<index_list>> indices {
+  {true, {
+    {{0,0}},
+    {{0,0},{1,1},{1,0},{0,1}},
+    {{0,0},{1,0},{2,0},{0,1},{1,1},{2,1},{2,0},{2,1},{2,2}}
+         }},
+  {false, {
+    {{0,0}},
+    {{0,0},{1,1},{0,1}},
+    {{0,0},{1,1},{2,2},{1,2},{0,2},{0,1}}
+          }}};
+}
+
 class HomogenizationConstraintKernel : public Kernel
 {
  public:
@@ -29,7 +45,7 @@ class HomogenizationConstraintKernel : public Kernel
  protected:
   unsigned int _h;
 
-  bool _ld;
+  const bool _ld;
   unsigned int _component;
 
   unsigned int _ndisp;
@@ -41,21 +57,14 @@ class HomogenizationConstraintKernel : public Kernel
   unsigned int _num_hvars;
   std::vector<unsigned int> _homogenization_nums;
 
-  const std::vector<std::vector<std::pair<unsigned int, unsigned int>>> _bpinds 
-    {
-      {{0,0}},
-      {{0,0},{1,1},{0,1}},
-      {{0,0},{1,1},{2,2},{1,2},{0,2},{0,1}}
-    };
-  std::vector<std::pair<unsigned int, unsigned int>> _pinds;
-
-  std::vector<const Function*> _targets;
-
   const MaterialProperty<RankTwoTensor> &_stress;
   const MaterialProperty<RankFourTensor> &_material_jacobian;
   const MaterialProperty<RankTwoTensor> &_F;
 
+  const HomogenizationConstants::index_list _indices;
+
   enum class ConstraintType { Stress, Strain };
   std::vector<ConstraintType> _ctypes;
 
+  std::vector<const Function*> _targets;
 };

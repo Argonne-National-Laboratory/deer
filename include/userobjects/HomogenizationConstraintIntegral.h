@@ -11,6 +11,8 @@
 
 #include "ElementUserObject.h"
 
+#include "HomogenizationConstraintKernel.h"
+
 class HomogenizationConstraintIntegral;
 
 class HomogenizationConstraintIntegral : public ElementUserObject
@@ -32,6 +34,8 @@ class HomogenizationConstraintIntegral : public ElementUserObject
   virtual Real computeResidual();
   virtual RankTwoTensor computeJacobian();
 
+  const bool _ld;
+
   unsigned int _ndisp;
   unsigned int _num_hvars;
 
@@ -50,19 +54,6 @@ class HomogenizationConstraintIntegral : public ElementUserObject
   std::vector<Real> _residual;
   std::vector<RankTwoTensor> _jacobian;
   
-  // Useful Voigt stuff
-  const std::vector<std::vector<std::pair<unsigned int, unsigned int>>> _bpinds 
-    {
-      {{0,0}},
-      {{0,0},{1,1},{0,1}},
-      {{0,0},{1,1},{2,2},{1,2},{0,2},{0,1}}
-    };
-  std::vector<std::pair<unsigned int, unsigned int>> _pinds;
-  const std::vector<std::vector<double>> _bsfacts 
-    {
-      {1.0},
-      {1.0,1.0,0.0},
-      {1.0,1.0,1.0,0.0,0.0,0.0}
-    };
-  std::vector<double> _sfacts;
+  HomogenizationConstants::index_list _indices;
+  
 };

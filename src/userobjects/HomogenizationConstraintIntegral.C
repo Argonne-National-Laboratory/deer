@@ -24,6 +24,8 @@ HomogenizationConstraintIntegral::validParams()
     "Type of each constraint: strain (0) or stress (1)"); 
   params.addRequiredParam<std::vector<FunctionName>>("targets",
                                         "Functions giving the targets to hit");
+  params.addParam<bool>("large_kinematics", false,
+                        "Using large displacements?");
 
   return params;
 }
@@ -32,6 +34,7 @@ HomogenizationConstraintIntegral::HomogenizationConstraintIntegral(const
                                                                    InputParameters
                                                                    & parameters)
   : ElementUserObject(parameters),
+    _ld(getParam<bool>("large_kinematics")),
     _ndisp(getParam<unsigned int>("ndim")),
     _num_hvars(coupledScalarComponents("homogenization_variables")),
     _stress(getMaterialPropertyByName<RankTwoTensor>("stress")),
@@ -39,7 +42,8 @@ HomogenizationConstraintIntegral::HomogenizationConstraintIntegral(const
         getMaterialPropertyByName<RankFourTensor>("material_jacobian")),
     _F(getMaterialPropertyByName<RankTwoTensor>("def_grad")),
     _residual(_num_hvars),
-    _jacobian(_num_hvars)
+    _jacobian(_num_hvars),
+    _indices(HomogenizationConstants::indices.at(_ld)[_ndisp])
 {
   const std::vector<FunctionName> & names =
       getParam<std::vector<FunctionName>>("targets");
@@ -72,9 +76,6 @@ HomogenizationConstraintIntegral::HomogenizationConstraintIntegral(const
       mooseError("Constraint types must be either 0 (strain) or 1 (stress)");
     }
   }
-
-  _pinds = _bpinds[_ndisp-1];
-  _sfacts = _bsfacts[_ndisp-1];
 }
 
 void
@@ -140,13 +141,14 @@ Real
 HomogenizationConstraintIntegral::computeResidual()
 {
   if (_ctypes[_h] == ConstraintType::Stress) {
-    return _stress[_qp](_pinds[_h].first,_pinds[_h].second) - 
+    return _stress[_qp](_indices[_h].first,_indices[_h].second) - 
         _targets[_h]->value(_t, _q_point[_qp]);
   }
   else {
-    return 0.5*(  _F[_qp](_pinds[_h].first,_pinds[_h].second)
-                + _F[_qp](_pinds[_h].second,_pinds[_h].first)) - 
-        (_sfacts[_h] + (_targets[_h]->value(_t, _q_point[_qp])));
+    Real f = (_indices[_h].first == _indices[_h].second) ? 1.0 : 0.0;
+    return 0.5*(  _F[_qp](_indices[_h].first,_indices[_h].second)
+                + _F[_qp](_indices[_h].second,_indices[_h].first)) - 
+        (f + (_targets[_h]->value(_t, _q_point[_qp])));
   }
 }
 
@@ -158,17 +160,16 @@ HomogenizationConstraintIntegral::computeJacobian()
   if (_ctypes[_h] == ConstraintType::Stress) {
     for (unsigned int k = 0; k < 3; k++) {
       for (unsigned int l = 0; l < 3; l++) {
-        res(k,l) =
-            _material_jacobian[_qp](_pinds[_h].first,_pinds[_h].second,k,l);
+        res(k,l) += 
+            _material_jacobian[_qp](k,l,_indices[_h].first,_indices[_h].second);
       }
     }
   }
   else {
     for (unsigned int k = 0; k < 3; k++) {
       for (unsigned int l = 0; l < 3; l++) {
-        if ((k == _pinds[_h].first) && (l == _pinds[_h].second)) {
-          res(k,l) = 1.0;
-        }
+        if ((_indices[_h].first == k) && (_indices[_h].second == l))
+          res(k,l) += 1.0;
       }
     }
   }

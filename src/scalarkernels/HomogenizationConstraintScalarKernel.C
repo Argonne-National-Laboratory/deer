@@ -29,17 +29,21 @@ HomogenizationConstraintScalarKernel::validParams()
   params.addRequiredParam<UserObjectName>("integrator",
                                           "The integrator user object doing the "
                                           "element calculations.");
+  params.addParam<bool>("large_kinematics", false,
+                        "Are we using large deformations?");
 
   return params;
 }
 
 HomogenizationConstraintScalarKernel::HomogenizationConstraintScalarKernel(const InputParameters & parameters)
   : ScalarKernel(parameters),
+    _ld(getParam<bool>("large_kinematics")),
     _ndisp(getParam<unsigned int>("ndim")),
     _num_hvars(coupledScalarComponents("homogenization_variables")),
     _homogenization_nums(_num_hvars),
     _h(getParam<unsigned int>("component")),
-    _integrator(getUserObject<HomogenizationConstraintIntegral>("integrator"))
+    _integrator(getUserObject<HomogenizationConstraintIntegral>("integrator")),
+    _indices(HomogenizationConstants::indices.at(_ld)[_ndisp])
 {
   for (unsigned int i = 0; i < _num_hvars; i++) {
     _homogenization_nums[i] = coupledScalar("homogenization_variables", i);
@@ -49,8 +53,6 @@ HomogenizationConstraintScalarKernel::HomogenizationConstraintScalarKernel(const
     mooseError("The homogenization variable number must be in between ",
                0, " and ", _num_hvars);
   }
-
-  _pinds = _bpinds[_ndisp-1];
 }
 
 void
@@ -72,7 +74,7 @@ HomogenizationConstraintScalarKernel::computeJacobian()
 {
   DenseMatrix<Number> & ke = _assembly.jacobianBlock(_var.number(), _var.number());
   RankTwoTensor value = _integrator.getJacobian(_h);
-  ke(0, 0) += value(_pinds[_h].first, _pinds[_h].second);
+  ke(0, 0) += value(_indices[_h].first, _indices[_h].second);
 }
 
 void 
@@ -82,7 +84,7 @@ HomogenizationConstraintScalarKernel::computeOffDiagJacobian(unsigned int jvar)
     if (_homogenization_nums[k] == jvar) {
       RankTwoTensor value = _integrator.getJacobian(_h);
       DenseMatrix<Number> & ke = _assembly.jacobianBlock(_var.number(), jvar);
-      ke(0,0) += value(_pinds[k].first, _pinds[k].second);
+      ke(0,0) += value(_indices[k].first, _indices[k].second);
     }
   }
 }
