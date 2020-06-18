@@ -13,4 +13,55 @@
     requirement = "check the viscous sliding czm material works properly"
     abs_zero = 1e-6
   [../]
+  [./czm_PK1_large_deformation]
+    type = CSVDiff
+    input = 'czm_large_deformation.i'
+    csvdiff = 'czm_large_deformation_out.csv'
+    requirement = 'The CZM system shall track a changing global stress state when a model undergoes rigid body rotation and area changes'
+    cli_args = 'NEMLMechanics/formulation=total'
+    abs_zero = 1e-4
+  [../]
+  [./czm_PK1_large_deformation_updated_lagrangian]
+    type = CSVDiff
+    input = 'czm_large_deformation.i'
+    csvdiff = 'czm_large_deformation_updated_lagrangian_out.csv'
+    requirement = 'The CZM system shall track a changing global stress state when a model undergoes rigid body rotation and area changes'
+    cli_args =  'Outputs/file_base=czm_large_deformation_updated_lagrangian_out NEMLMechanics/formulation=updated'
+    abs_zero = 1e-4
+    rel_err = 1e-4
+  [../]
+  [./czm_ld_stretch_rotate_patch_convergence_eleastic]
+    type = CSVDiff
+    input = 'czm_large_deformation_patch_test.i'
+    csvdiff = 'czm_large_deformation_patch_test_elastic_out.csv'
+    requirement = "Quadratic convergence in 3D for a PureElastiLD material model, SMP matches FDP."
+    cli_args = "Outputs/file_base=czm_large_deformation_patch_test_elastic_out Materials/czm_mat/type=PureElasticCZMIncremental Materials/czm_mat/E=1e8 Materials/czm_mat/G=1e7"
+    mesh_mode = 'REPLICATED'
+    recover = false
+  [../]
+  [./czm_ld_stretch_rotate_patch_convergence_3DC]
+    type = CSVDiff
+    input = 'czm_large_deformation_patch_test.i'
+    csvdiff = 'czm_large_deformation_patch_test_3DC_out.csv'
+    requirement = "Quadratic convergence in 3D for SalehaniIrani3DCTractionLD, SMP matches FDP."
+    cli_args = "Outputs/file_base=czm_large_deformation_patch_test_3DC_out Materials/czm_mat/type=SalehaniIrani3DCTractionCZMIncremental Materials/czm_mat/normal_gap_at_maximum_normal_traction=0.05 Materials/czm_mat/tangential_gap_at_maximum_shear_traction=0.05 Materials/czm_mat/maximum_normal_traction=1e1 Materials/czm_mat/maximum_shear_traction=7e0"
+    mesh_mode = 'REPLICATED'
+    recover = false
+  [../]
+  [./czm_ld_2D]
+    type = CSVDiff
+    input = 'czm_large_deformation_2D.i'
+    csvdiff = 'czm_large_deformation_2D_out.csv'
+    requirement = "The large deformation CZM should work in 2D"
+    mesh_mode = 'REPLICATED'
+    recover = false
+  [../]
+  [./czm_ld_1D]
+    type = CSVDiff
+    input = 'czm_large_deformation_1D.i'
+    csvdiff = 'czm_large_deformation_1D_out.csv'
+    requirement = "The large deformation CZM should work in 1D"
+    mesh_mode = 'REPLICATED'
+    recover = false
+  [../]
 []
