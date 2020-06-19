@@ -43,7 +43,7 @@ HomogenizationConstraintScalarKernel::HomogenizationConstraintScalarKernel(const
     _homogenization_nums(_num_hvars),
     _h(getParam<unsigned int>("component")),
     _integrator(getUserObject<HomogenizationConstraintIntegral>("integrator")),
-    _indices(HomogenizationConstants::indices.at(_ld)[_ndisp])
+    _indices(HomogenizationConstants::indices.at(_ld)[_ndisp-1])
 {
   for (unsigned int i = 0; i < _num_hvars; i++) {
     _homogenization_nums[i] = coupledScalar("homogenization_variables", i);

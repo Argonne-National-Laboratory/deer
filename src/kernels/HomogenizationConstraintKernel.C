@@ -51,7 +51,7 @@ HomogenizationConstraintKernel::HomogenizationConstraintKernel(const InputParame
     _material_jacobian(
         getMaterialPropertyByName<RankFourTensor>("material_jacobian")),
     _F(getMaterialPropertyByName<RankTwoTensor>("def_grad")),
-    _indices(HomogenizationConstants::indices.at(_ld)[_ndisp])
+    _indices(HomogenizationConstants::indices.at(_ld)[_ndisp-1])
 {
   const std::vector<unsigned int> & types = 
       getParam<std::vector<unsigned int>>("constraint_types");
