@@ -58,7 +58,8 @@ TotalStressDivergenceNEML::smallDeformationResidual(const RealGradient & grad_ph
   return _stress[_qp].row(_component) * grad_phi;
 }
 
-Real TotalStressDivergenceNEML::computeQpJacobian() {
+Real TotalStressDivergenceNEML::computeQpJacobian() 
+{
   Real value = 0.0;
   
   if (_ld) {

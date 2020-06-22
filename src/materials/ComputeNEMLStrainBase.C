@@ -1,5 +1,7 @@
 #include "ComputeNEMLStrainBase.h"
 
+#include "HomogenizationConstraintKernel.h"
+
 InputParameters ComputeNEMLStrainBase::validParams() {
   InputParameters params = Material::validParams();
 
@@ -46,9 +48,9 @@ ComputeNEMLStrainBase::ComputeNEMLStrainBase(const InputParameters &parameters)
   
   // Do some checking on the number of homogenization variables
   if ((_num_hvars != 0) && (_num_hvars !=
-                            HomogenizationConstants::required.at(_ld)[_ndisp])) {
+                            HomogenizationConstants::required.at(_ld)[_ndisp-1])) {
     mooseError("Strain calculator must either have 0 or ",
-               HomognenizationConstants::required.at(_ld)[_ndisp],
+               HomogenizationConstants::required.at(_ld)[_ndisp-1],
                " homogenization scalar variables");
   }
 
@@ -115,15 +117,65 @@ RankTwoTensor ComputeNEMLStrainBase::eigenstrainIncrement() {
 RankTwoTensor 
 ComputeNEMLStrainBase::homogenizationContribution()
 {
-  return RankTwoTensor((*_homogenization_vals[0])[0],
-                       (*_homogenization_vals[1])[0],
-                       (*_homogenization_vals[2])[0],
-                       (*_homogenization_vals[3])[0],
-                       (*_homogenization_vals[4])[0],
-                       (*_homogenization_vals[5])[0],
-                       (*_homogenization_vals[6])[0],
-                       (*_homogenization_vals[7])[0],
-                       (*_homogenization_vals[8])[0]);
+  if (_ld) {
+    if ((_ndisp == 1) || (_ndisp == 3)) {
+      return RankTwoTensor((*_homogenization_vals[0])[0],
+                           (*_homogenization_vals[1])[0],
+                           (*_homogenization_vals[2])[0],
+                           (*_homogenization_vals[3])[0],
+                           (*_homogenization_vals[4])[0],
+                           (*_homogenization_vals[5])[0],
+                           (*_homogenization_vals[6])[0],
+                           (*_homogenization_vals[7])[0],
+                           (*_homogenization_vals[8])[0]);
+    }
+    else {
+      return RankTwoTensor((*_homogenization_vals[0])[0],
+                           (*_homogenization_vals[2])[0],
+                           (*_homogenization_vals[4])[0],
+                           (*_homogenization_vals[3])[0],
+                           (*_homogenization_vals[1])[0],
+                           (*_homogenization_vals[5])[0],
+                           (*_homogenization_vals[6])[0],
+                           (*_homogenization_vals[7])[0],
+                           (*_homogenization_vals[8])[0]);
+    }
+  }
+  else {
+    if (_ndisp == 1) {
+      return RankTwoTensor((*_homogenization_vals[0])[0],
+                           (*_homogenization_vals[1])[0],
+                           (*_homogenization_vals[2])[0],
+                           (*_homogenization_vals[3])[0],
+                           (*_homogenization_vals[4])[0],
+                           (*_homogenization_vals[5])[0],
+                           (*_homogenization_vals[6])[0],
+                           (*_homogenization_vals[7])[0],
+                           (*_homogenization_vals[8])[0]);
+    }
+    else if (_ndisp == 2) {
+      return RankTwoTensor((*_homogenization_vals[0])[0],  // 0,0
+                           (*_homogenization_vals[3])[0],  // 1,0
+                           (*_homogenization_vals[4])[0],  // 2,0
+                           (*_homogenization_vals[2])[0],  // 0,1
+                           (*_homogenization_vals[1])[0],  // 1,1
+                           (*_homogenization_vals[5])[0],  // 2,1
+                           (*_homogenization_vals[6])[0],  // 0,2
+                           (*_homogenization_vals[7])[0],  // 1,2
+                           (*_homogenization_vals[8])[0]); // 2,2
+    }
+    else {
+      return RankTwoTensor((*_homogenization_vals[0])[0],   // 0,0
+                           (*_homogenization_vals[6])[0],   // 1,0
+                           (*_homogenization_vals[7])[0],   // 2,0
+                           (*_homogenization_vals[5])[0],   // 0,1
+                           (*_homogenization_vals[1])[0],   // 1,1
+                           (*_homogenization_vals[8])[0],   // 2,1
+                           (*_homogenization_vals[4])[0],   // 0,2
+                           (*_homogenization_vals[3])[0],   // 1,2
+                           (*_homogenization_vals[2])[0]);  // 2,2
+    }
+  }
 }
 
 void ComputeNEMLStrainBase::computeQpProperties() {
