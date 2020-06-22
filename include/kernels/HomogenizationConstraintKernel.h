@@ -25,6 +25,9 @@ namespace HomogenizationConstants
     {{0,0},{1,1},{0,1}},
     {{0,0},{1,1},{2,2},{1,2},{0,2},{0,1}}
           }}};
+  const std::map<bool, std::vector<unsigned int>> required {
+    {true, {1, 4, 9}},
+    {false, {1, 3, 6}}};
 }
 
 class HomogenizationConstraintKernel : public Kernel

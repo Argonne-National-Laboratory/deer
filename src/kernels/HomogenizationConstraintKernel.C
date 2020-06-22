@@ -46,7 +46,7 @@ HomogenizationConstraintKernel::HomogenizationConstraintKernel(const InputParame
     _material_jacobian(
         getMaterialPropertyByName<RankFourTensor>("material_jacobian")),
     _F(getMaterialPropertyByName<RankTwoTensor>("def_grad")),
-    _indices(HomogenizationConstants::indices.at(true)[2])
+    _indices(HomogenizationConstants::indices.at(_ld)[_ndisp])
 {
   const std::vector<unsigned int> & types = 
       getParam<std::vector<unsigned int>>("constraint_types");
@@ -68,15 +68,18 @@ HomogenizationConstraintKernel::HomogenizationConstraintKernel(const InputParame
 }
 
 void
-HomogenizationConstraintKernel::initialSetup() {
+HomogenizationConstraintKernel::initialSetup() 
+{
   for (unsigned int i = 0; i < _ndisp; i++) {
     _disp_nums[i] = coupled("displacements", i);
     _disp_vars[i] = getVar("displacements", i);
     _grad_disp[i] = &coupledGradient("displacements", i);
   }
 
-  if ((_num_hvars != 0) && (_num_hvars != 9)) {
-    mooseError("Strain calculator must either have 0 or ", 9, 
+  if ((_num_hvars != 0) && (_num_hvars !=
+                            HomogenizationConstants::required.at(_ld)[_ndisp])) {
+    mooseError("Strain calculator must either have 0 or ",
+               HomogenizationConstants::required.at(_ld)[_ndisp],
                " homogenization scalar variables");
   }
   for (unsigned int i = 0; i < _num_hvars; i++) {

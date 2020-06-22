@@ -45,8 +45,10 @@ ComputeNEMLStrainBase::ComputeNEMLStrainBase(const InputParameters &parameters)
   }
   
   // Do some checking on the number of homogenization variables
-  if ((_num_hvars != 0) && (_num_hvars != 9)) {
-    mooseError("Strain calculator must either have 0 or ", 9, 
+  if ((_num_hvars != 0) && (_num_hvars !=
+                            HomogenizationConstants::required.at(_ld)[_ndisp])) {
+    mooseError("Strain calculator must either have 0 or ",
+               HomognenizationConstants::required.at(_ld)[_ndisp],
                " homogenization scalar variables");
   }
 

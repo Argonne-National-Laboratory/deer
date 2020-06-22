@@ -43,7 +43,7 @@ HomogenizationConstraintIntegral::HomogenizationConstraintIntegral(const
     _F(getMaterialPropertyByName<RankTwoTensor>("def_grad")),
     _residual(_num_hvars),
     _jacobian(_num_hvars),
-    _indices(HomogenizationConstants::indices.at(true)[2])
+    _indices(HomogenizationConstants::indices.at(_ld)[_ndisp])
 {
   const std::vector<FunctionName> & names =
       getParam<std::vector<FunctionName>>("targets");
