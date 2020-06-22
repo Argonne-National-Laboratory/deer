@@ -45,13 +45,12 @@ ComputeNEMLStrainBase::ComputeNEMLStrainBase(const InputParameters &parameters)
   }
   
   // Do some checking on the number of homogenization variables
-  unsigned int needed = (_ld ? _ndisp*_ndisp : (_ndisp*_ndisp+_ndisp)/2);
-  if ((_num_hvars != 0) && (_num_hvars != needed)) {
-    mooseError("Strain calculator must either have 0 or ", needed, 
+  if ((_num_hvars != 0) && (_num_hvars != 9)) {
+    mooseError("Strain calculator must either have 0 or ", 9, 
                " homogenization scalar variables");
   }
 
-  unsigned int total = (_ld ? 9 : 6);
+  unsigned int total = 9;
   _homogenization_vals.resize(total);
 
   unsigned int i;
@@ -114,48 +113,15 @@ RankTwoTensor ComputeNEMLStrainBase::eigenstrainIncrement() {
 RankTwoTensor 
 ComputeNEMLStrainBase::homogenizationContribution()
 {
-  if (_ld) {
-    if ((_ndisp == 1) || (_ndisp == 3)) {
-      return RankTwoTensor((*_homogenization_vals[0])[0],
-                           (*_homogenization_vals[1])[0],
-                           (*_homogenization_vals[2])[0],
-                           (*_homogenization_vals[3])[0],
-                           (*_homogenization_vals[4])[0],
-                           (*_homogenization_vals[5])[0],
-                           (*_homogenization_vals[6])[0],
-                           (*_homogenization_vals[7])[0],
-                           (*_homogenization_vals[8])[0]);
-    }
-    else {
-      return RankTwoTensor((*_homogenization_vals[0])[0],
-                           (*_homogenization_vals[2])[0],
-                           (*_homogenization_vals[4])[0],
-                           (*_homogenization_vals[3])[0],
-                           (*_homogenization_vals[1])[0],
-                           (*_homogenization_vals[5])[0],
-                           (*_homogenization_vals[6])[0],
-                           (*_homogenization_vals[7])[0],
-                           (*_homogenization_vals[8])[0]);
-    }
-  }
-  else {
-    if ((_ndisp == 1) || (_ndisp == 3)) {
-      return RankTwoTensor((*_homogenization_vals[0])[0],
-                           (*_homogenization_vals[1])[0],
-                           (*_homogenization_vals[2])[0],
-                           (*_homogenization_vals[3])[0],
-                           (*_homogenization_vals[4])[0],
-                           (*_homogenization_vals[5])[0]);
-    }
-    else {
-      return RankTwoTensor((*_homogenization_vals[0])[0],
-                           (*_homogenization_vals[1])[0],
-                           (*_homogenization_vals[3])[0],
-                           (*_homogenization_vals[4])[0],
-                           (*_homogenization_vals[5])[0],
-                           (*_homogenization_vals[2])[0]);
-    }
-  }
+  return RankTwoTensor((*_homogenization_vals[0])[0],
+                       (*_homogenization_vals[1])[0],
+                       (*_homogenization_vals[2])[0],
+                       (*_homogenization_vals[3])[0],
+                       (*_homogenization_vals[4])[0],
+                       (*_homogenization_vals[5])[0],
+                       (*_homogenization_vals[6])[0],
+                       (*_homogenization_vals[7])[0],
+                       (*_homogenization_vals[8])[0]);
 }
 
 void ComputeNEMLStrainBase::computeQpProperties() {

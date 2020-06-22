@@ -43,7 +43,7 @@ HomogenizationConstraintIntegral::HomogenizationConstraintIntegral(const
     _F(getMaterialPropertyByName<RankTwoTensor>("def_grad")),
     _residual(_num_hvars),
     _jacobian(_num_hvars),
-    _indices(HomogenizationConstants::indices.at(_ld)[_ndisp-1])
+    _indices(HomogenizationConstants::indices.at(true)[2])
 {
   const std::vector<FunctionName> & names =
       getParam<std::vector<FunctionName>>("targets");
@@ -146,10 +146,8 @@ HomogenizationConstraintIntegral::computeResidual()
   }
   else {
     Real f = (_indices[_h].first == _indices[_h].second) ? 1.0 : 0.0;
-    
-    return 0.5*(  _F[_qp](_indices[_h].first,_indices[_h].second)
-                + _F[_qp](_indices[_h].second,_indices[_h].first)) - 
-        (f + (_targets[_h]->value(_t, _q_point[_qp])));
+    return _F[_qp](_indices[_h].first,_indices[_h].second) -
+        (f+_targets[_h]->value(_t, _q_point[_qp]));
   }
 }
 
@@ -161,21 +159,9 @@ HomogenizationConstraintIntegral::computeJacobian()
   if (_ctypes[_h] == ConstraintType::Stress) {
     for (unsigned int k = 0; k < 3; k++) {
       for (unsigned int l = 0; l < 3; l++) {
-        if (_indices[_h].first == _indices[_h].second) {
-          res(k,l) += 
-              _material_jacobian[_qp](k,l,
-                                      _indices[_h].first,
-                                      _indices[_h].second);
-        }
-        else {
-          res(k,l) += 
-              (_material_jacobian[_qp](k,l,
-                                      _indices[_h].first,
-                                      _indices[_h].second)
-               +_material_jacobian[_qp](k,l,
-                                        _indices[_h].second,
-                                        _indices[_h].first));
-        }
+        res(k,l) = _material_jacobian[_qp](_indices[_h].first,
+                                           _indices[_h].second,
+                                           k, l);
       }
     }
   }
@@ -183,7 +169,7 @@ HomogenizationConstraintIntegral::computeJacobian()
     for (unsigned int k = 0; k < 3; k++) {
       for (unsigned int l = 0; l < 3; l++) {
         if ((_indices[_h].first == k) && (_indices[_h].second == l))
-          res(k,l) += 1.0;
+          res(k,l) = 1.0;
       }
     }
   }

@@ -55,5 +55,4 @@ class HomogenizationConstraintIntegral : public ElementUserObject
   std::vector<RankTwoTensor> _jacobian;
   
   HomogenizationConstants::index_list _indices;
-  
 };

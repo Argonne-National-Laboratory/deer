@@ -44,9 +44,9 @@ class HomogenizationConstraintKernel : public Kernel
 
  protected:
   unsigned int _h;
+  unsigned int _ii;
 
   const bool _ld;
-  unsigned int _component;
 
   unsigned int _ndisp;
 

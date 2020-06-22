@@ -26,11 +26,7 @@ HomogenizationConstraintKernel::validParams()
   InputParameters params = Kernel::validParams();
   params.addRequiredCoupledVar("homogenization_variables", "The scalar "
                                "variables with the extra gradient components");
-
-  params.addRequiredParam<unsigned int>("component",
-                                        "Which direction this kernel acts in");
   params.addRequiredCoupledVar("displacements", "The displacement components");
-  
   params.addRequiredParam<std::vector<unsigned int>>("constraint_types",
     "Type of each constraint: strain (0) or stress (1)"); 
 
@@ -40,7 +36,6 @@ HomogenizationConstraintKernel::validParams()
 HomogenizationConstraintKernel::HomogenizationConstraintKernel(const InputParameters & parameters)
   : Kernel(parameters),
     _ld(getParam<bool>("use_displaced_mesh")),
-    _component(getParam<unsigned int>("component")),
     _ndisp(coupledComponents("displacements")),
     _disp_nums(_ndisp),
     _disp_vars(_ndisp),
@@ -51,7 +46,7 @@ HomogenizationConstraintKernel::HomogenizationConstraintKernel(const InputParame
     _material_jacobian(
         getMaterialPropertyByName<RankFourTensor>("material_jacobian")),
     _F(getMaterialPropertyByName<RankTwoTensor>("def_grad")),
-    _indices(HomogenizationConstants::indices.at(_ld)[_ndisp-1])
+    _indices(HomogenizationConstants::indices.at(true)[2])
 {
   const std::vector<unsigned int> & types = 
       getParam<std::vector<unsigned int>>("constraint_types");
@@ -80,13 +75,10 @@ HomogenizationConstraintKernel::initialSetup() {
     _grad_disp[i] = &coupledGradient("displacements", i);
   }
 
-  // Do some checking on the number of homogenization variables
-  unsigned int needed = (_ld ? _ndisp*_ndisp : (_ndisp*_ndisp+_ndisp)/2);
-  if ((_num_hvars != 0) && (_num_hvars != needed)) {
-    mooseError("Strain calculator must either have 0 or ", needed, 
+  if ((_num_hvars != 0) && (_num_hvars != 9)) {
+    mooseError("Strain calculator must either have 0 or ", 9, 
                " homogenization scalar variables");
   }
-
   for (unsigned int i = 0; i < _num_hvars; i++) {
     _homogenization_nums[i] = coupledScalar("homogenization_variables", i);
   }
@@ -99,17 +91,18 @@ HomogenizationConstraintKernel::computeOffDiagJacobianScalar(unsigned int jvar)
     if (jvar == _homogenization_nums[_h]) break;
   }
   if (_h == _num_hvars) return; // Not our scalars apparently
-  
-  DenseMatrix<Number> & ken = _assembly.jacobianBlock(_var.number(), jvar);
-  DenseMatrix<Number> & kne = _assembly.jacobianBlock(jvar, _var.number());
-  MooseVariableScalar & jv = _sys.getScalarVariable(_tid, jvar);
 
-  for (_qp = 0; _qp < _qrule->n_points(); _qp++) {
-    for (_j = 0; _j < jv.order(); _j++) {
-      for (_i = 0; _i < _test.size(); _i++) {
-        Real dV = _JxW[_qp] * _coord[_qp];
-        ken(_i, _j) += computeConstraintJacobian() * dV;
-        kne(_j, _i) += computeDisplacementJacobian() * dV;
+  for (_ii = 0; _ii < _ndisp; _ii++) {
+    DenseMatrix<Number> & ken = _assembly.jacobianBlock(_disp_nums[_ii], jvar);
+    DenseMatrix<Number> & kne = _assembly.jacobianBlock(jvar, _disp_nums[_ii]);
+    MooseVariableScalar & jv = _sys.getScalarVariable(_tid, jvar);
+    for (_qp = 0; _qp < _qrule->n_points(); _qp++) {
+      for (_j = 0; _j < jv.order(); _j++) {
+        for (_i = 0; _i < _disp_vars[_ii]->phiSize(); _i++) {
+          Real dV = _JxW[_qp] * _coord[_qp];
+          ken(_i, _j) += computeConstraintJacobian() * dV;
+          kne(_j, _i) += computeDisplacementJacobian() * dV;
+        }
       }
     }
   }
@@ -120,17 +113,18 @@ HomogenizationConstraintKernel::computeDisplacementJacobian()
 {
   Real val = 0.0;
   if (_ctypes[_h] == ConstraintType::Stress) {
-    for (unsigned int l = 0; l < _ndisp; l++) {
-      val += _material_jacobian[_qp](_indices[_h].first, _indices[_h].second, 
-                                          _component, l) *
-          _grad_phi[_i][_qp](l);
+    for (unsigned int l = 0; l < 3; l++) {
+        val += _material_jacobian[_qp](_indices[_h].first, _indices[_h].second,
+                                       _ii, l) *
+            _disp_vars[_ii]->gradPhi()[_i][_qp](l);
     }
   }
   else {
-    if (_indices[_h].first == _component)
-      val += 0.5 * _grad_phi[_i][_qp](_indices[_h].second);
-    if (_indices[_h].second == _component)
-      val += 0.5 * _grad_phi[_i][_qp](_indices[_h].first);
+    for (unsigned int j = 0; j < 3; j++) {
+      if ((_ii == _indices[_h].first) && (j == _indices[_h].second)) {
+        val += _disp_vars[_ii]->gradPhi()[_i][_qp](j);
+      }
+    }
   }
   return val;
 }
@@ -139,12 +133,10 @@ Real
 HomogenizationConstraintKernel::computeConstraintJacobian()
 {
   Real val = 0.0;
-  for (unsigned int j = 0; j < _ndisp; j++) {
-    val += 0.5*(
-        _material_jacobian[_qp](_component,j,_indices[_h].first,
-                                _indices[_h].second)
-       +_material_jacobian[_qp](_component,j,_indices[_h].second,
-                                _indices[_h].first)) * _grad_test[_i][_qp](j);
+  for (unsigned int j = 0; j < 3; j++) {
+    val +=
+        _material_jacobian[_qp](_ii,j,_indices[_h].first,_indices[_h].second)
+        * _disp_vars[_ii]->gradPhi()[_i][_qp](j);
   }
   return val;
 }
