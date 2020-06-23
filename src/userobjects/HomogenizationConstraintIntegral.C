@@ -17,9 +17,7 @@ InputParameters
 HomogenizationConstraintIntegral::validParams()
 {
   InputParameters params = ElementUserObject::validParams();
-  params.addRequiredParam<unsigned int>("ndim", "Number of problem dimensions");
-  params.addRequiredCoupledVar("homogenization_variables", "The scalar "
-                               "variables with the extra gradient components");
+  params.addRequiredCoupledVar("displacements", "The problem displacements");
   params.addRequiredParam<std::vector<unsigned int>>("constraint_types",
     "Type of each constraint: strain (0) or stress (1)"); 
   params.addRequiredParam<std::vector<FunctionName>>("targets",
@@ -35,23 +33,21 @@ HomogenizationConstraintIntegral::HomogenizationConstraintIntegral(const
                                                                    & parameters)
   : ElementUserObject(parameters),
     _ld(getParam<bool>("large_kinematics")),
-    _ndisp(getParam<unsigned int>("ndim")),
-    _num_hvars(coupledScalarComponents("homogenization_variables")),
+    _ndisp(coupledComponents("displacements")),
+    _ncomps(HomogenizationConstants::required.at(_ld)[_ndisp-1]),
     _stress(getMaterialPropertyByName<RankTwoTensor>("stress")),
     _material_jacobian(
         getMaterialPropertyByName<RankFourTensor>("material_jacobian")),
     _F(getMaterialPropertyByName<RankTwoTensor>("def_grad")),
-    _residual(_num_hvars),
-    _jacobian(_num_hvars),
     _indices(HomogenizationConstants::indices.at(_ld)[_ndisp-1])
 {
   const std::vector<FunctionName> & names =
       getParam<std::vector<FunctionName>>("targets");
-
+  
   unsigned int nfns = names.size();
-  if (nfns != _num_hvars) {
-    mooseError("Number of target functions must match the number of "
-               "homogenization variables");
+  if (nfns != _ncomps) {
+    mooseError("Homogenization constraint user object needs ",
+               _ncomps, " functions");
   }
   for (unsigned int i = 0; i < nfns; i++) {
     const Function * const f = &getFunctionByName(names[i]);
@@ -61,11 +57,11 @@ HomogenizationConstraintIntegral::HomogenizationConstraintIntegral(const
 
   const std::vector<unsigned int> & types = 
       getParam<std::vector<unsigned int>>("constraint_types");
-  if (types.size() != _num_hvars) {
+  if (types.size() != _ncomps) {
     mooseError("Number of constraint types must match the number of "
-               "homogenization variables");
+               "functions");
   }
-  for (unsigned int i = 0; i < _num_hvars; i++) {
+  for (unsigned int i = 0; i < _ncomps; i++) {
     if (types[i] == 0) {
       _ctypes.push_back(ConstraintType::Strain);
     }
@@ -81,23 +77,17 @@ HomogenizationConstraintIntegral::HomogenizationConstraintIntegral(const
 void
 HomogenizationConstraintIntegral::initialize()
 {
-  _residual.resize(_num_hvars);
-  _jacobian.resize(_num_hvars);
-  for (_h = 0; _h < _num_hvars; _h++) {
-    _residual[_h] = 0.0;
-    _jacobian[_h].zero();
-  }
+  _residual.zero();
+  _jacobian.zero();
 }
 
 void
 HomogenizationConstraintIntegral::execute()
 {
-  for (_h = 0; _h < _num_hvars; _h++) {
-    for (_qp = 0; _qp < _qrule->n_points(); _qp++) {
-      Real dV = _JxW[_qp] * _coord[_qp];
-      _residual[_h] += computeResidual() * dV;
-      _jacobian[_h] += computeJacobian() * dV;
-    }
+  for (_qp = 0; _qp < _qrule->n_points(); _qp++) {
+    Real dV = _JxW[_qp] * _coord[_qp];    
+    _residual += computeResidual() * dV;
+    _jacobian += computeJacobian() * dV;
   }
 }
 
@@ -106,75 +96,84 @@ HomogenizationConstraintIntegral::threadJoin(const UserObject & y)
 {
   const HomogenizationConstraintIntegral & other = 
       static_cast<const HomogenizationConstraintIntegral &>(y);
-  for (_h = 0; _h < _num_hvars; _h++) {
-    _residual[_h] += other._residual[_h];
-    _jacobian[_h] += other._jacobian[_h];
-  }
+  _residual += other._residual;
+  _jacobian += other._jacobian;
 }
 
 void
 HomogenizationConstraintIntegral::finalize()
 {
-  for (_h = 0; _h < _num_hvars; _h++) {
-    gatherSum(_residual[_h]);
-    for (unsigned int i = 0; i < 3; i++) {
-      for (unsigned int j = 0; j < 3; j++) {
-        gatherSum(_jacobian[_h](i,j));
-      }
-    }
-  }
+  std::vector<Real> residual(&_residual(0,0), &_residual(0,0) + 9);
+  std::vector<Real> jacobian(&_jacobian(0,0,0,0), &_jacobian(0,0,0,0) + 81);
+
+  gatherSum(residual);
+  gatherSum(jacobian);
+
+  std::copy(residual.begin(), residual.end(), &_residual(0,0));
+  std::copy(jacobian.begin(), jacobian.end(), &_jacobian(0,0,0,0));
 }
 
-Real
-HomogenizationConstraintIntegral::getResidual(unsigned int h) const
+const RankTwoTensor &
+HomogenizationConstraintIntegral::getResidual() const
 {
-  return _residual[h];
+  return _residual;
+}
+
+const RankFourTensor &
+HomogenizationConstraintIntegral::getJacobian() const
+{
+  return _jacobian;
 }
 
 RankTwoTensor
-HomogenizationConstraintIntegral::getJacobian(unsigned int h) const
-{
-  return _jacobian[h];
-}
-
-Real
 HomogenizationConstraintIntegral::computeResidual()
-{
-  if (_ctypes[_h] == ConstraintType::Stress) {
-    return _stress[_qp](_indices[_h].first,_indices[_h].second) - 
-        _targets[_h]->value(_t, _q_point[_qp]);
-  }
-  else {
-    Real f = (_indices[_h].first == _indices[_h].second) ? 1.0 : 0.0;
-    return 0.5*(_F[_qp](_indices[_h].first,_indices[_h].second) +
-                _F[_qp](_indices[_h].second,_indices[_h].first)) -
-        (f+_targets[_h]->value(_t, _q_point[_qp]));
-  }
-}
-
-RankTwoTensor
-HomogenizationConstraintIntegral::computeJacobian()
 {
   RankTwoTensor res;
   res.zero();
-  if (_ctypes[_h] == ConstraintType::Stress) {
-    for (unsigned int k = 0; k < 3; k++) {
-      for (unsigned int l = 0; l < 3; l++) {
-        res(k,l) = _material_jacobian[_qp](_indices[_h].first,
-                                           _indices[_h].second,
-                                           k, l);
+  for (_h = 0; _h < _ncomps; _h++) {
+    if (_ctypes[_h] == ConstraintType::Stress) {
+      res(_indices[_h].first,_indices[_h].second) = 
+          _stress[_qp](_indices[_h].first,_indices[_h].second) - 
+          _targets[_h]->value(_t, _q_point[_qp]);
+    }
+    else {
+      Real f = (_indices[_h].first == _indices[_h].second) ? 1.0 : 0.0;
+      res(_indices[_h].first,_indices[_h].second) = 
+          0.5*(_F[_qp](_indices[_h].first,_indices[_h].second) +
+               _F[_qp](_indices[_h].second,_indices[_h].first)) -
+          (f + _targets[_h]->value(_t, _q_point[_qp]));
+    }
+  }
+  return res;
+}
+
+RankFourTensor
+HomogenizationConstraintIntegral::computeJacobian()
+{
+  RankFourTensor res;
+  res.zero();
+
+  for (_h = 0; _h < _ncomps; _h++) {
+    for (_hh = 0; _hh < _ncomps; _hh++) {
+      if (_ctypes[_h] == ConstraintType::Stress) {
+        res(_indices[_h].first, _indices[_h].second,
+            _indices[_hh].first, _indices[_hh].second) = 
+            _material_jacobian[_qp](
+                _indices[_h].first, _indices[_h].second,
+                _indices[_hh].first, _indices[_hh].second);
+      }
+      else {
+        if ((_indices[_h].first == _indices[_hh].first) &&
+            (_indices[_h].second == _indices[_hh].second))
+          res(_indices[_h].first, _indices[_h].second, 
+              _indices[_hh].first, _indices[_hh].second) += 0.5;
+        if ((_indices[_h].second == _indices[_hh].first) &&
+            (_indices[_h].first == _indices[_hh].second))
+          res(_indices[_h].first, _indices[_h].second, 
+              _indices[_hh].first, _indices[_hh].second) += 0.5;
       }
     }
   }
-  else {
-    for (unsigned int k = 0; k < 3; k++) {
-      for (unsigned int l = 0; l < 3; l++) {
-        if ((_indices[_h].first == k) && (_indices[_h].second == l))
-          res(k,l) += 0.5;
-        if ((_indices[_h].second == k) && (_indices[_h].first == l))
-          res(k,l) += 0.5;
-      }
-    }
-  }
+
   return res;
 }

@@ -11,9 +11,24 @@
 
 #include "ElementUserObject.h"
 
-#include "HomogenizationConstraintKernel.h"
-
-class HomogenizationConstraintIntegral;
+namespace HomogenizationConstants
+{
+  typedef std::vector<std::pair<unsigned int, unsigned int>> index_list;
+  const std::map<bool, std::vector<index_list>> indices {
+  {true, {
+    {{0,0}},
+    {{0,0},{1,1},{1,0},{0,1}},
+    {{0,0},{1,0},{2,0},{0,1},{1,1},{2,1},{2,0},{2,1},{2,2}}
+         }},
+  {false, {
+    {{0,0}},
+    {{0,0},{1,1},{0,1}},
+    {{0,0},{1,1},{2,2},{1,2},{0,2},{0,1}}
+          }}};
+  const std::map<bool, std::vector<unsigned int>> required {
+    {true, {1, 4, 9}},
+    {false, {1, 3, 6}}};
+}
 
 class HomogenizationConstraintIntegral : public ElementUserObject
 {
@@ -27,17 +42,16 @@ class HomogenizationConstraintIntegral : public ElementUserObject
   virtual void threadJoin(const UserObject & y) override;
   virtual void finalize() override;
 
-  virtual Real getResidual(unsigned int h) const;
-  virtual RankTwoTensor getJacobian(unsigned int h) const;
+  virtual const RankTwoTensor & getResidual() const;
+  virtual const RankFourTensor & getJacobian() const;
 
  protected:
-  virtual Real computeResidual();
-  virtual RankTwoTensor computeJacobian();
+  virtual RankTwoTensor computeResidual();
+  virtual RankFourTensor computeJacobian();
 
   const bool _ld;
-
   unsigned int _ndisp;
-  unsigned int _num_hvars;
+  unsigned int _ncomps;
 
   const MaterialProperty<RankTwoTensor> &_stress;
   const MaterialProperty<RankFourTensor> &_material_jacobian;
@@ -50,9 +64,10 @@ class HomogenizationConstraintIntegral : public ElementUserObject
 
   unsigned int _qp;
   unsigned int _h;
+  unsigned int _hh;
 
-  std::vector<Real> _residual;
-  std::vector<RankTwoTensor> _jacobian;
-  
   HomogenizationConstants::index_list _indices;
+
+  RankTwoTensor _residual;
+  RankFourTensor _jacobian;
 };

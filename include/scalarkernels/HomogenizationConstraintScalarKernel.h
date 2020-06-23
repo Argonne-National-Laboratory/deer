@@ -12,7 +12,6 @@
 #include "ScalarKernel.h"
 
 #include "HomogenizationConstraintIntegral.h"
-#include "HomogenizationConstraintKernel.h"
 
 class HomogenizationConstraintScalarKernel : public ScalarKernel
 {
@@ -29,13 +28,15 @@ class HomogenizationConstraintScalarKernel : public ScalarKernel
  protected:
   const bool _ld;
   unsigned int _ndisp;
+  unsigned int _ncomps;
 
-  unsigned int _num_hvars;
-  std::vector<unsigned int> _homogenization_nums;
-
-  unsigned int _h;
+  unsigned int _i, _j;
   const HomogenizationConstraintIntegral & _integrator;
 
   // Useful Voigt stuff
   const HomogenizationConstants::index_list _indices;
+
+  // Actual results from the UO
+  const RankTwoTensor & _residual;
+  const RankFourTensor & _jacobian;
 };

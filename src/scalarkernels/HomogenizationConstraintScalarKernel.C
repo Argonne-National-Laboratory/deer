@@ -20,12 +20,8 @@ InputParameters
 HomogenizationConstraintScalarKernel::validParams()
 {
   InputParameters params = ScalarKernel::validParams();
-  
-  params.addRequiredParam<unsigned int>("ndim", "Number of problem dimensions");
-  params.addRequiredCoupledVar("homogenization_variables", "The scalar "
-                               "variables with the extra gradient components");
-  params.addRequiredParam<unsigned int>("component", 
-                                        "The # of the constraint variable");
+  params.addRequiredParam<unsigned int>("ndim", "Number of problem"
+                                         " displacements");
   params.addRequiredParam<UserObjectName>("integrator",
                                           "The integrator user object doing the "
                                           "element calculations.");
@@ -39,19 +35,15 @@ HomogenizationConstraintScalarKernel::HomogenizationConstraintScalarKernel(const
   : ScalarKernel(parameters),
     _ld(getParam<bool>("large_kinematics")),
     _ndisp(getParam<unsigned int>("ndim")),
-    _num_hvars(coupledScalarComponents("homogenization_variables")),
-    _homogenization_nums(_num_hvars),
-    _h(getParam<unsigned int>("component")),
+    _ncomps(HomogenizationConstants::required.at(_ld)[_ndisp-1]),
     _integrator(getUserObject<HomogenizationConstraintIntegral>("integrator")),
-    _indices(HomogenizationConstants::indices.at(_ld)[_ndisp-1])
+    _indices(HomogenizationConstants::indices.at(_ld)[_ndisp-1]),
+    _residual(_integrator.getResidual()),
+    _jacobian(_integrator.getJacobian())
 {
-  for (unsigned int i = 0; i < _num_hvars; i++) {
-    _homogenization_nums[i] = coupledScalar("homogenization_variables", i);
-  }
-  // A basic sanity check
-  if ((_h < 0) || (_h >= _num_hvars)) {
-    mooseError("The homogenization variable number must be in between ",
-               0, " and ", _num_hvars);
+  if (_var.order() != _ncomps) {
+    mooseError("Homogenization kernel requires a variable of order ",
+               _ncomps);
   }
 }
 
@@ -64,27 +56,21 @@ void
 HomogenizationConstraintScalarKernel::computeResidual()
 {
   DenseVector<Number> & re =  _assembly.residualBlock(_var.number());
-  Real value = _integrator.getResidual(_h);
   for (_i = 0; _i < re.size(); _i++)
-    re(_i) += value; 
+    re(_i) += _residual(_indices[_i].first, _indices[_i].second);
 }
 
 void
 HomogenizationConstraintScalarKernel::computeJacobian()
 {
   DenseMatrix<Number> & ke = _assembly.jacobianBlock(_var.number(), _var.number());
-  RankTwoTensor value = _integrator.getJacobian(_h);
-  ke(0, 0) += value(_indices[_h].first, _indices[_h].second);
+  for (_i = 0; _i < ke.m(); _i++)
+    for (_j = 0; _j < ke.m(); _j++)
+      ke(_i, _j) += _jacobian(_indices[_i].first, _indices[_i].second,
+                              _indices[_j].first, _indices[_j].second);
 }
 
 void 
 HomogenizationConstraintScalarKernel::computeOffDiagJacobian(unsigned int jvar)
 {
-  for (unsigned int k = 0; k < _num_hvars; k++) {
-    if (_homogenization_nums[k] == jvar) {
-      RankTwoTensor value = _integrator.getJacobian(_h);
-      DenseMatrix<Number> & ke = _assembly.jacobianBlock(_var.number(), jvar);
-      ke(0,0) += value(_indices[k].first, _indices[k].second);
-    }
-  }
 }

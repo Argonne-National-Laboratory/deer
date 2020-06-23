@@ -56,7 +56,7 @@ void ComputeNEMLStressBase::computeQpProperties() {
   tensor_neml(_mechanical_strain[_qp], e_np1);
   double e_n[6];
   tensor_neml(_mechanical_strain_old[_qp], e_n);
-
+  
   // vorticity
   double w_np1[3];
   tensor_skew(_linear_rot[_qp], w_np1);

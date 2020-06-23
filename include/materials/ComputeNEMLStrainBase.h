@@ -48,8 +48,7 @@ protected:
   std::vector<const MaterialProperty<RankTwoTensor> *> _eigenstrains_old;
 
   bool _ld;
-
-  unsigned int _num_hvars;
-  std::vector<const VariableValue*> _homogenization_vals;
+  
+  const VariableValue & _macro_gradient;
   MaterialProperty<RankTwoTensor> & _homogenization_contribution;
 };

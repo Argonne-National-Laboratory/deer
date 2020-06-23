@@ -1,6 +1,6 @@
 #include "ComputeNEMLStrainBase.h"
 
-#include "HomogenizationConstraintKernel.h"
+#include "HomogenizationConstraintIntegral.h" // Index data
 
 InputParameters ComputeNEMLStrainBase::validParams() {
   InputParameters params = Material::validParams();
@@ -12,9 +12,8 @@ InputParameters ComputeNEMLStrainBase::validParams() {
       "eigenstrain_names", "List of eigenstrains to account for.");
   params.suppressParameter<bool>("use_displaced_mesh");
 
-  params.addCoupledVar("homogenization_variables", 0.0, 
-                       "The scalar variables providing the homogenization "
-                       "contributions.");
+  params.addCoupledVar("macro_gradient",
+                       "Optional scalar field with the macro gradient");
 
   return params;
 }
@@ -36,7 +35,8 @@ ComputeNEMLStrainBase::ComputeNEMLStrainBase(const InputParameters &parameters)
       _eigenstrains(_eigenstrain_names.size()),
       _eigenstrains_old(_eigenstrain_names.size()),
       _ld(getParam<bool>("large_kinematics")),
-      _num_hvars(coupledScalarComponents("homogenization_variables")),
+      _macro_gradient(isCoupledScalar("macro_gradient", 0) ?
+                      coupledScalarValue("macro_gradient") : _zero),
       _homogenization_contribution(declareProperty<RankTwoTensor>("homogenization_contribution"))
 {
   for (unsigned int i = 0; i < _eigenstrain_names.size(); i++) {
@@ -44,25 +44,6 @@ ComputeNEMLStrainBase::ComputeNEMLStrainBase(const InputParameters &parameters)
         &getMaterialProperty<RankTwoTensor>(_eigenstrain_names[i]);
     _eigenstrains_old[i] =
         &getMaterialPropertyOld<RankTwoTensor>(_eigenstrain_names[i]);
-  }
-  
-  // Do some checking on the number of homogenization variables
-  if ((_num_hvars != 0) && (_num_hvars !=
-                            HomogenizationConstants::required.at(_ld)[_ndisp-1])) {
-    mooseError("Strain calculator must either have 0 or ",
-               HomogenizationConstants::required.at(_ld)[_ndisp-1],
-               " homogenization scalar variables");
-  }
-
-  unsigned int total = 9;
-  _homogenization_vals.resize(total);
-
-  unsigned int i;
-  for (i = 0; i < _num_hvars; i++) {
-    _homogenization_vals[i] = &coupledScalarValue("homogenization_variables", i);
-  }
-  for (; i < total; i++) {
-    _homogenization_vals[i] = &_zero;
   }
 }
 
@@ -117,64 +98,82 @@ RankTwoTensor ComputeNEMLStrainBase::eigenstrainIncrement() {
 RankTwoTensor 
 ComputeNEMLStrainBase::homogenizationContribution()
 {
-  if (_ld) {
-    if ((_ndisp == 1) || (_ndisp == 3)) {
-      return RankTwoTensor((*_homogenization_vals[0])[0],
-                           (*_homogenization_vals[1])[0],
-                           (*_homogenization_vals[2])[0],
-                           (*_homogenization_vals[3])[0],
-                           (*_homogenization_vals[4])[0],
-                           (*_homogenization_vals[5])[0],
-                           (*_homogenization_vals[6])[0],
-                           (*_homogenization_vals[7])[0],
-                           (*_homogenization_vals[8])[0]);
+  if (isCoupledScalar("macro_gradient",0)) {
+    if (_ld) {
+      if ((_ndisp == 1) || (_ndisp == 3)) {
+        return RankTwoTensor(_macro_gradient[0],
+                             0,
+                             0,
+                             0,
+                             0,
+                             0,
+                             0,
+                             0,
+                             0);
+      }
+      else if (_ndisp == 2) {
+        return RankTwoTensor(_macro_gradient[0],
+                             _macro_gradient[2],
+                             0,
+                             _macro_gradient[4],
+                             _macro_gradient[1],
+                             0,
+                             0,
+                             0,
+                             0);
+      }
+      else {
+        return RankTwoTensor(_macro_gradient[0],
+                             _macro_gradient[1],
+                             _macro_gradient[2],
+                             _macro_gradient[3],
+                             _macro_gradient[4],
+                             _macro_gradient[5],
+                             _macro_gradient[6],
+                             _macro_gradient[7],
+                             _macro_gradient[8]);
+      }
     }
     else {
-      return RankTwoTensor((*_homogenization_vals[0])[0],
-                           (*_homogenization_vals[2])[0],
-                           (*_homogenization_vals[4])[0],
-                           (*_homogenization_vals[3])[0],
-                           (*_homogenization_vals[1])[0],
-                           (*_homogenization_vals[5])[0],
-                           (*_homogenization_vals[6])[0],
-                           (*_homogenization_vals[7])[0],
-                           (*_homogenization_vals[8])[0]);
+      if (_ndisp == 1) {
+        return RankTwoTensor(_macro_gradient[0],
+                             0,
+                             0,
+                             0,
+                             0,
+                             0,
+                             0,
+                             0,
+                             0);
+      }
+      else if (_ndisp == 2) {
+        return RankTwoTensor(_macro_gradient[0],
+                             0,
+                             0,
+                             _macro_gradient[2],
+                             _macro_gradient[1],
+                             0,
+                             0,
+                             0,
+                             0);
+      }
+      else {
+        return RankTwoTensor(_macro_gradient[0],
+                             0.0,
+                             0.0,
+                             _macro_gradient[5],
+                             _macro_gradient[1],
+                             0.0,
+                             _macro_gradient[4],
+                             _macro_gradient[3],
+                             _macro_gradient[2]);
+      }
     }
   }
   else {
-    if (_ndisp == 1) {
-      return RankTwoTensor((*_homogenization_vals[0])[0],
-                           (*_homogenization_vals[1])[0],
-                           (*_homogenization_vals[2])[0],
-                           (*_homogenization_vals[3])[0],
-                           (*_homogenization_vals[4])[0],
-                           (*_homogenization_vals[5])[0],
-                           (*_homogenization_vals[6])[0],
-                           (*_homogenization_vals[7])[0],
-                           (*_homogenization_vals[8])[0]);
-    }
-    else if (_ndisp == 2) {
-      return RankTwoTensor((*_homogenization_vals[0])[0],  // 0,0
-                           (*_homogenization_vals[3])[0],  // 1,0
-                           (*_homogenization_vals[4])[0],  // 2,0
-                           (*_homogenization_vals[2])[0],  // 0,1
-                           (*_homogenization_vals[1])[0],  // 1,1
-                           (*_homogenization_vals[5])[0],  // 2,1
-                           (*_homogenization_vals[6])[0],  // 0,2
-                           (*_homogenization_vals[7])[0],  // 1,2
-                           (*_homogenization_vals[8])[0]); // 2,2
-    }
-    else {
-      return RankTwoTensor((*_homogenization_vals[0])[0],   // 0,0
-                           (*_homogenization_vals[6])[0],   // 1,0
-                           (*_homogenization_vals[7])[0],   // 2,0
-                           (*_homogenization_vals[5])[0],   // 0,1
-                           (*_homogenization_vals[1])[0],   // 1,1
-                           (*_homogenization_vals[8])[0],   // 2,1
-                           (*_homogenization_vals[4])[0],   // 0,2
-                           (*_homogenization_vals[3])[0],   // 1,2
-                           (*_homogenization_vals[2])[0]);  // 2,2
-    }
+    RankTwoTensor res;
+    res.zero();
+    return res;
   }
 }
 
