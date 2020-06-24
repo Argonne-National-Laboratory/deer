@@ -142,8 +142,8 @@ TotalStressDivergenceNEML::smallDeformationMatJac(
     const RealGradient & grad_psi)
 {
   Real value = 0.0;
-  for (unsigned int j = 0; j < 3; j++) 
-    for (unsigned int l = 0; l < 3; l++) 
+  for (unsigned int j = 0; j < _ndisp; j++) 
+    for (unsigned int l = 0; l < _ndisp; l++) 
       value += _material_jacobian[_qp](i,j,k,l) * grad_phi(j) * grad_psi(l);
     
   return value;
@@ -227,14 +227,6 @@ TotalStressDivergenceNEML::computeConstraintJacobian()
     }
   }
   else if (_ctypes[_h] == HomogenizationConstants::ConstraintType::Strain) {
-    /*
-    for (unsigned int l = 0; l < _ndisp; l++) {
-      if ((_indices[_h].first == _component) && (_indices[_h].second == l))
-        value += 0.5*_grad_phi[_i][_qp](l);
-      if ((_indices[_h].second == _component) && (_indices[_h].first == l))
-        value += 0.5*_grad_phi[_i][_qp](l);
-    }
-    */
     if (_indices[_h].first == _component)
       value += 0.5*_grad_phi[_i][_qp](_indices[_h].second);
     if (_indices[_h].second == _component)
