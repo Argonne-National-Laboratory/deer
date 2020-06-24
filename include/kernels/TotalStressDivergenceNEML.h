@@ -60,8 +60,7 @@ protected:
   const MooseVariableScalar * _macro_gradient;
   const HomogenizationConstants::index_list _indices;
   
-  enum class ConstraintType {Stress, Strain};
-  std::vector<ConstraintType> _ctypes;
+  std::vector<HomogenizationConstants::ConstraintType> _ctypes;
 
   unsigned int _h;
 };

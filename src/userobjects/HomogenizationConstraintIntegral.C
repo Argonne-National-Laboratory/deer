@@ -18,8 +18,8 @@ HomogenizationConstraintIntegral::validParams()
 {
   InputParameters params = ElementUserObject::validParams();
   params.addRequiredCoupledVar("displacements", "The problem displacements");
-  params.addRequiredParam<std::vector<unsigned int>>("constraint_types",
-    "Type of each constraint: strain (0) or stress (1)"); 
+  params.addRequiredParam<std::vector<std::string>>("constraint_types",
+    "Type of each constraint: strain or stress"); 
   params.addRequiredParam<std::vector<FunctionName>>("targets",
                                         "Functions giving the targets to hit");
   params.addParam<bool>("large_kinematics", false,
@@ -55,22 +55,14 @@ HomogenizationConstraintIntegral::HomogenizationConstraintIntegral(const
     _targets.push_back(f);
   }
 
-  const std::vector<unsigned int> & types = 
-      getParam<std::vector<unsigned int>>("constraint_types");
+  const std::vector<std::string> & types = 
+      getParam<std::vector<std::string>>("constraint_types");
   if (types.size() != _ncomps) {
     mooseError("Number of constraint types must match the number of "
                "functions");
   }
   for (unsigned int i = 0; i < _ncomps; i++) {
-    if (types[i] == 0) {
-      _ctypes.push_back(ConstraintType::Strain);
-    }
-    else if (types[i] == 1) {
-      _ctypes.push_back(ConstraintType::Stress);
-    }
-    else {
-      mooseError("Constraint types must be either 0 (strain) or 1 (stress)");
-    }
+    _ctypes.push_back(HomogenizationConstants::map_string(types[i]));
   }
 }
 
@@ -131,17 +123,20 @@ HomogenizationConstraintIntegral::computeResidual()
   RankTwoTensor res;
   res.zero();
   for (_h = 0; _h < _ncomps; _h++) {
-    if (_ctypes[_h] == ConstraintType::Stress) {
+    if (_ctypes[_h] == HomogenizationConstants::ConstraintType::Stress) {
       res(_indices[_h].first,_indices[_h].second) = 
           _stress[_qp](_indices[_h].first,_indices[_h].second) - 
           _targets[_h]->value(_t, _q_point[_qp]);
     }
-    else {
+    else if (_ctypes[_h] == HomogenizationConstants::ConstraintType::Strain) {
       Real f = (_indices[_h].first == _indices[_h].second) ? 1.0 : 0.0;
       res(_indices[_h].first,_indices[_h].second) = 
           0.5*(_F[_qp](_indices[_h].first,_indices[_h].second) +
                _F[_qp](_indices[_h].second,_indices[_h].first)) -
           (f + _targets[_h]->value(_t, _q_point[_qp]));
+    }
+    else {
+      mooseError("Unknown constraint type in the integral!");
     }
   }
   return res;
@@ -155,14 +150,14 @@ HomogenizationConstraintIntegral::computeJacobian()
 
   for (_h = 0; _h < _ncomps; _h++) {
     for (_hh = 0; _hh < _ncomps; _hh++) {
-      if (_ctypes[_h] == ConstraintType::Stress) {
+      if (_ctypes[_h] == HomogenizationConstants::ConstraintType::Stress) {
         res(_indices[_h].first, _indices[_h].second,
             _indices[_hh].first, _indices[_hh].second) = 
             _material_jacobian[_qp](
                 _indices[_h].first, _indices[_h].second,
                 _indices[_hh].first, _indices[_hh].second);
       }
-      else {
+      else if (_ctypes[_h] == HomogenizationConstants::ConstraintType::Strain) {
         if ((_indices[_h].first == _indices[_hh].first) &&
             (_indices[_h].second == _indices[_hh].second))
           res(_indices[_h].first, _indices[_h].second, 
@@ -171,6 +166,9 @@ HomogenizationConstraintIntegral::computeJacobian()
             (_indices[_h].first == _indices[_hh].second))
           res(_indices[_h].first, _indices[_h].second, 
               _indices[_hh].first, _indices[_hh].second) += 0.5;
+      }
+      else {
+        mooseError("Unknown constraint type in the jacobian!");
       }
     }
   }

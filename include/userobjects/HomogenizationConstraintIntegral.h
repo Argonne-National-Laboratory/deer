@@ -11,6 +11,7 @@
 
 #include "ElementUserObject.h"
 
+// Helpers common to the whole homogenization system
 namespace HomogenizationConstants
 {
   typedef std::vector<std::pair<unsigned int, unsigned int>> index_list;
@@ -28,6 +29,16 @@ namespace HomogenizationConstants
   const std::map<bool, std::vector<unsigned int>> required {
     {true, {1, 4, 9}},
     {false, {1, 3, 6}}};
+  enum class ConstraintType { Stress, Strain };
+
+  inline ConstraintType map_string(std::string input) {
+    if ((input == "strain") || (input == "Strain"))
+      return ConstraintType::Strain;
+    else if ((input == "stress") || (input == "Stress"))
+      return ConstraintType::Stress;
+    else
+      mooseError("Constraint type must be either stress or strain");
+  }
 }
 
 class HomogenizationConstraintIntegral : public ElementUserObject
@@ -58,9 +69,7 @@ class HomogenizationConstraintIntegral : public ElementUserObject
   const MaterialProperty<RankTwoTensor> &_F;
 
   std::vector<const Function*> _targets;
-
-  enum class ConstraintType { Stress, Strain };
-  std::vector<ConstraintType> _ctypes;
+  std::vector<HomogenizationConstants::ConstraintType> _ctypes;
 
   unsigned int _qp;
   unsigned int _h;

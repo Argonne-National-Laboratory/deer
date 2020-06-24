@@ -16,8 +16,8 @@ InputParameters TotalStressDivergenceNEML::validParams() {
 
   params.addCoupledVar("macro_gradient",
                        "Optional scalar field with the macro gradient");
-  params.addParam<std::vector<unsigned int>>("constraint_types",
-    "Type of each constraint: strain (0) or stress (1)");
+  params.addParam<std::vector<std::string>>("constraint_types",
+    "Type of each constraint: strain or stress");
 
   return params;
 }
@@ -48,7 +48,7 @@ TotalStressDivergenceNEML::TotalStressDivergenceNEML(const InputParameters &para
                  needed);
     
     // Check the number of constraints
-    auto types = getParam<std::vector<unsigned int>>("constraint_types");
+    auto types = getParam<std::vector<std::string>>("constraint_types");
     if (types.size() != needed)
       mooseError("The kernel must be supplied ", needed, " constraint types.");
   }
@@ -63,14 +63,9 @@ TotalStressDivergenceNEML::initialSetup() {
   }
   
   if (isCoupledScalar("macro_gradient", 0)) {
-    auto types = getParam<std::vector<unsigned int>>("constraint_types");
+    auto types = getParam<std::vector<std::string>>("constraint_types");
     for (unsigned int i = 0; i < types.size(); i++) {
-      if (types[i] == 0)
-        _ctypes.push_back(ConstraintType::Strain);
-      else if (types[i] == 1)
-        _ctypes.push_back(ConstraintType::Stress);
-      else
-        mooseError("Constraint types need to be 0 or 1");
+      _ctypes.push_back(HomogenizationConstants::map_string(types[i]));
     }
   }
 }
@@ -147,8 +142,8 @@ TotalStressDivergenceNEML::smallDeformationMatJac(
     const RealGradient & grad_psi)
 {
   Real value = 0.0;
-  for (unsigned int j = 0; j < _ndisp; j++) 
-    for (unsigned int l = 0; l < _ndisp; l++) 
+  for (unsigned int j = 0; j < 3; j++) 
+    for (unsigned int l = 0; l < 3; l++) 
       value += _material_jacobian[_qp](i,j,k,l) * grad_phi(j) * grad_psi(l);
     
   return value;
@@ -195,14 +190,14 @@ TotalStressDivergenceNEML::computeOffDiagJacobianScalar(unsigned int jvar)
 {
   if (jvar == _macro_gradient_num) {
     DenseMatrix<Number> & ken = _assembly.jacobianBlock(_var.number(), jvar);
-    DenseMatrix<Number> & kne = _assembly.jacobianBlock(jvar, _var.number()); // comment this out for FDP checking
-    
+    DenseMatrix<Number> & kne = _assembly.jacobianBlock(jvar, _var.number());
+
     for (_qp = 0; _qp < _qrule->n_points(); _qp++) {
       Real dV = _JxW[_qp] * _coord[_qp];
       for (_h = 0; _h < _macro_gradient->order(); _h++) {
-        for (_i = 0; _i < _test.size(); _i++) {
+        for (_i = 0; _i < _test.size(); _i++) { // This assumes Galerkin
           ken(_i, _h) += computeBaseJacobian() * dV;
-          kne(_h, _i) += computeConstraintJacobian() * dV; // comment this out for FDP checking
+          kne(_h, _i) += computeConstraintJacobian() * dV;
         }
       }
     }
@@ -225,20 +220,28 @@ Real
 TotalStressDivergenceNEML::computeConstraintJacobian()
 {
   Real value = 0.0;
-  if (_ctypes[_h] == ConstraintType::Stress) {
-    // Seems right
+  if (_ctypes[_h] == HomogenizationConstants::ConstraintType::Stress) {
     for (unsigned int l = 0; l < _ndisp; l++) {
       value += _material_jacobian[_qp](_indices[_h].first, _indices[_h].second,
                                        _component, l) * _grad_phi[_i][_qp](l);
     }
   }
-  else {
+  else if (_ctypes[_h] == HomogenizationConstants::ConstraintType::Strain) {
+    /*
     for (unsigned int l = 0; l < _ndisp; l++) {
       if ((_indices[_h].first == _component) && (_indices[_h].second == l))
         value += 0.5*_grad_phi[_i][_qp](l);
       if ((_indices[_h].second == _component) && (_indices[_h].first == l))
         value += 0.5*_grad_phi[_i][_qp](l);
     }
+    */
+    if (_indices[_h].first == _component)
+      value += 0.5*_grad_phi[_i][_qp](_indices[_h].second);
+    if (_indices[_h].second == _component)
+      value += 0.5*_grad_phi[_i][_qp](_indices[_h].first);
+  }
+  else {
+    mooseError("Unknown constraint type in kernel calculation!");
   }
   return value;
 }
