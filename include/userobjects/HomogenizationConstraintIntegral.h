@@ -60,6 +60,16 @@ class HomogenizationConstraintIntegral : public ElementUserObject
   virtual RankTwoTensor computeResidual();
   virtual RankFourTensor computeJacobian();
 
+
+  Real sdStressJacobian(unsigned int i, unsigned int j, 
+                        unsigned int a, unsigned int b);
+  Real sdStrainJacobian(unsigned int i, unsigned int j,
+                        unsigned int a, unsigned int b);
+  Real ldStressJacobian(unsigned int i, unsigned int j, 
+                        unsigned int a, unsigned int b);
+  Real ldStrainJacobian(unsigned int i, unsigned int j,
+                        unsigned int a, unsigned int b);
+
   const bool _ld;
   unsigned int _ndisp;
   unsigned int _ncomps;
@@ -67,6 +77,10 @@ class HomogenizationConstraintIntegral : public ElementUserObject
   const MaterialProperty<RankTwoTensor> &_stress;
   const MaterialProperty<RankFourTensor> &_material_jacobian;
   const MaterialProperty<RankTwoTensor> &_F;
+  const MaterialProperty<RankTwoTensor> &_PK1;
+  const MaterialProperty<Real> &_J;
+  const MaterialProperty<RankTwoTensor> & _invF;
+  const MaterialProperty<RankTwoTensor> & _df;
 
   std::vector<const Function*> _targets;
   std::vector<HomogenizationConstants::ConstraintType> _ctypes;

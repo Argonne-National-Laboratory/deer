@@ -39,6 +39,14 @@ private:
   Real computeBaseJacobian();
   Real computeConstraintJacobian();
 
+  Real sdBaseJacobian();
+  Real ldBaseJacobian();
+
+  Real sdConstraintJacobianStrain();
+  Real sdConstraintJacobianStress();
+  Real ldConstraintJacobianStrain();
+  Real ldConstraintJacobianStress();
+
 protected:
   bool _ld;
 

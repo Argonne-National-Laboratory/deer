@@ -100,7 +100,7 @@ ComputeNEMLStrainBase::homogenizationContribution()
 {
   if (isCoupledScalar("macro_gradient",0)) {
     if (_ld) {
-      if ((_ndisp == 1) || (_ndisp == 3)) {
+      if (_ndisp == 1) {
         return RankTwoTensor(_macro_gradient[0],
                              0,
                              0,
@@ -115,7 +115,7 @@ ComputeNEMLStrainBase::homogenizationContribution()
         return RankTwoTensor(_macro_gradient[0],
                              _macro_gradient[2],
                              0,
-                             _macro_gradient[4],
+                             _macro_gradient[3],
                              _macro_gradient[1],
                              0,
                              0,

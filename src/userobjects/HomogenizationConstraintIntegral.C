@@ -39,6 +39,10 @@ HomogenizationConstraintIntegral::HomogenizationConstraintIntegral(const
     _material_jacobian(
         getMaterialPropertyByName<RankFourTensor>("material_jacobian")),
     _F(getMaterialPropertyByName<RankTwoTensor>("def_grad")),
+    _PK1(getMaterialPropertyByName<RankTwoTensor>("PK1")),
+    _J(getMaterialPropertyByName<Real>("detJ")),
+    _invF(getMaterialPropertyByName<RankTwoTensor>("inv_def_grad")),
+    _df(getMaterialPropertyByName<RankTwoTensor>("df")),
     _indices(HomogenizationConstants::indices.at(_ld)[_ndisp-1])
 {
   const std::vector<FunctionName> & names =
@@ -122,21 +126,40 @@ HomogenizationConstraintIntegral::computeResidual()
 {
   RankTwoTensor res;
   res.zero();
+
   for (_h = 0; _h < _ncomps; _h++) {
-    if (_ctypes[_h] == HomogenizationConstants::ConstraintType::Stress) {
-      res(_indices[_h].first,_indices[_h].second) = 
-          _stress[_qp](_indices[_h].first,_indices[_h].second) - 
-          _targets[_h]->value(_t, _q_point[_qp]);
-    }
-    else if (_ctypes[_h] == HomogenizationConstants::ConstraintType::Strain) {
-      Real f = (_indices[_h].first == _indices[_h].second) ? 1.0 : 0.0;
-      res(_indices[_h].first,_indices[_h].second) = 
-          0.5*(_F[_qp](_indices[_h].first,_indices[_h].second) +
-               _F[_qp](_indices[_h].second,_indices[_h].first)) -
-          (f + _targets[_h]->value(_t, _q_point[_qp]));
+    if (_ld) {
+      if (_ctypes[_h] == HomogenizationConstants::ConstraintType::Stress) {
+        res(_indices[_h].first,_indices[_h].second) = 
+            _PK1[_qp](_indices[_h].first,_indices[_h].second) - 
+            _targets[_h]->value(_t, _q_point[_qp]);
+      }
+      else if (_ctypes[_h] == HomogenizationConstants::ConstraintType::Strain) {
+        Real f = (_indices[_h].first == _indices[_h].second) ? 1.0 : 0.0;
+        res(_indices[_h].first,_indices[_h].second) = 
+            _F[_qp](_indices[_h].first,_indices[_h].second) - 
+            (f + _targets[_h]->value(_t, _q_point[_qp]));
+      }
+      else {
+        mooseError("Unknown constraint type in the integral!");
+      }
     }
     else {
-      mooseError("Unknown constraint type in the integral!");
+      if (_ctypes[_h] == HomogenizationConstants::ConstraintType::Stress) {
+        res(_indices[_h].first,_indices[_h].second) = 
+            _stress[_qp](_indices[_h].first,_indices[_h].second) - 
+            _targets[_h]->value(_t, _q_point[_qp]);
+      }
+      else if (_ctypes[_h] == HomogenizationConstants::ConstraintType::Strain) {
+        Real f = (_indices[_h].first == _indices[_h].second) ? 1.0 : 0.0;
+        res(_indices[_h].first,_indices[_h].second) = 
+            0.5*(_F[_qp](_indices[_h].first,_indices[_h].second) +
+                 _F[_qp](_indices[_h].second,_indices[_h].first)) -
+            (f + _targets[_h]->value(_t, _q_point[_qp]));
+      }
+      else {
+        mooseError("Unknown constraint type in the integral!");
+      }
     }
   }
   return res;
@@ -147,31 +170,82 @@ HomogenizationConstraintIntegral::computeJacobian()
 {
   RankFourTensor res;
   res.zero();
+ 
+    for (_h = 0; _h < _ncomps; _h++) {
+      unsigned int i = _indices[_h].first;
+      unsigned int j = _indices[_h].second;
+      for (_hh = 0; _hh < _ncomps; _hh++) {
+        unsigned int a = _indices[_hh].first;
+        unsigned int b = _indices[_hh].second;
+        if (_ctypes[_h] == HomogenizationConstants::ConstraintType::Stress) {
+          if (_ld) {
+            res(i,j,a,b) = ldStressJacobian(i,j,a,b);
+          }
+          else {
+            res(i,j,a,b) = sdStressJacobian(i,j,a,b);
+          }
+        }
+        else if (_ctypes[_h] == HomogenizationConstants::ConstraintType::Strain) {
+          if (_ld) {
+            res(i,j,a,b) = ldStrainJacobian(i,j,a,b);
+          }
+          else {
+            res(i,j,a,b) = sdStrainJacobian(i,j,a,b);
+          }
+        }
+        else {
+          mooseError("Unknown constraint type in Jacobian calculator!");
+        }
+      }
+    }
 
-  for (_h = 0; _h < _ncomps; _h++) {
-    for (_hh = 0; _hh < _ncomps; _hh++) {
-      if (_ctypes[_h] == HomogenizationConstants::ConstraintType::Stress) {
-        res(_indices[_h].first, _indices[_h].second,
-            _indices[_hh].first, _indices[_hh].second) = 
-            _material_jacobian[_qp](
-                _indices[_h].first, _indices[_h].second,
-                _indices[_hh].first, _indices[_hh].second);
-      }
-      else if (_ctypes[_h] == HomogenizationConstants::ConstraintType::Strain) {
-        if ((_indices[_h].first == _indices[_hh].first) &&
-            (_indices[_h].second == _indices[_hh].second))
-          res(_indices[_h].first, _indices[_h].second, 
-              _indices[_hh].first, _indices[_hh].second) += 0.5;
-        if ((_indices[_h].second == _indices[_hh].first) &&
-            (_indices[_h].first == _indices[_hh].second))
-          res(_indices[_h].first, _indices[_h].second, 
-              _indices[_hh].first, _indices[_hh].second) += 0.5;
-      }
-      else {
-        mooseError("Unknown constraint type in the jacobian!");
+  return res;
+}
+
+Real 
+HomogenizationConstraintIntegral::sdStressJacobian(unsigned int i, unsigned int j, 
+                                                   unsigned int a, unsigned int b)
+{
+  return _material_jacobian[_qp](i,j,a,b);
+}
+
+Real
+HomogenizationConstraintIntegral::sdStrainJacobian(unsigned int i, unsigned int j,
+                                                   unsigned int a, unsigned int b)
+{
+  Real res = 0.0;
+  if ((i==a) && (j==b))
+    res += 0.5;
+  if ((i==b) && (j==a))
+    res += 0.5;
+  return res;
+}
+
+Real 
+HomogenizationConstraintIntegral::ldStressJacobian(unsigned int i, unsigned int j, 
+                                                   unsigned int a, unsigned int b)
+{
+  Real res = 0.0;
+  for (unsigned int k = 0; k < _ndisp; k++) {
+    res += _J[_qp] * _stress[_qp](i,k) * (_invF[_qp](b,a) * _invF[_qp](j,k) - 
+                                          _invF[_qp](j,a) * _invF[_qp](b,k));
+    for (unsigned int s = 0; s < _ndisp; s++) {
+      for (unsigned int t = 0; t < _ndisp; t++) {
+        res += _J[_qp] * _material_jacobian[_qp](i,k,s,t) * _df[_qp](s,a) *
+            _invF[_qp](b,t) * _invF[_qp](j,k);
       }
     }
   }
 
   return res;
+}
+
+Real 
+HomogenizationConstraintIntegral::ldStrainJacobian(unsigned int i, unsigned int j, 
+                                                   unsigned int a, unsigned int b)
+{
+  if ((i==a) && (j==b))
+    return 1.0;
+  else
+    return 0.0;
 }

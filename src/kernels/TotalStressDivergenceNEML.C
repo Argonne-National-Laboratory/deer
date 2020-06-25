@@ -206,7 +206,16 @@ TotalStressDivergenceNEML::computeOffDiagJacobianScalar(unsigned int jvar)
 
 Real
 TotalStressDivergenceNEML::computeBaseJacobian()
-{ 
+{
+  if (_ld)
+    return ldBaseJacobian();
+  else
+    return sdBaseJacobian();
+}
+
+Real
+TotalStressDivergenceNEML::sdBaseJacobian()
+{
   Real value = 0.0;
   for (unsigned int j = 0; j < _ndisp; j++) 
     value += _material_jacobian[_qp](_component, j, _indices[_h].first,
@@ -217,23 +226,111 @@ TotalStressDivergenceNEML::computeBaseJacobian()
 }
 
 Real
-TotalStressDivergenceNEML::computeConstraintJacobian()
+TotalStressDivergenceNEML::ldBaseJacobian()
 {
+  unsigned int i = _component;
+  unsigned int a = _indices[_h].first;
+  unsigned int b = _indices[_h].second;
   Real value = 0.0;
-  if (_ctypes[_h] == HomogenizationConstants::ConstraintType::Stress) {
-    for (unsigned int l = 0; l < _ndisp; l++) {
-      value += _material_jacobian[_qp](_indices[_h].first, _indices[_h].second,
-                                       _component, l) * _grad_phi[_i][_qp](l);
+  for (unsigned int j = 0; j < _ndisp; j++) {
+    for (unsigned int k = 0; k < _ndisp; k++) {
+      value += 
+          _detJ[_qp] * _stress[_qp](i, j) * 
+          _grad_test[_i][_qp](k) * 
+          (_inv_def_grad[_qp](b,a) * _inv_def_grad[_qp](k,j)
+           - _inv_def_grad[_qp](k,a) * _inv_def_grad[_qp](b,j));
+
+      for (unsigned int m = 0; m < _ndisp; m++) {
+        for (unsigned int n = 0; n < _ndisp; n++) {
+          value +=
+              _detJ[_qp] * _material_jacobian[_qp](i,j,m,n) * 
+              _df[_qp](m,a) * _inv_def_grad[_qp](b,n) * 
+              _grad_test[_i][_qp](k) * _inv_def_grad[_qp](k,j);
+        }
+      }
     }
   }
+  return value;
+}
+
+Real
+TotalStressDivergenceNEML::computeConstraintJacobian()
+{
+  if (_ctypes[_h] == HomogenizationConstants::ConstraintType::Stress) {
+    if (_ld)
+      return ldConstraintJacobianStress();
+    else
+      return sdConstraintJacobianStress();
+  }
   else if (_ctypes[_h] == HomogenizationConstants::ConstraintType::Strain) {
-    if (_indices[_h].first == _component)
-      value += 0.5*_grad_phi[_i][_qp](_indices[_h].second);
-    if (_indices[_h].second == _component)
-      value += 0.5*_grad_phi[_i][_qp](_indices[_h].first);
+    if (_ld)
+      return ldConstraintJacobianStrain();
+    else
+      return sdConstraintJacobianStrain();
   }
   else {
     mooseError("Unknown constraint type in kernel calculation!");
   }
+}
+
+Real
+TotalStressDivergenceNEML::sdConstraintJacobianStrain()
+{
+  Real value = 0.0;
+  if (_indices[_h].first == _component)
+    value += 0.5*_grad_phi[_i][_qp](_indices[_h].second);
+  if (_indices[_h].second == _component)
+    value += 0.5*_grad_phi[_i][_qp](_indices[_h].first);
+  return value;
+}
+
+Real
+TotalStressDivergenceNEML::sdConstraintJacobianStress()
+{
+  Real value = 0.0;
+  for (unsigned int l = 0; l < _ndisp; l++) {
+    value += _material_jacobian[_qp](_indices[_h].first, _indices[_h].second,
+                                     _component, l) * _grad_phi[_i][_qp](l);
+  }
+  return value;
+}
+
+Real
+TotalStressDivergenceNEML::ldConstraintJacobianStrain()
+{
+  unsigned int i = _indices[_h].first;
+  unsigned int j = _indices[_h].second;
+  if (i == _component)
+    return _grad_phi[_i][_qp](j);
+  else
+    return 0;
+}
+
+Real
+TotalStressDivergenceNEML::ldConstraintJacobianStress()
+{
+  unsigned int i = _indices[_h].first;
+  unsigned int j = _indices[_h].second;
+
+  unsigned int a = _component;
+
+  Real value = 0.0;
+
+  for (unsigned int k = 0; k < _ndisp; k++) {
+    for (unsigned int b = 0; b < _ndisp; b++) {
+      value += _detJ[_qp] * _stress[_qp](i,k) * 
+          (  _inv_def_grad[_qp](b,a) * _inv_def_grad[_qp](j,k)
+           - _inv_def_grad[_qp](j,a) * _inv_def_grad[_qp](b,k)) *
+          _grad_phi[_i][_qp](b);
+      for (unsigned int s = 0; s < _ndisp; s++) {
+        for (unsigned int t = 0; t < _ndisp; t++) {
+          value += _detJ[_qp] * _material_jacobian[_qp](i,k,s,t) * _df[_qp](s,a) *
+              _inv_def_grad[_qp](b,t) * _inv_def_grad[_qp](j,k) *
+              _grad_phi[_i][_qp](b);
+        }
+      }
+    }
+  }
+
   return value;
 }
