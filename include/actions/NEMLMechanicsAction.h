@@ -29,4 +29,20 @@ protected:
 
   std::vector<MaterialPropertyName> _eigenstrains;
   std::vector<SubdomainName> _block;
+
+  bool _homogenize;
+  // Helper to translate into MOOSE talk
+  const std::map<unsigned int, std::string> _order_mapper = 
+  { {1, "FIRST"},
+    {3, "THIRD"},
+    {4, "FOURTH"},
+    {6, "SIXTH"},
+    {9, "NINTH"}};
+  // Name of the homogenization scalar variable
+  const std::string _hname = "hvar";
+  // Name of the integrator
+  const std::string _integrator_name = "integrator";
+  // Other homogenization info
+  std::vector<std::string> _constraint_types;
+  std::vector<FunctionName> _targets;
 };

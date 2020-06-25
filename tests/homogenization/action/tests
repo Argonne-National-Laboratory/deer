@@ -1,0 +1,8 @@
+[Tests]
+  [./1d-strain]
+    type = CSVDiff
+    input = 'action.i'
+    csvdiff = 'action_out.csv'
+    requirement = "Action matches the manually-coded version."
+  [../]
+[]
