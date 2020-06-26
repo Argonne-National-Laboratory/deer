@@ -64,9 +64,8 @@ TotalStressDivergenceNEML::initialSetup() {
   
   if (isCoupledScalar("macro_gradient", 0)) {
     auto types = getParam<std::vector<std::string>>("constraint_types");
-    for (unsigned int i = 0; i < types.size(); i++) {
+    for (unsigned int i = 0; i < types.size(); i++) 
       _ctypes.push_back(HomogenizationConstants::map_string(types[i]));
-    }
   }
 }
 
@@ -288,10 +287,9 @@ Real
 TotalStressDivergenceNEML::sdConstraintJacobianStress()
 {
   Real value = 0.0;
-  for (unsigned int l = 0; l < _ndisp; l++) {
+  for (unsigned int l = 0; l < _ndisp; l++) 
     value += _material_jacobian[_qp](_indices[_h].first, _indices[_h].second,
                                      _component, l) * _grad_phi[_i][_qp](l);
-  }
   return value;
 }
 

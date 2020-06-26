@@ -129,27 +129,24 @@ HomogenizationConstraintIntegral::computeResidual()
 
   for (_h = 0; _h < _ncomps; _h++) {
     if (_ld) {
-      if (_ctypes[_h] == HomogenizationConstants::ConstraintType::Stress) {
+      if (_ctypes[_h] == HomogenizationConstants::ConstraintType::Stress) 
         res(_indices[_h].first,_indices[_h].second) = 
             _PK1[_qp](_indices[_h].first,_indices[_h].second) - 
             _targets[_h]->value(_t, _q_point[_qp]);
-      }
       else if (_ctypes[_h] == HomogenizationConstants::ConstraintType::Strain) {
         Real f = (_indices[_h].first == _indices[_h].second) ? 1.0 : 0.0;
         res(_indices[_h].first,_indices[_h].second) = 
             _F[_qp](_indices[_h].first,_indices[_h].second) - 
             (f + _targets[_h]->value(_t, _q_point[_qp]));
       }
-      else {
+      else 
         mooseError("Unknown constraint type in the integral!");
-      }
     }
     else {
-      if (_ctypes[_h] == HomogenizationConstants::ConstraintType::Stress) {
+      if (_ctypes[_h] == HomogenizationConstants::ConstraintType::Stress) 
         res(_indices[_h].first,_indices[_h].second) = 
             _stress[_qp](_indices[_h].first,_indices[_h].second) - 
             _targets[_h]->value(_t, _q_point[_qp]);
-      }
       else if (_ctypes[_h] == HomogenizationConstants::ConstraintType::Strain) {
         Real f = (_indices[_h].first == _indices[_h].second) ? 1.0 : 0.0;
         res(_indices[_h].first,_indices[_h].second) = 
@@ -157,9 +154,8 @@ HomogenizationConstraintIntegral::computeResidual()
                  _F[_qp](_indices[_h].second,_indices[_h].first)) -
             (f + _targets[_h]->value(_t, _q_point[_qp]));
       }
-      else {
+      else 
         mooseError("Unknown constraint type in the integral!");
-      }
     }
   }
   return res;
@@ -178,20 +174,16 @@ HomogenizationConstraintIntegral::computeJacobian()
         unsigned int a = _indices[_hh].first;
         unsigned int b = _indices[_hh].second;
         if (_ctypes[_h] == HomogenizationConstants::ConstraintType::Stress) {
-          if (_ld) {
+          if (_ld) 
             res(i,j,a,b) = ldStressJacobian(i,j,a,b);
-          }
-          else {
+          else 
             res(i,j,a,b) = sdStressJacobian(i,j,a,b);
-          }
         }
         else if (_ctypes[_h] == HomogenizationConstants::ConstraintType::Strain) {
-          if (_ld) {
+          if (_ld) 
             res(i,j,a,b) = ldStrainJacobian(i,j,a,b);
-          }
-          else {
+          else 
             res(i,j,a,b) = sdStrainJacobian(i,j,a,b);
-          }
         }
         else {
           mooseError("Unknown constraint type in Jacobian calculator!");

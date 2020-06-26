@@ -249,9 +249,6 @@
     variable = exy
     execute_on = 'initial timestep_end'
   [../]
-  [./nonlin]
-    type = NumNonlinearIterations
-  [../]
 []
 
 [Executioner]

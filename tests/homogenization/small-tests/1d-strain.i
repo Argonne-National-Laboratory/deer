@@ -9,21 +9,16 @@
 []
 
 [Mesh]
-  type = FileMesh
-  file = '1d.exo'
-[]
-
-[MeshModifiers]
-  [./left]
-    type = SideSetsFromPoints
-    new_boundary = 'left'
-    points = '-1 0 0'
+  [./base]
+    type = FileMeshGenerator
+    file = '1d.exo'
   [../]
-
-  [./right]
-    type = SideSetsFromPoints
-    new_boundary = 'right'
-    points = '7 0 0'
+  [./ss]
+    type = SideSetsFromPointsGenerator
+    input = base
+    points = '-1 0 0
+               7 0 0'
+    new_boundary = 'left right'
   [../]
 []
 
@@ -162,10 +157,6 @@
     type = ElementAverageValue
     variable = exx
     execute_on = 'initial timestep_end'
-  [../]
-
-  [./nonlin]
-    type = NumNonlinearIterations
   [../]
 []
 
