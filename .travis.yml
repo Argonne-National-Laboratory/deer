@@ -4,7 +4,7 @@ dist: bionic
 git:
       submodules: false
 before_install:
-      - sudo apt-get install -y build-essential cmake libboost-dev libblas-dev liblapack-dev mpich libmpich-dev
+      - sudo apt-get install -y build-essential cmake libboost-dev libblas-dev liblapack-dev mpich libmpich-dev python3.7
       - sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.7 2
       - sed -i 's/git@github.com:/https:\/\/github.com\//' .gitmodules
       - git submodule update --init --recursive
