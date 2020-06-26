@@ -8,6 +8,7 @@ InputParameters StressDivergenceNEML::validParams() {
   params.addRequiredParam<unsigned int>("component",
                                         "Which direction this kernel acts in");
   params.addRequiredCoupledVar("displacements", "The displacement components");
+
   return params;
 }
 
@@ -59,7 +60,7 @@ Real StressDivergenceNEML::computeQpJacobian() {
 
 Real StressDivergenceNEML::computeQpOffDiagJacobian(unsigned int jvar) {
   Real value = 0.0;
-
+  
   for (unsigned int cc = 0; cc < _ndisp; cc++) {
     if (jvar == _disp_nums[cc]) {
       value += matJacobianComponent(

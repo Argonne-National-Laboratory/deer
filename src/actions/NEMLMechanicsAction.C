@@ -4,11 +4,15 @@
 #include "NEMLMechanicsAction.h"
 #include "libmesh/string_to_enum.h"
 
+#include "HomogenizationConstraintIntegral.h" // just for the constants
+
 registerMooseAction("DeerApp", NEMLMechanicsAction, "add_variable");
 registerMooseAction("DeerApp", NEMLMechanicsAction, "add_kernel");
 registerMooseAction("DeerApp", NEMLMechanicsAction, "add_material");
 registerMooseAction("DeerApp", NEMLMechanicsAction, "add_aux_variable");
 registerMooseAction("DeerApp", NEMLMechanicsAction, "add_aux_kernel");
+registerMooseAction("DeerApp", NEMLMechanicsAction, "add_scalar_kernel");
+registerMooseAction("DeerApp", NEMLMechanicsAction, "add_user_object");
 
 const std::vector<std::string> all_tensors = {
     "mechanical_strain", "stress", "elastic_strain", "inelastic_strain"};
@@ -48,9 +52,19 @@ InputParameters NEMLMechanicsAction::validParams() {
       "Names of the eigenstrains");
 
   params.addParam<std::vector<SubdomainName>>(
-      "block", "The list of subdomain names where neml mehcanisc must be used, "
-               "default all blocks. Helpful when different physiscs and "
-               "kernels are required on different blocks.");
+      "block", "The list of subdomain names where neml mehcanisc should be used, "
+               "default all blocks.");
+
+  params.addParam<bool>(
+      "homogenize", false,
+      "Apply homogenization constraints to the system.");
+  params.addParam<std::vector<std::string>>("constraint_types",
+                                            "Type of each constraint: "
+                                            "stress or strain.");
+  params.addParam<std::vector<FunctionName>>("targets",
+                                             "Functions giving the target "
+                                             "values of each constraint.");
+
   return params;
 }
 
@@ -66,7 +80,12 @@ NEMLMechanicsAction::NEMLMechanicsAction(const InputParameters &params)
           getParam<std::vector<MaterialPropertyName>>("eigenstrains")),
       _block(params.isParamSetByUser("block")
                  ? getParam<std::vector<SubdomainName>>("block")
-                 : std::vector<SubdomainName>(0)) {}
+                 : std::vector<SubdomainName>(0)),
+      _homogenize(getParam<bool>("homogenize")),
+      _constraint_types(getParam<std::vector<std::string>>("constraint_types")),
+      _targets(getParam<std::vector<FunctionName>>("targets"))
+{
+}
 
 void NEMLMechanicsAction::act() {
   if (_current_task == "add_variable") {
@@ -84,6 +103,17 @@ void NEMLMechanicsAction::act() {
       auto var_type = AddVariableAction::determineType(fe_type, 1);
       _problem->addVariable(var_type, disp_name, params);
     }
+    
+    if (_homogenize) {
+      InputParameters params = _factory.getValidParams("MooseVariableBase");
+      params.set<MooseEnum>("family") = "SCALAR";
+      params.set<MooseEnum>("order") = _order_mapper.at(
+          HomogenizationConstants::required.at(_kin_mapper[_kinematics])[_ndisp-1]);
+      auto fe_type = AddVariableAction::feType(params);
+      auto var_type = AddVariableAction::determineType(fe_type, 1);
+      _problem->addVariable(var_type, _hname, params);
+    }
+
   } else if (_current_task == "add_material") {
     // Add the strain calculator
     auto params = _factory.getValidParams("ComputeNEMLStrain");
@@ -92,9 +122,16 @@ void NEMLMechanicsAction::act() {
     params.set<std::vector<MaterialPropertyName>>("eigenstrain_names") =
         _eigenstrains;
     params.set<bool>("large_kinematics") = _kin_mapper[_kinematics];
+    if (_homogenize)
+      params.set<std::vector<VariableName>>("macro_gradient") = {_hname};
 
     _problem->addMaterial("ComputeNEMLStrain", "strain", params);
   } else if (_current_task == "add_kernel") {
+    // Error check
+    if ((_homogenize) && (_formulation == Formulation::Updated))
+      mooseError("Homogenization constraints must be used with the total "
+                 "lagrangian formulation");
+
     // Add the kernels
     for (unsigned int i = 0; i < _ndisp; ++i) {
       if (_formulation == Formulation::Updated) {
@@ -121,6 +158,12 @@ void NEMLMechanicsAction::act() {
         if (_block.size() > 0)
           params.set<std::vector<SubdomainName>>("block") = _block;
 
+        if (_homogenize) {
+          params.set<std::vector<VariableName>>("macro_gradient") = {_hname};
+          params.set<std::vector<std::string>>("constraint_types") = 
+              _constraint_types;
+        }
+
         std::string name = "SD_" + Moose::stringify(i);
 
         _problem->addKernel("TotalStressDivergenceNEML", name, params);
@@ -143,6 +186,35 @@ void NEMLMechanicsAction::act() {
         _add_tensor_aux(name);
       for (auto name : all_scalars)
         _add_scalar_aux(name);
+    }
+  } else if (_current_task == "add_scalar_kernel") {
+    if (_homogenize) {
+      InputParameters params =
+          _factory.getValidParams("HomogenizationConstraintScalarKernel");
+      params.set<NonlinearVariableName>("variable") = _hname;
+      params.set<unsigned int>("ndim") = _ndisp;
+      params.set<UserObjectName>("integrator") = _integrator_name;
+      params.set<bool>("large_kinematics") = _kin_mapper[_kinematics];
+      if (_block.size() > 0)
+        params.set<std::vector<SubdomainName>>("block") = _block;
+
+      _problem->addScalarKernel("HomogenizationConstraintScalarKernel",
+                                "HomogenizationConstraints", params);
+    }
+  } else if (_current_task == "add_user_object") {
+    if (_homogenize) {
+      InputParameters params =
+          _factory.getValidParams("HomogenizationConstraintIntegral");
+       params.set<std::vector<VariableName>>("displacements") = _displacements;
+       params.set<std::vector<std::string>>("constraint_types") =
+           _constraint_types;
+       params.set<std::vector<FunctionName>>("targets") = _targets;
+       params.set<bool>("large_kinematics") = _kin_mapper[_kinematics];
+       params.set<ExecFlagEnum>("execute_on") = {EXEC_INITIAL, EXEC_LINEAR};
+
+       _problem->addUserObject("HomogenizationConstraintIntegral",
+                               _integrator_name,
+                               params);
     }
   }
 }

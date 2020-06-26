@@ -62,6 +62,10 @@ protected:
 
   MaterialProperty<RankTwoTensor> &_elastic_strain;
   MaterialProperty<RankTwoTensor> &_inelastic_strain;
-
+ 
   const bool _ld;
+  
+  const MaterialProperty<RankTwoTensor> & _F_inv;
+  const MaterialProperty<Real> & _J;
+  MaterialProperty<RankTwoTensor> & _PK;
 };

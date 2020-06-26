@@ -4,7 +4,7 @@
     input = 'PureElastic.i'
     exodiff = 'PureElastic_out.e'
     requirement = "check the pure elastic czm material works properly"
-     abs_zero = 1e-6
+    abs_zero = 1e-6
   [../]
   [./ViscousSliding]
     type = Exodiff

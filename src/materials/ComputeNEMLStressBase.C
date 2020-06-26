@@ -9,7 +9,6 @@ InputParameters ComputeNEMLStressBase::validParams() {
   params.addParam<bool>("large_kinematics", false,
                         "Use large displacement kinematics");
   params.suppressParameter<bool>("use_displaced_mesh");
-
   return params;
 }
 
@@ -38,7 +37,11 @@ ComputeNEMLStressBase::ComputeNEMLStressBase(const InputParameters &parameters)
       _dissipation_old(getMaterialPropertyOld<Real>("dissipation")),
       _elastic_strain(declareProperty<RankTwoTensor>("elastic_strain")),
       _inelastic_strain(declareProperty<RankTwoTensor>("inelastic_strain")),
-      _ld(getParam<bool>("large_kinematics")) {
+      _ld(getParam<bool>("large_kinematics")),
+      _F_inv(getMaterialPropertyByName<RankTwoTensor>("inv_def_grad")),
+      _J(getMaterialPropertyByName<Real>("detJ")),
+      _PK(declareProperty<RankTwoTensor>("PK1"))
+{
   // I strongly hesitate to put this here, may change later
   _model = neml::parse_xml_unique(_fname, _mname);
 }
@@ -56,7 +59,7 @@ void ComputeNEMLStressBase::computeQpProperties() {
   tensor_neml(_mechanical_strain[_qp], e_np1);
   double e_n[6];
   tensor_neml(_mechanical_strain_old[_qp], e_n);
-
+  
   // vorticity
   double w_np1[3];
   tensor_skew(_linear_rot[_qp], w_np1);
@@ -117,6 +120,14 @@ void ComputeNEMLStressBase::computeQpProperties() {
   // Store dissipation
   _energy[_qp] = u_np1;
   _dissipation[_qp] = p_np1;
+
+  // Do some postprocessing
+  if (_ld) {
+    _PK[_qp] = _J[_qp] * _stress[_qp] * _F_inv[_qp].transpose();
+  }
+  else {
+    _PK[_qp] = _stress[_qp];
+  }
 }
 
 void ComputeNEMLStressBase::initQpStatefulProperties() {
@@ -141,6 +152,7 @@ void ComputeNEMLStressBase::initQpStatefulProperties() {
   // Various other junk
   _energy[_qp] = 0.0;
   _dissipation[_qp] = 0.0;
+  _PK[_qp].zero();
 }
 
 void ComputeNEMLStressBase::updateStrain() {

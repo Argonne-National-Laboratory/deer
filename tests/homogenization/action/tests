@@ -1,0 +1,10 @@
+[Tests]
+  [./3d-action]
+    type = CSVDiff
+    input = 'action.i'
+    csvdiff = 'action_out.csv'
+    requirement = "Action matches the manually-coded version."
+    abs_zero = 1e-4
+    rel_err = 1e-2
+  [../]
+[]

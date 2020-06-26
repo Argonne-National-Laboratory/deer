@@ -1,0 +1,78 @@
+<materials>
+  <elastic_model type="SmallStrainElasticity">
+    <elastic type="IsotropicLinearElasticModel">
+      <m1_type>youngs</m1_type>
+      <m1>100000.0</m1>
+      <m2_type>poissons</m2_type>
+      <m2>0.3</m2>
+    </elastic>
+  </elastic_model>
+  <elastic_model2 type="SmallStrainElasticity">
+    <elastic type="IsotropicLinearElasticModel">
+      <m1_type>youngs</m1_type>
+      <m1>150000.0</m1>
+      <m2_type>poissons</m2_type>
+      <m2>0.2</m2>
+    </elastic>
+  </elastic_model2>
+  <mat1 type="SmallStrainRateIndependentPlasticity">
+    <elastic type="IsotropicLinearElasticModel">
+      <m1_type>youngs</m1_type>
+      <m1>100000.0</m1>
+      <m2_type>poissons</m2_type>
+      <m2>0.3</m2>
+    </elastic>
+    <flow type="RateIndependentAssociativeFlow">
+      <surface type="IsoJ2"/>
+      <hardening type="LinearIsotropicHardeningRule">
+        <s0>100.0</s0>
+        <K>10000.0</K>
+      </hardening>
+    </flow>
+  </mat1>
+  <mat2 type="SmallStrainRateIndependentPlasticity">
+    <elastic type="IsotropicLinearElasticModel">
+      <m1_type>youngs</m1_type>
+      <m1>120000.0</m1>
+      <m2_type>poissons</m2_type>
+      <m2>0.2</m2>
+    </elastic>
+    <flow type="RateIndependentAssociativeFlow">
+      <surface type="IsoJ2"/>
+      <hardening type="LinearIsotropicHardeningRule">
+        <s0>90.0</s0>
+        <K>5000.0</K>
+      </hardening>
+    </flow>
+  </mat2>
+  <mat3 type="SmallStrainRateIndependentPlasticity">
+    <elastic type="IsotropicLinearElasticModel">
+      <m1_type>youngs</m1_type>
+      <m1>80000.0</m1>
+      <m2_type>poissons</m2_type>
+      <m2>0.35</m2>
+    </elastic>
+    <flow type="RateIndependentAssociativeFlow">
+      <surface type="IsoJ2"/>
+      <hardening type="LinearIsotropicHardeningRule">
+        <s0>120.0</s0>
+        <K>15000.0</K>
+      </hardening>
+    </flow>
+  </mat3>
+  <mat4 type="SmallStrainRateIndependentPlasticity">
+    <elastic type="IsotropicLinearElasticModel">
+      <m1_type>youngs</m1_type>
+      <m1>130000.0</m1>
+      <m2_type>poissons</m2_type>
+      <m2>0.33</m2>
+    </elastic>
+    <flow type="RateIndependentAssociativeFlow">
+      <surface type="IsoJ2"/>
+      <hardening type="LinearIsotropicHardeningRule">
+        <s0>130.0</s0>
+        <K>8000.0</K>
+      </hardening>
+    </flow>
+  </mat4>
+</materials>
