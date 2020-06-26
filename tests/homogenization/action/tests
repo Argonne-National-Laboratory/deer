@@ -1,5 +1,5 @@
 [Tests]
-  [./1d-strain]
+  [./3d-action]
     type = CSVDiff
     input = 'action.i'
     csvdiff = 'action_out.csv'
