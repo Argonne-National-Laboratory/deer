@@ -4,5 +4,6 @@
     input = 'action.i'
     csvdiff = 'action_out.csv'
     requirement = "Action matches the manually-coded version."
+    abs_zero = 1e-4
   [../]
 []
