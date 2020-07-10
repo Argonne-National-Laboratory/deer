@@ -94,18 +94,6 @@ matrixD NLSystem::getDResidualDParams(const std::vector<std::string> &pname) {
   return dresdp;
 }
 
-// matrixD
-// NLSystem::getDResidualDRateParams(const std::vector<std::string> &pname) {
-//
-//   matrixD dresdp = getDResidualDParams(pname);
-//   const double dt = _sys_params->getValue("dt");
-//   for (uint p = 0; p < dresdp.size(); p++)
-//     for (uint i = 0; i < _nsys; i++)
-//       dresdp[p][i] /= dt;
-//
-//   return dresdp;
-// }
-
 matrixD NLSystem::getDSystemVarsDParams(const std::vector<std::string> &pname,
                                         const vecD &lm) {
   updateEquationConstants();
@@ -124,14 +112,7 @@ matrixD NLSystem::getDSystemVarsDParams(const std::vector<std::string> &pname,
   return dqeqdp;
 }
 
-// matrixD
-// NLSystem::getDSystemVarsDRateParams(const std::vector<std::string> &pname,
-//                                     const vecD &lm) {
-//   matrixD dqeqdratep = getDSystemVarsDParams(pname, lm);
-//   const double dt = _sys_params->getValue("dt");
-//   for (uint p = 0; p < dqeqdratep.size(); p++)
-//     for (uint i = 0; i < _nsys; i++)
-//       dqeqdratep[p][i] /= dt;
-//
-//   return dqeqdratep;
-// }
+void NLSystem::updateEquationScaling() const {
+  for (uint i = 0; i < _nx; i++)
+    _eq[i]->autoScaleEquation();
+}

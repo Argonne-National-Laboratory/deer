@@ -1,10 +1,4 @@
-#
-# Stretch + rotation test
-#
-# This test is designed to compute a uniaxial stress and then follow that
-# stress as the mesh is rotated 90 degrees.
-#
-# The mesh is composed of two blocks, each with a single element.
+# Test the sehar traction of the model
 
 [Mesh]
   [./msh]

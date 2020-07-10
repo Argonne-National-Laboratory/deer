@@ -112,7 +112,7 @@ inline matrixD solveAxNb(const matrixD &A,
 
   // flattened vector
   k = 0;
-  for (uint i = 0; i < nrhs; i++)
+  for (int i = 0; i < nrhs; i++)
     for (uint l = 0; l < syssize; l++) {
       b_to_use[k] = b[i][l];
       k += 1;
@@ -124,7 +124,7 @@ inline matrixD solveAxNb(const matrixD &A,
 
   // copy flat solution in to Matrix
   k = 0;
-  for (uint i = 0; i < nrhs; i++)
+  for (int i = 0; i < nrhs; i++)
     for (uint l = 0; l < syssize; l++) {
       b_out[i][l] = b_to_use[k];
       k += 1;

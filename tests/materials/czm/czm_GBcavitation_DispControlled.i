@@ -1,10 +1,4 @@
-#
-# Stretch + rotation test
-#
-# This test is designed to compute a uniaxial stress and then follow that
-# stress as the mesh is rotated 90 degrees.
-#
-# The mesh is composed of two blocks, each with a single element.
+# Test under displacement cotrolled condition.
 
 [Mesh]
   [./msh]
@@ -54,10 +48,10 @@
     x = '0 0.1 1e7'
     y = '0 0 0'
   [../]
-  [./applied_load_z]
+  [./applied_displacement_z]
     type = PiecewiseLinear
-    x = '0 0.1 300 300.02  1e7'
-    y = '0 60 60 60 60'
+    x = '0 1e7'
+    y = '0 100'
   [../]
   [./dt_fun]
     type = PiecewiseConstant
@@ -97,9 +91,9 @@
       variable = disp_y
     [../]
     [./z1]
-      type = FunctionNeumannBC
+      type = FunctionDirichletBC
       boundary = front
-      function = applied_load_z
+      function = applied_displacement_z
       variable = disp_z
     [../]
 []
@@ -427,13 +421,12 @@
     dt =  0.1
   []
   dtmin = 1e-4
-  end_time = 3000
-  dtmax = 1000
-  # automatic_scaling = true
-  # compute_scaling_once = false
+  end_time = 12
+  dtmax = 1
 []
 
 [Outputs]
+  sync_times = '10 10.001 1'
   csv = true
   exodus = true
 []

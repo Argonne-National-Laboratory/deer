@@ -14,9 +14,12 @@ void Newton::computeNewtonStep(const vecD &R, const matrixD &J) {
     _dx[i] = -_dx[i];
 }
 
-bool Newton::solve(vecD &lm, matrixD &J) {
+bool Newton::solve(vecD &lm, matrixD &J, const bool auto_scale_equation) {
   bool converged = false;
   uint it = 0;
+  if (auto_scale_equation)
+    _nlsys->updateEquationScaling();
+
   _nlsys->updateEquationConstants();
   vecD R = _nlsys->assembleR(lm);
   double err = miconossmath::norm(R, _normtype);
@@ -49,7 +52,7 @@ bool Newton::solveSubstep(vecD &lm, matrixD &J,
                           const std::vector<std::string> &pname,
                           matrixD &Tangent, bool &custom_interruption,
                           double &increment_at_custom_interruption,
-                          const uint max_ncut) {
+                          const uint max_ncut, const bool auto_scale_equation) {
   bool converged = false;
   const vecD initVarValues = _sys_vars->getValueVectorOld();
   const double total_increment = sysparams->getValue("dt");
@@ -70,7 +73,7 @@ bool Newton::solveSubstep(vecD &lm, matrixD &J,
     increment_at_custom_interruption = 0;
     for (uint s = 0; s < n_total_step; s++) {
       const bool last_substep = s == (n_total_step - 1);
-      bool substep_converged = solve(lm, J);
+      bool substep_converged = solve(lm, J, auto_scale_equation);
       if (!last_substep)
         increment_at_custom_interruption += sysparams->getValue("dt");
       else

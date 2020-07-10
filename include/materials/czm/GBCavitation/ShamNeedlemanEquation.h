@@ -393,6 +393,10 @@ public:
     deq_dparam[_sysparams.getParamIndex("udot_N")] = 1. / CN(implicit);
     return deq_dparam;
   }
+
+  double equationScalingRule() const override {
+    return std::max(std::abs(_sys_vars.getValueOld(_vname)), 10.);
+  }
 };
 
 class TS_res : public RateEquation {
@@ -493,6 +497,10 @@ public:
     vecD deq_dparam(_n_params);
     deq_dparam[_sysparams.getParamIndex(_udotname)] = 1. / CS(implicit);
     return deq_dparam;
+  }
+
+  double equationScalingRule() const override {
+    return std::max(std::abs(_sys_vars.getValueOld(_vname)), 1.);
   }
 };
 

@@ -19,6 +19,15 @@ public:
   virtual void computeDEquationDP() = 0;
   virtual void updateConstants(){};
 
+  void autoScaleEquation() const {
+    _sys_vars.setScaleFactor(_eq_index, std::abs(equationScalingRule()));
+  }
+
+  // method to override to set custom scaling rule, default is old value
+  virtual double equationScalingRule() const {
+    return _sys_vars.getValueOld(_eq_index);
+  }
+
   double getDEquationDParam(const uint i) const { return _dequation_dparam[i]; }
   double getDEquationDParam(const std::string &pname) const {
     return _dequation_dparam[_sysparams.getParamIndex(pname)];

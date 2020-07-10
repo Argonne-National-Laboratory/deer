@@ -1,10 +1,4 @@
-#
-# Stretch + rotation test
-#
-# This test is designed to compute a uniaxial stress and then follow that
-# stress as the mesh is rotated 90 degrees.
-#
-# The mesh is composed of two blocks, each with a single element.
+# Test under stress cotrolled condition BC. Load reversal is very quick
 
 [Mesh]
   [./msh]
@@ -56,14 +50,9 @@
   [../]
   [./applied_load_z]
     type = PiecewiseLinear
-    x = '0 0.1 300 300.02  1e7'
-    y = '0 180 180 -180 -180'
+    x = '0 0.1 300 300.02 410 410.1'
+    y = '0 100 100 -200 -200 0'
   [../]
-  [./dt_fun]
-    type = PiecewiseConstant
-    x = '0 0.99 2'
-    y = '0.01 0.001 0.001'
-  []
 []
 [BCs]
     [./x]
@@ -373,6 +362,7 @@
   kinematics = large
   add_all_output = true
   add_displacements = true
+  formulation = total
 []
 
 
@@ -390,124 +380,13 @@
   [./czm_mat]
     type = GBCavitation
     boundary = 'interface'
-    scale_variables = false
-  [../]
-[]
-
-[Postprocessors]
-  [./stress_zz]
-    type = ElementAverageValue
-    variable = stress_z-z
-  [../]
-  [./stress_yy]
-    type = ElementAverageValue
-    variable = stress_y-y
-  [../]
-  [./stress_xx]
-    type = ElementAverageValue
-    variable = stress_x-x
-  [../]
-  [./stress_xy]
-    type = ElementAverageValue
-    variable = stress_x-y
-  [../]
-  [./stress_xz]
-    type = ElementAverageValue
-    variable = stress_x-z
-  [../]
-  [./stress_yz]
-    type = ElementAverageValue
-    variable = stress_y-z
-  [../]
-  [./t_solid_X]
-    type = SideAverageValue
-    variable = t_solid_X
-    boundary = interface
-  [../]
-  [./t_solid_Y]
-    type = SideAverageValue
-    variable = t_solid_Y
-    boundary = interface
-  [../]
-  [./t_solid_Z]
-    type = SideAverageValue
-    variable = t_solid_Z
-    boundary = interface
-  [../]
-  [./TPK1_solid_X]
-    type = SideAverageValue
-    variable = TPK1_solid_X
-    boundary = interface
-  [../]
-  [./TPK1_solid_Y]
-    type = SideAverageValue
-    variable = TPK1_solid_Y
-    boundary = interface
-  [../]
-  [./TPK1_solid_Z]
-    type = SideAverageValue
-    variable = TPK1_solid_Z
-    boundary = interface
-  [../]
-  [./tczm_X]
-    type = SideAverageValue
-    variable = tczm_X
-    boundary = interface
-  [../]
-  [./tczm_Y]
-    type = SideAverageValue
-    variable = tczm_Y
-    boundary = interface
-  [../]
-  [./tczm_Z]
-    type = SideAverageValue
-    variable = tczm_Z
-    boundary = interface
-  [../]
-  [./tczm_N]
-    type = SideAverageValue
-    variable = tczm_N
-    boundary = interface
-  [../]
-  [./tczm_S1]
-    type = SideAverageValue
-    variable = tczm_S1
-    boundary = interface
-  [../]
-  [./tczm_S2]
-    type = SideAverageValue
-    variable = tczm_S2
-    boundary = interface
-  [../]
-  [./TPK1czm_X]
-    type = SideAverageValue
-    variable = TPK1czm_X
-    boundary = interface
-  [../]
-  [./TPK1czm_Y]
-    type = SideAverageValue
-    variable = TPK1czm_Y
-    boundary = interface
-  [../]
-  [./TPK1czm_Z]
-    type = SideAverageValue
-    variable = TPK1czm_Z
-    boundary = interface
-  [../]
-  [./TPK1czm_N]
-    type = SideAverageValue
-    variable = TPK1czm_N
-    boundary = interface
-  [../]
-  [./TPK1czm_S1]
-    type = SideAverageValue
-    variable = TPK1czm_S1
-    boundary = interface
-  [../]
-  [./TPK1czm_S2]
-    type = SideAverageValue
-    variable = TPK1czm_S2
-    boundary = interface
+    max_time_cut = 0
+    D_failure = 0.9
+    max_nonlinear_iter = 20
+    minimum_allowed_stiffness = 1
+    minimum_allowed_residual_life = 10
+    nucleation_on = true
+    growth_on = true
   [../]
 []
 
@@ -527,19 +406,21 @@
   petsc_options_iname = '-pc_type '
   petsc_options_value = 'lu'
   nl_rel_tol = 1e-8
-  nl_abs_tol = 1e-6
+  nl_abs_tol = 1e-8
   l_max_its = 2
   nl_max_its = 10
   start_time = 0.0
   [./TimeStepper]
    type =IterationAdaptiveDT
+    optimal_iterations = 10
     dt =  0.1
   []
-  end_time =1200
-  dtmax = 1000
+  dtmin = 1e-4
+  end_time = 410.1
+  dtmax = 50
 []
 
 [Outputs]
-  csv = true
   exodus = true
+  sync_times = '0 0.1 300 300.02 410 410.1'
 []

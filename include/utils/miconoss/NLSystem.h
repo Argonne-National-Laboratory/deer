@@ -14,6 +14,7 @@ public:
   matrixD assembleJ(const vecD &lm) const;
 
   void updateEquationConstants();
+  void updateEquationScaling() const;
 
   uint getNx() const { return _nx; };
   uint getNmultipliers() const { return _nlm; };
@@ -21,13 +22,8 @@ public:
 
   matrixD getDResidualDParams(const std::vector<std::string> &pname);
 
-  // matrixD getDResidualDRateParams(const std::vector<std::string> &pname);
-
   matrixD getDSystemVarsDParams(const std::vector<std::string> &pname,
                                 const vecD &lm);
-
-  // matrixD getDSystemVarsDRateParams(const std::vector<std::string> &pname,
-  //                                   const vecD &lm);
 
   matrixD unscaleJacobian(const matrixD &Jscaled);
 
