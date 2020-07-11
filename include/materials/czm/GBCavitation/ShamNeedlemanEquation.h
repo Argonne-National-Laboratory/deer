@@ -395,7 +395,7 @@ public:
   }
 
   double equationScalingRule() const override {
-    return std::max(std::abs(_sys_vars.getValueOld(_vname)), 10.);
+    return std::max(std::abs(_sys_vars.getValueOld(_eq_index)), 10.);
   }
 };
 
