@@ -27,6 +27,8 @@ protected:
                             std::vector<std::string> &rate_pname,
                             vecD &rate_pvalue);
 
+  void decoupeldShearTraction(const Real &dt);
+
   /// method to kill the traction
   void tractionDecay();
 
@@ -106,6 +108,8 @@ protected:
   ///@{
   const bool _nucleation_on;
   const bool _growth_on;
+  const bool _use_triaxial_growth;
+  const bool _decouple_shear_traction;
   ///@}
 
   /// failure constants
@@ -122,5 +126,6 @@ protected:
   const unsigned int _max_time_cut;
   const unsigned int _max_nonlinear_iter;
   const Real _nl_residual_abs_tol;
+  const bool _force_substep;
   ///@}
 };

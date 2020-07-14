@@ -14,8 +14,16 @@ double h_psi(const double psi) {
 } // namespace ShamNeedlemann
 
 class V_dot : public NLPreEquationEvalautionCalc {
+private:
+  const bool _use_vl_triax;
+
 public:
   using NLPreEquationEvalautionCalc::NLPreEquationEvalautionCalc;
+
+  V_dot(NLSystemVars *const sysvars, const NLSystemParameters *sysparams,
+        const std::vector<std::string> &value_names, const bool use_vl_triax)
+      : NLPreEquationEvalautionCalc(sysvars, sysparams, value_names),
+        _use_vl_triax(use_vl_triax) {}
 
   double mFun() { return _sysparams->getValue("Sh") >= 0 ? 1 : -1; }
 
@@ -116,25 +124,58 @@ public:
 
       const double a = _sys_vars->getValueImplicit("a", implicit);
       L = std::pow(_sysparams->getValue("D") * svm / edot, 1. / 3.);
-      dfaldx[0] = 24. * L * a / std::pow(2 * a + 3 * L, 3);
+      dfaldx[0] = 24. * L * a / std::pow(2 * a + 3 * L, 3.);
     }
     return dfaldx;
   }
 
   double qFun(const bool implicit) {
-    // const double p = 30;
-    // const double f = std::pow(
-    //     std::pow(fabFun(implicit), p) + std::pow(faLFun(implicit), p), 1. /
-    //     p);
-    double f = 0;
-    const double fab = fabFun(implicit);
-    const double faL = fabFun(implicit);
-    if (fab >= faL)
-      f = fab;
-    else
-      f = faL;
+    const double p = 30;
+    const double f = std::pow(
+        std::pow(fabFun(implicit), p) + std::pow(faLFun(implicit), p), 1. / p);
+    // double f = 0;
+    // const double fab = fabFun(implicit);
+    // const double faL = fabFun(implicit);
+    // if (fab >= faL)
+    //   f = fab;
+    // else
+    //   f = faL;
 
-    return -2. * std::log(f) - (1. - f) * (3. - f);
+    double q = -2. * std::log(f) - (1. - f) * (3. - f);
+    // if (!std::isfinite(q)) {
+    //   std::cerr << " qFun, q is not finite " + std::to_string(q) + "\n";
+    //   std::cerr << " fabFun, " + std::to_string(fabFun(implicit)) + "\n";
+    //   std::cerr << " faLFun, " + std::to_string(faLFun(implicit)) + "\n";
+    //
+    //   std::cerr << " a , " +
+    //                    std::to_string(
+    //                        _sys_vars->getValueImplicit("a", implicit)) +
+    //                    "\n";
+    //   std::cerr << " b , " +
+    //                    std::to_string(
+    //                        _sys_vars->getValueImplicit("b", implicit)) +
+    //                    "\n";
+    //
+    //   std::cerr << " a_old , " +
+    //                    std::to_string(_sys_vars->getValueOld("a", implicit))
+    //                    +
+    //                    "\n";
+    //   std::cerr << " b_old , " +
+    //                    std::to_string(_sys_vars->getValueOld("b", implicit))
+    //                    +
+    //                    "\n";
+    //
+    //   std::cerr << " edot , " + std::to_string(_sysparams->getValue("edot"))
+    //   +
+    //                    "\n";
+    //   std::cerr << " Svm , " + std::to_string(_sysparams->getValue("Svm")) +
+    //                    "\n";
+    // }
+
+    // if (f == 0)
+    //   std::cerr << " qFun, f is 0 " + std::to_string(f) + "\n";
+
+    return q;
   }
 
   vecD dqFundX(const bool implicit) {
@@ -143,29 +184,28 @@ public:
     const double faL = faLFun(implicit);
     vecD dqdx(_n_vars);
 
-    // const double p = 30;
-    // const double fabP = std::pow(fab, p);
-    // const double faLP = std::pow(faL, p);
-    // const double f = std::pow(fabP + faLP, 1. / p);
-    //
-    // const double prefactor = std::pow(fabP + faLP, (1. - p) / p);
-    //
-    // vecD dfabdX = dfabFundX(implicit);
-    // vecD dfaLdX = dfaLFundX(implicit);
-    //
-    //
-    // for (uint i = 0; i < _n_vars; i++)
-    //   dqdx[i] = prefactor *
-    //             (fabP / fab * dfabdX[i] + std::pow(faL, p - 1.) * dfaLdX[i]);
+    const double p = 30;
+    const double fabP = std::pow(fab, p);
+    const double faLP = std::pow(faL, p);
+    const double f = std::pow(fabP + faLP, 1. / p);
 
-    double f;
-    if (fab >= faL) {
-      f = fab;
-      dqdx = dfabFundX(implicit);
-    } else {
-      f = faL;
-      dqdx = dfaLFundX(implicit);
-    }
+    const double prefactor = std::pow(fabP + faLP, (1. - p) / p);
+
+    vecD dfabdX = dfabFundX(implicit);
+    vecD dfaLdX = dfaLFundX(implicit);
+
+    for (uint i = 0; i < _n_vars; i++)
+      dqdx[i] = prefactor *
+                (fabP / fab * dfabdX[i] + std::pow(faL, p - 1.) * dfaLdX[i]);
+
+    // double f;
+    // if (fab >= faL) {
+    //   f = fab;
+    //   dqdx = dfabFundX(implicit);
+    // } else {
+    //   f = faL;
+    //   dqdx = dfaLFundX(implicit);
+    // }
     const double dqdf = -2. * f - 2. / f + 4.;
     for (uint i = 0; i < _n_vars; i++)
       dqdx[i] *= dqdf;
@@ -177,7 +217,16 @@ public:
     double vdot = 8 * M_PI * _sysparams->getValue("D") *
                   _sys_vars->getValueImplicit("Tn", implicit) / qFun(implicit);
 
-    return vdot + VL2dotFun(implicit);
+    // if (!std::isfinite(vdot))
+    //   std::cerr << " vdot is not finite" + std::to_string(vdot) + "\n";
+
+    if (_use_vl_triax)
+      vdot += VL2dotFun(implicit);
+
+    // if (!std::isfinite(vdot))
+    //   std::cerr << " vLtriax is not finite" + std::to_string(vdot) + "\n";
+
+    return vdot;
   }
 
   vecD dVdotdX(const bool implicit) {
@@ -190,11 +239,15 @@ public:
 
     const double q = qFun(implicit);
     const vecD dqdx = dqFundX(implicit);
-    const vecD dvL2dx = dVL2dotFundX(implicit);
 
     for (uint i = 0; i < _n_vars; i++)
-      dvdot_dx[i] =
-          prefactor * (dnum_dx[i] / q - num * dqdx[i] / (q * q)) + dvL2dx[i];
+      dvdot_dx[i] = prefactor * (dnum_dx[i] / q - num * dqdx[i] / (q * q));
+
+    if (_use_vl_triax) {
+      const vecD dvL2dx = dVL2dotFundX(implicit);
+      for (uint i = 0; i < _n_vars; i++)
+        dvdot_dx[i] += dvL2dx[i];
+    }
 
     return dvdot_dx;
   }
@@ -260,6 +313,8 @@ public:
   vecD DComputedRatetDP(const bool implicit) const override {
     return vecD(_n_params);
   }
+
+  double equationScalingRule() const override { return 1e-3; }
 };
 
 class b_res : public RateEquation {
@@ -285,9 +340,8 @@ public:
   bool nucleationIsActive(const bool implicit) const {
     bool active = _sysparams.getValue("nucleation_is_active");
     if (active) {
-      active =
-          active && (_sys_vars.getValueOld("b") > _sysparams.getValue("b_sat"));
-      active = active && (_sys_vars.getValueImplicit("Tn", implicit) > 0);
+      active &= (_sys_vars.getValueOld("b") > _sysparams.getValue("b_sat"));
+      active &= (_sys_vars.getValueImplicit("Tn", implicit) > 0);
     } else
       active = nucleationAboveThreshold(implicit);
     return active;
@@ -326,6 +380,8 @@ public:
   vecD DComputedRatetDP(const bool implicit) const override {
     return vecD(_n_params);
   }
+
+  double equationScalingRule() const override { return 1e-3; }
 };
 
 class TN_res : public RateEquation {
@@ -394,9 +450,7 @@ public:
     return deq_dparam;
   }
 
-  double equationScalingRule() const override {
-    return std::max(std::abs(_sys_vars.getValueOld(_eq_index)), 10.);
-  }
+  double equationScalingRule() const override { return 1000.; }
 };
 
 class TS_res : public RateEquation {
@@ -499,9 +553,7 @@ public:
     return deq_dparam;
   }
 
-  double equationScalingRule() const override {
-    return std::max(std::abs(_sys_vars.getValueOld(_vname)), 1.);
-  }
+  double equationScalingRule() const override { return 1; }
 };
 
 class a_lt_b : public InequalityConstraint {
@@ -561,6 +613,11 @@ public:
 
 protected:
   bool customSubstepInterruption(NLSystemParameters *const sysparams) override {
+
+    for (uint i = 0; i < _n_eq; i++)
+      if (!std::isfinite(_sys_vars->getValue(i)))
+        return false;
+
     const double D = _sys_vars->getValue("a") / _sys_vars->getValue("b");
     const double D_old =
         _sys_vars->getValueOld("a") / _sys_vars->getValueOld("b");

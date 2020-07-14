@@ -3,6 +3,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
+#include <limits>
 #include <vector>
 using namespace std;
 
@@ -13,21 +14,21 @@ typedef unsigned int uint;
 namespace miconossprint {
 
 inline void printVector(const vecD &V, const std::string &Vname) {
-  std::cout << Vname << " = [ ";
+  std::cerr << Vname << " = [ ";
   for (uint i = 0; i < V.size(); i++)
-    std::cout << V[i] << ", ";
-  std::cout << "] \n";
+    std::cerr << V[i] << ", ";
+  std::cerr << "] \n";
 }
 
 inline void printMatrix(const matrixD &M, const std::string &Mname) {
-  std::cout << Mname << " = \n[ ";
+  std::cerr << Mname << " = \n[ ";
   for (uint i = 0; i < M.size(); i++) {
     for (uint j = 0; j < M[i].size(); j++)
-      std::cout << M[i][j] << ", ";
+      std::cerr << M[i][j] << ", ";
     if (i + 1 == M.size())
-      std::cout << "]\n ";
+      std::cerr << "]\n ";
     else
-      std::cout << "\n ";
+      std::cerr << "\n ";
   }
 }
 
@@ -42,18 +43,31 @@ enum normtype { L2, INF };
 
 inline double L2norm(const vecD &V) {
   double norm = 0;
-  for (auto v : V)
-    norm += v * v;
+  for (auto v : V) {
+    if (std::isfinite(v))
+      norm += v * v;
+    else {
+      norm = std::numeric_limits<double>::quiet_NaN();
+      break;
+    }
+  }
+  if (std::isfinite(norm))
+    norm = std::sqrt(norm);
 
-  return std::sqrt(norm);
+  return norm;
 }
 
 inline double LInfnorm(const vecD &V) {
   double norm = 0;
   for (auto v : V) {
-    double absv = std::abs(v);
-    if (absv > norm)
-      norm = absv;
+    if (std::isfinite(v)) {
+      double absv = std::abs(v);
+      if (absv > norm)
+        norm = absv;
+    } else {
+      norm = std::numeric_limits<double>::quiet_NaN();
+      break;
+    }
   }
   return norm;
 }
@@ -71,10 +85,11 @@ inline double norm(const vecD &V, const normtype &nt) {
   return norm;
 }
 
-inline vecD solveAxb(const matrixD &A, const vecD &b, const uint &syssize) {
+inline int solveAxb(const matrixD &A, const vecD &b, const uint &syssize,
+                    vecD &b_out) {
   int neq = syssize;
   int nrhs = 1;
-  vecD b_to_use = b;
+  b_out = b;
   vecD jac(syssize * syssize);
   std::vector<int> IPIV(syssize);
   int info;
@@ -87,14 +102,21 @@ inline vecD solveAxb(const matrixD &A, const vecD &b, const uint &syssize) {
       k += 1;
     }
 
-  dgesv_(&neq, &nrhs, &jac[0], &neq, &IPIV[0], &b_to_use[0], &neq, &info);
+  dgesv_(&neq, &nrhs, &jac[0], &neq, &IPIV[0], &b_out[0], &neq, &info);
 
-  return b_to_use;
+  if (info < 0)
+    std::cerr << "solveAxb the " + std::to_string(info) +
+                     "th argument has an illegal value";
+
+  if (info > 0)
+    std::cerr << "solveAxb factorization U si singular \n";
+
+  return info;
 }
 
-inline matrixD solveAxNb(const matrixD &A,
-                         const std::vector<std::vector<double>> &b,
-                         const uint &syssize) {
+inline int solveAxNb(const matrixD &A,
+                     const std::vector<std::vector<double>> &b,
+                     const uint &syssize, matrixD &b_out) {
   int neq = syssize;
   int nrhs = b.size();
   vecD b_to_use(neq * nrhs);
@@ -120,17 +142,25 @@ inline matrixD solveAxNb(const matrixD &A,
 
   dgesv_(&neq, &nrhs, &A_to_use[0], &neq, &IPIV[0], &b_to_use[0], &neq, &info);
 
-  std::vector<std::vector<double>> b_out(nrhs, std::vector<double>(neq));
+  if (info < 0)
+    std::cerr << "solveAxNb the " + std::to_string(-info) +
+                     "th argument has an illegal value";
 
-  // copy flat solution in to Matrix
-  k = 0;
-  for (int i = 0; i < nrhs; i++)
-    for (uint l = 0; l < syssize; l++) {
-      b_out[i][l] = b_to_use[k];
-      k += 1;
-    }
+  if (info > 0)
+    std::cerr << "solveAxNb factorization U si singular \n";
 
-  return b_out;
+  if (info == 0) {
+    b_out = matrixD(nrhs, vecD(neq));
+
+    // copy flat solution in to Matrix
+    k = 0;
+    for (int i = 0; i < nrhs; i++)
+      for (uint l = 0; l < syssize; l++) {
+        b_out[i][l] = b_to_use[k];
+        k += 1;
+      }
+  }
+  return info;
 }
 
 } // namespace miconossmath

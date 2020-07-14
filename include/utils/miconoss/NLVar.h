@@ -9,31 +9,48 @@ public:
   NLVar(const uint index, const std::string &var_name, const double x = 0,
         const double x_old = 0, const double scaling_factor = 1);
 
+  /// methods to override to achive custom scaling
+  ///{@
+  virtual double realToNormalized(const double x) const {
+    return x / _scaling_factor;
+  };
+  virtual double normalizedToReal(const double x) const {
+    return x * _scaling_factor;
+  };
+  virtual double dRealdNormalized() const { return _scaling_factor; };
+  virtual double dNormalizeddReal() const { return 1. / _scaling_factor; };
+  ///@}
+
+  /// getter methods
+  ///{@
   double getValue() const { return _x; }
-  double getValueScaled() const { return _x / _scaling_factor; }
+  double getValueScaled() const { return realToNormalized(_x); }
   double getValueOld() const { return _x_old; }
-  double getValueOldScaled() const { return _x_old / _scaling_factor; }
+  double getValueOldScaled() const { return realToNormalized(_x_old); }
   double getScalingFactor() const { return _scaling_factor; }
-  double getDVarDVarScaled() const { return _scaling_factor; }
-  double getDVarScaledDVar() const { return 1. / _scaling_factor; }
+  double getDVarDVarScaled() const { return dRealdNormalized(); }
+  double getDVarScaledDVar() const { return dNormalizeddReal(); }
+  double getValueImplicit(const bool implicit) const {
+    return implicit ? getValue() : getValueOld();
+  }
   uint getIndex() const { return _index; }
   std::string getName() const { return _var_name; }
+  ///@}
 
+  /// set methods
+  ///{@
   void setValue(const double &x) { _x = x; }
-  void setValueFromScaled(const double &x) { _x = x * _scaling_factor; }
+  void setValueFromScaled(const double &x) { _x = normalizedToReal(x); }
   void setValueOld(const double &x_old) { _x_old = x_old; }
   void setValueOldFromScaled(const double &x_old) {
-    _x_old = x_old * _scaling_factor;
+    _x_old = normalizedToReal(_x_old);
   }
+  ///@}
 
   void setToOld() { setValue(_x_old); };
   void updateOldToCurrent() { setValueOld(_x); };
   void setValues(const double &x, const double &x_old);
   void setScaleFactor(const double &sf) { _scaling_factor = sf; }
-
-  double getValueImplicit(const bool implicit) const {
-    return implicit ? getValue() : getValueOld();
-  }
 
 protected:
   double _x;
@@ -42,6 +59,32 @@ protected:
   double _scaling_factor;
   const std::string _var_name;
 };
+
+// class NLVarShifedAlwaysPositive : public NLVar {
+//
+// public:
+//   NLVarShifedAlwaysPositive(const uint index, const std::string &var_name,
+//                             const double x = 0, const double x_old = 0,
+//                             const double scaling_factor = 1,
+//                             const double shift = 0);
+//
+//   /// methods to override to achive custom scaling
+//   ///{@
+//   virtual double realToNormalized(const double x) const { return x - _shift);
+//   };
+//   virtual double normalizedToReal(const double x) const {
+//     return std::abs(x) * _scaling_factor + _shift;
+//   };
+//   virtual double dRealdNormalized() const {
+//     const double s = _x >= 0 ? 1 : -1;
+//     return s * _scaling_factor;
+//   };
+//   virtual double dNormalizeddReal() const { return 1. / _scaling_factor; };
+//   ///@}
+//
+// protected:
+//   double _shift;
+// };
 
 class NLSystemVars {
 public:

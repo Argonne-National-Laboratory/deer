@@ -16,10 +16,11 @@ public:
                     bool &custom_interruption,
                     double &increment_at_custom_interruption,
                     const uint max_ncut = 1,
-                    const bool auto_scale_equation = true);
+                    const bool auto_scale_equation = true,
+                    const bool force_substep = false);
 
 protected:
-  void computeNewtonStep(const vecD &R, const matrixD &J);
+  int computeNewtonStep(const vecD &R, const matrixD &J);
   virtual bool customSubstepInterruption(NLSystemParameters *const sysparams) {
     return false;
   };

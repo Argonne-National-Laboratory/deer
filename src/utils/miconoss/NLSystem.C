@@ -101,15 +101,15 @@ matrixD NLSystem::getDSystemVarsDParams(const std::vector<std::string> &pname,
   J = unscaleJacobian(J);
   const uint n_param = pname.size();
 
-  matrixD dqeqdp = getDResidualDParams(pname);
-
-  dqeqdp = miconossmath::solveAxNb(J, dqeqdp, _nsys);
+  matrixD dRdp = getDResidualDParams(pname);
+  matrixD dxdP;
+  int ierr = miconossmath::solveAxNb(J, dRdp, _nsys, dxdP);
 
   for (uint p = 0; p < n_param; p++)
     for (uint i = 0; i < _nx; i++)
-      dqeqdp[p][i] *= -1;
+      dxdP[p][i] *= -1;
 
-  return dqeqdp;
+  return dxdP;
 }
 
 void NLSystem::updateEquationScaling() const {
