@@ -389,7 +389,7 @@ void GBCavitation::computeAverageBulkPorperties() {
 
   // compute average hydrostatic stress;
   _stress_H[_qp] =
-      (_stress_master[_qp].trace() + _stress_slave[_qp].trace()) / .6;
+      (_stress_master[_qp].trace() + _stress_slave[_qp].trace()) / 6.;
 
   // compute equivalent inelastic strain rate;
   RankTwoTensor strain_rate =
