@@ -133,47 +133,8 @@ public:
     const double p = 30;
     const double f = std::pow(
         std::pow(fabFun(implicit), p) + std::pow(faLFun(implicit), p), 1. / p);
-    // double f = 0;
-    // const double fab = fabFun(implicit);
-    // const double faL = fabFun(implicit);
-    // if (fab >= faL)
-    //   f = fab;
-    // else
-    //   f = faL;
 
     double q = -2. * std::log(f) - (1. - f) * (3. - f);
-    // if (!std::isfinite(q)) {
-    //   std::cerr << " qFun, q is not finite " + std::to_string(q) + "\n";
-    //   std::cerr << " fabFun, " + std::to_string(fabFun(implicit)) + "\n";
-    //   std::cerr << " faLFun, " + std::to_string(faLFun(implicit)) + "\n";
-    //
-    //   std::cerr << " a , " +
-    //                    std::to_string(
-    //                        _sys_vars->getValueImplicit("a", implicit)) +
-    //                    "\n";
-    //   std::cerr << " b , " +
-    //                    std::to_string(
-    //                        _sys_vars->getValueImplicit("b", implicit)) +
-    //                    "\n";
-    //
-    //   std::cerr << " a_old , " +
-    //                    std::to_string(_sys_vars->getValueOld("a", implicit))
-    //                    +
-    //                    "\n";
-    //   std::cerr << " b_old , " +
-    //                    std::to_string(_sys_vars->getValueOld("b", implicit))
-    //                    +
-    //                    "\n";
-    //
-    //   std::cerr << " edot , " + std::to_string(_sysparams->getValue("edot"))
-    //   +
-    //                    "\n";
-    //   std::cerr << " Svm , " + std::to_string(_sysparams->getValue("Svm")) +
-    //                    "\n";
-    // }
-
-    // if (f == 0)
-    //   std::cerr << " qFun, f is 0 " + std::to_string(f) + "\n";
 
     return q;
   }
@@ -198,14 +159,6 @@ public:
       dqdx[i] = prefactor *
                 (fabP / fab * dfabdX[i] + std::pow(faL, p - 1.) * dfaLdX[i]);
 
-    // double f;
-    // if (fab >= faL) {
-    //   f = fab;
-    //   dqdx = dfabFundX(implicit);
-    // } else {
-    //   f = faL;
-    //   dqdx = dfaLFundX(implicit);
-    // }
     const double dqdf = -2. * f - 2. / f + 4.;
     for (uint i = 0; i < _n_vars; i++)
       dqdx[i] *= dqdf;
@@ -217,14 +170,8 @@ public:
     double vdot = 8 * M_PI * _sysparams->getValue("D") *
                   _sys_vars->getValueImplicit("Tn", implicit) / qFun(implicit);
 
-    // if (!std::isfinite(vdot))
-    //   std::cerr << " vdot is not finite" + std::to_string(vdot) + "\n";
-
     if (_use_vl_triax)
       vdot += VL2dotFun(implicit);
-
-    // if (!std::isfinite(vdot))
-    //   std::cerr << " vLtriax is not finite" + std::to_string(vdot) + "\n";
 
     return vdot;
   }
