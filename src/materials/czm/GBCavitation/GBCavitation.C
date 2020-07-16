@@ -27,6 +27,7 @@ InputParameters GBCavitation::validParams() {
 
   params.addParam<Real>("beta", 2., "Cavity nucleation exponent");
   params.addParam<Real>("E_GB", 150e3, "Grain boundary opening stiffness");
+  params.addParam<Real>("E_penalty", 10, "Innerpenetration stiffness penalty");
   params.addParam<Real>("G_GB", 57.69e3, "Grain boundary shear stiffness");
   params.addParam<Real>("D_GB", 1e-15, "Grain boundary diffusivity");
   params.addParam<Real>("eta_sliding", 1e6,
@@ -135,6 +136,7 @@ GBCavitation::GBCavitation(const InputParameters &parameters)
       _eta_sliding(getParam<Real>("eta_sliding")),
       _thickness(getParam<Real>("interface_thickness")),
       _n(getParam<Real>("n")), _theta(getParam<Real>("theta")),
+      _E_penalty(getParam<Real>("E_penalty")),
       _nucleation_on(getParam<bool>("nucleation_on")),
       _growth_on(getParam<bool>("growth_on")),
       _use_triaxial_growth(getParam<bool>("use_triaxial_growth")),
@@ -410,6 +412,7 @@ void GBCavitation::initNLSystemParamter(std::vector<std::string> &pname,
                                         std::vector<std::string> &rate_pname,
                                         vecD &rate_pvalue) {
   pname = {"dt",
+           "dt_accum",
            "max_ab",
            "FN",
            "FN_NI",
@@ -419,6 +422,7 @@ void GBCavitation::initNLSystemParamter(std::vector<std::string> &pname,
            "beta",
            "h",
            "E",
+           "E_penalty",
            "G",
            "D",
            "nucleation_is_active",
@@ -432,8 +436,10 @@ void GBCavitation::initNLSystemParamter(std::vector<std::string> &pname,
            "minimum_allowed_residual_life",
            "maximum_allowed_opening_traction",
            "residual_life",
-           "element_failed"};
+           "element_failed",
+           "uN_old"};
   pvalue = {_dt,
+            _dt,
             1. - 1e-3,
             _FN,
             _FN_NI,
@@ -443,6 +449,7 @@ void GBCavitation::initNLSystemParamter(std::vector<std::string> &pname,
             _beta,
             ShamNeedlemann::h_psi(_psi_degree * M_PI / 180.),
             _E_GB,
+            _E_penalty,
             _G_GB,
             _D_GB,
             (double)_nucleation_is_active[_qp],
@@ -456,7 +463,8 @@ void GBCavitation::initNLSystemParamter(std::vector<std::string> &pname,
             _minimum_allowed_residual_life,
             _maximum_allowed_opening_traction,
             1e6,
-            0.};
+            0.,
+            _displacement_jump_old[_qp](0)};
 
   rate_pname = {"udot_N", "udot_S1", "udot_S2", "edot"};
   rate_pvalue = {_displacement_jump_inc[_qp](0) / _dt,

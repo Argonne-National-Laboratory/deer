@@ -335,12 +335,22 @@ class TN_res : public RateEquation {
 public:
   using RateEquation::RateEquation;
 
-  double CN(const bool implicit) const {
+  bool innerPentrationCheck() const {
+    return (_sysparams.getValue("uN_old") +
+            _sysparams.getValue("udot_N") * _sysparams.getValue("dt_accum")) +
+               _sysparams.getValue("thickness") <
+           0;
+  }
 
-    return _sysparams.getValue("thickness") /
-           (_sysparams.getValue("E") *
-            (1. - _sys_vars.getValueImplicit("a", implicit) /
-                      _sys_vars.getValueImplicit("b", implicit)));
+  double CN(const bool implicit) const {
+    double C_effective = _sysparams.getValue("thickness") /
+                         (_sysparams.getValue("E") *
+                          (1. - _sys_vars.getValueImplicit("a", implicit) /
+                                    _sys_vars.getValueImplicit("b", implicit)));
+
+    if (innerPentrationCheck())
+      C_effective /= _sysparams.getValue("E_penalty");
+    return C_effective;
   }
 
   vecD dCNdX(const bool implicit) const {
@@ -350,7 +360,10 @@ public:
     const double thickness = _sysparams.getValue("thickness");
     const double E = _sysparams.getValue("E");
 
-    const double prefactor = thickness / (E * (b - a) * (b - a));
+    double prefactor = thickness / (E * (b - a) * (b - a));
+
+    if (innerPentrationCheck())
+      prefactor /= _sysparams.getValue("E_penalty");
 
     dCN_dx[0] = b * prefactor;
     dCN_dx[1] = -a * prefactor;

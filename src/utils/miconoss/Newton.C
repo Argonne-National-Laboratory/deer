@@ -87,6 +87,7 @@ bool Newton::solveSubstep(vecD &lm, matrixD &J,
 
     increment_at_custom_interruption = 0;
     for (uint s = 0; s < n_total_step; s++) {
+      sysparams->setValue("dt_accum", sysparams->getValue("dt") * (s + 1));
       const bool last_substep = s == (n_total_step - 1);
       bool substep_converged = solve(lm, J, auto_scale_equation);
       if (!last_substep)

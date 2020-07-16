@@ -102,6 +102,7 @@ protected:
   const Real _thickness;
   const Real _n;
   const Real _theta;
+  const Real _E_penalty;
   ///@}
 
   /// switch for activing physics
