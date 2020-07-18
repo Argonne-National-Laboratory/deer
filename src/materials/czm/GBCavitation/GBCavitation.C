@@ -15,7 +15,7 @@ registerMooseObject("DeerApp", GBCavitation);
 InputParameters GBCavitation::validParams() {
   InputParameters params = CZMMaterialBasePK1::validParams();
   params.addClassDescription("Sham Needleman grain boundary cavitation model. "
-                             "Default parameters are for Grade91.");
+                             "Default parameters are for Grade91 at 600C.");
   params.addParam<Real>("a0", 5e-5, "Initial cavity radius");
   params.addParam<Real>("b0", 6e-2, "Initial cavity half spacing");
   params.addParam<Real>("FN_NI", 2e4, "Normalized nucleation rate constant");
@@ -32,15 +32,13 @@ InputParameters GBCavitation::validParams() {
   params.addParam<Real>("D_GB", 1e-15, "Grain boundary diffusivity");
   params.addParam<Real>("eta_sliding", 1e6,
                         "Grain boundary sliding viscosisty");
-  params.addParam<Real>("eta_sliding", 1e6,
-                        "Grain boundary sliding viscosisty");
   params.addParam<Real>("interface_thickness", 0.0113842,
-                        "Interface thickness");
+                        "The interface thickness");
   params.addParam<Real>("n", 5., "Creep rate exponent");
   params.addParam<Real>(
       "theta", 0.,
-      "Parameter for the time integration scheme: 0 explicit, "
-      "1 implicit, 0.5 cranck-nicolson");
+      "Parameter for the time integration scheme: 0 implicit (default), "
+      " 0.5 cranck-nicolson, 1 explicit, other numbers are mixed scheme");
   params.addParam<bool>("nucleation_on", true, "Turns on cavity nucleation");
   params.addParam<bool>("growth_on", true, "Turns on cavity growth");
   params.addParam<bool>("use_triaxial_growth", true,
@@ -57,24 +55,21 @@ InputParameters GBCavitation::validParams() {
                                 "the maximum number of nonlinear iterations "
                                 "(default 10) for each substep.");
   params.addParam<Real>(
-      "nl_residual_abs_tol", 1e-6,
-      "The solver uses the max(abs(Residual)) as stopping criteria. 1e-6 is "
-      "fine if equation are scaled, it might be too loose oitherwise.");
+      "nl_residual_abs_tol", 1e-10,
+      "The solver uses the max(abs(Residual)) as stopping criteria. 1e-10 is "
+      "the default value.");
   params.addParam<Real>("D_failure", 0.95, "Damage at failure");
   params.addParam<Real>(
       "minimum_allowed_residual_life", 1e2,
       "When the interface residual life is below this value the element is "
       "marked as failed. Residual life is comptued as "
       "(1-current_damage)/damage_rate.");
-  params.addParam<Real>("maximum_allowed_opening_traction", 1.4e3,
+  params.addParam<Real>("maximum_allowed_opening_traction", 1.4e4,
                         "When the opening traction exceeds this value the "
                         "lement is marked as failed.");
   params.addParam<Real>("minimum_allowed_stiffness", 1,
                         "The minimum allowed stiffness to prevent floating "
                         "domains during traction decay");
-  params.addParam<bool>("decouple_shear_traction", false,
-                        "If true(default), shear traction use staggered value "
-                        "of cavity radii and spacing");
   params.addParam<bool>("force_substep", false, "force substep");
   return params;
 }
@@ -140,7 +135,6 @@ GBCavitation::GBCavitation(const InputParameters &parameters)
       _nucleation_on(getParam<bool>("nucleation_on")),
       _growth_on(getParam<bool>("growth_on")),
       _use_triaxial_growth(getParam<bool>("use_triaxial_growth")),
-      _decouple_shear_traction(getParam<bool>("decouple_shear_traction")),
       _D_failure(getParam<Real>("D_failure")),
       _minimum_allowed_residual_life(
           getParam<Real>("minimum_allowed_residual_life")),
@@ -177,12 +171,6 @@ void GBCavitation::computeTractionIncrementAndDerivatives() {
 
     /// set system up variables
     if (_scale_variables) {
-      // a_var.setScaleFactor(_a_old[_qp]);
-      // b_var.setScaleFactor(_b_old[_qp]);
-      // TN_var.setScaleFactor(std::max(10., std::abs(_traction_old[_qp](0))));
-      // TS1_var.setScaleFactor(std::max(1., std::abs(_traction_old[_qp](1))));
-      // TS2_var.setScaleFactor(std::max(1., std::abs(_traction_old[_qp](2))));
-
       a_var.setScaleFactor(1e-3);
       b_var.setScaleFactor(1e-3);
       TN_var.setScaleFactor(1e3);
@@ -196,16 +184,12 @@ void GBCavitation::computeTractionIncrementAndDerivatives() {
     /// set up precalculator
     V_dot vdotfun(&sysvars, &sysparams, {"vdot"}, _use_triaxial_growth);
 
-    Real _theta_shear = _theta;
-    if (_decouple_shear_traction)
-      _theta_shear = 1;
-
     /// set up equations
     a_res a_eq(0, sysvars, sysparams, vdotfun, _theta, _growth_on);
     b_res b_eq(1, sysvars, sysparams, vdotfun, _theta, _nucleation_on);
     TN_res Tn_eq(2, sysvars, sysparams, vdotfun, _theta);
-    TS_res Ts1_eq(3, sysvars, sysparams, vdotfun, _theta_shear, 1);
-    TS_res Ts2_eq(4, sysvars, sysparams, vdotfun, _theta_shear, 2);
+    TS_res Ts1_eq(3, sysvars, sysparams, vdotfun, _theta, 1);
+    TS_res Ts2_eq(4, sysvars, sysparams, vdotfun, _theta, 2);
     std::vector<Equation *> my_eqs = {&a_eq, &b_eq, &Tn_eq, &Ts1_eq, &Ts2_eq};
 
     /// set up lagrange multiplier equations
@@ -474,28 +458,31 @@ void GBCavitation::initNLSystemParamter(std::vector<std::string> &pname,
                                         : _strain_rate_eq[_qp]};
 }
 
-void GBCavitation::decoupeldShearTraction(const Real &dt) {
-  Real a = _a_old[_qp];
-  Real b = _b_old[_qp];
-  Real S = _thickness / (_G_GB * (1. - (a / b)));
-  Real eta = _eta_sliding;
-  if (a / b > 0.5)
-    eta = 2 * _eta_sliding * (1. - a / b);
-  _traction[_qp](1) =
-      eta * _displacement_jump_inc[_qp](1) / _dt +
-      std::exp(-dt / (eta * S)) *
-          (_traction_old[_qp](1) - eta * _displacement_jump_inc[_qp](1) / _dt);
-
-  _dtraction_djump[_qp](1, 0) = 0;
-  _dtraction_djump[_qp](1, 1) = eta / dt - std::exp(-dt / (eta * S)) * eta / dt;
-  _dtraction_djump[_qp](1, 2) = 0;
-
-  _traction[_qp](2) =
-      eta * _displacement_jump_inc[_qp](2) / _dt +
-      std::exp(-dt / (eta * S)) *
-          (_traction_old[_qp](2) - eta * _displacement_jump_inc[_qp](2) / _dt);
-
-  _dtraction_djump[_qp](2, 0) = 0;
-  _dtraction_djump[_qp](2, 1) = 0;
-  _dtraction_djump[_qp](2, 2) = eta / dt - std::exp(-dt / (eta * S)) * eta / dt;
-}
+// void GBCavitation::decoupeldShearTraction(const Real &dt) {
+//   Real a = _a_old[_qp];
+//   Real b = _b_old[_qp];
+//   Real S = _thickness / (_G_GB * (1. - (a / b)));
+//   Real eta = _eta_sliding;
+//   if (a / b > 0.5)
+//     eta = 2 * _eta_sliding * (1. - a / b);
+//   _traction[_qp](1) =
+//       eta * _displacement_jump_inc[_qp](1) / _dt +
+//       std::exp(-dt / (eta * S)) *
+//           (_traction_old[_qp](1) - eta * _displacement_jump_inc[_qp](1) /
+//           _dt);
+//
+//   _dtraction_djump[_qp](1, 0) = 0;
+//   _dtraction_djump[_qp](1, 1) = eta / dt - std::exp(-dt / (eta * S)) * eta /
+//   dt; _dtraction_djump[_qp](1, 2) = 0;
+//
+//   _traction[_qp](2) =
+//       eta * _displacement_jump_inc[_qp](2) / _dt +
+//       std::exp(-dt / (eta * S)) *
+//           (_traction_old[_qp](2) - eta * _displacement_jump_inc[_qp](2) /
+//           _dt);
+//
+//   _dtraction_djump[_qp](2, 0) = 0;
+//   _dtraction_djump[_qp](2, 1) = 0;
+//   _dtraction_djump[_qp](2, 2) = eta / dt - std::exp(-dt / (eta * S)) * eta /
+//   dt;
+// }

@@ -110,7 +110,6 @@ protected:
   const bool _nucleation_on;
   const bool _growth_on;
   const bool _use_triaxial_growth;
-  const bool _decouple_shear_traction;
   ///@}
 
   /// failure constants

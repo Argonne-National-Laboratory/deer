@@ -335,21 +335,68 @@ class TN_res : public RateEquation {
 public:
   using RateEquation::RateEquation;
 
-  bool innerPentrationCheck() const {
-    return (_sysparams.getValue("uN_old") +
-            _sysparams.getValue("udot_N") * _sysparams.getValue("dt_accum")) +
-               _sysparams.getValue("thickness") <
-           0;
+  double currentJump() const {
+    return _sysparams.getValue("uN_old") +
+           _sysparams.getValue("udot_N") * _sysparams.getValue("dt_accum");
+  }
+
+  vecD DcurrentJumpDParam() const {
+    vecD dcurrjump_dparam(_n_params);
+    if (currentJump() < 0)
+      dcurrjump_dparam[_sysparams.getParamIndex("udot_N")] =
+          _sysparams.getValue("dt_accum");
+
+    return dcurrjump_dparam;
+  }
+
+  bool innerPentrationCheck() const { return currentJump() < 0; }
+
+  double quadraticPenalty() const {
+    const double jump = currentJump();
+    double P = 1.;
+    if (jump < 0) {
+      const double P_mtover2 = 5;
+      const double P_mt = 10;
+      const double t = _sysparams.getValue("thickness");
+      const double a_parabola = (2 * P_mt - 4 * P_mtover2 + 2.) / (t * t);
+      const double b_parabola = (P_mt - 4 * P_mtover2 + 3.) / t;
+      P = a_parabola * jump * jump + b_parabola * jump + 1;
+    }
+    return P;
+  }
+
+  vecD DQuadraticPenaltyDParam() const {
+    const double jump = currentJump();
+    vecD dPenalty_dParam = DcurrentJumpDParam();
+    if (jump < 0) {
+      const double P_mtover2 = 5;
+      const double P_mt = 10;
+      const double t = _sysparams.getValue("thickness");
+      const double a_parabola = (2 * P_mt - 4 * P_mtover2 + 2.) / (t * t);
+      const double b_parabola = (P_mt - 4 * P_mtover2 + 3.) / t;
+      const double dPDJump = 2 * a_parabola * jump + b_parabola;
+      dPenalty_dParam[_sysparams.getParamIndex("udot_N")] *= dPDJump;
+    }
+    return dPenalty_dParam;
+  }
+
+  double Eeffective() const {
+    return _sysparams.getValue("E") * quadraticPenalty();
+  }
+
+  vecD DEeffectiveDParam() const {
+    vecD dEffective_dParam = DQuadraticPenaltyDParam();
+    dEffective_dParam[_sysparams.getParamIndex("udot_N")] *=
+        _sysparams.getValue("E");
+    return dEffective_dParam;
   }
 
   double CN(const bool implicit) const {
-    double C_effective = _sysparams.getValue("thickness") /
-                         (_sysparams.getValue("E") *
-                          (1. - _sys_vars.getValueImplicit("a", implicit) /
-                                    _sys_vars.getValueImplicit("b", implicit)));
+    double C_effective =
+        _sysparams.getValue("thickness") /
+        (Eeffective() * (1. - _sys_vars.getValueImplicit("a", implicit) /
+                                  _sys_vars.getValueImplicit("b", implicit)));
 
-    if (innerPentrationCheck())
-      C_effective /= _sysparams.getValue("E_penalty");
     return C_effective;
   }
 
@@ -358,17 +405,21 @@ public:
     const double a = _sys_vars.getValueImplicit("a", implicit);
     const double b = _sys_vars.getValueImplicit("b", implicit);
     const double thickness = _sysparams.getValue("thickness");
-    const double E = _sysparams.getValue("E");
 
-    double prefactor = thickness / (E * (b - a) * (b - a));
-
-    if (innerPentrationCheck())
-      prefactor /= _sysparams.getValue("E_penalty");
+    double prefactor = thickness / (Eeffective() * (b - a) * (b - a));
 
     dCN_dx[0] = b * prefactor;
     dCN_dx[1] = -a * prefactor;
 
     return dCN_dx;
+  }
+
+  vecD dCNdParam(const bool implicit) const {
+    vecD dCN_dParam = DEeffectiveDParam();
+
+    double dCNdEeffective = -CN(implicit) / Eeffective();
+    dCN_dParam[_sysparams.getParamIndex("udot_N")] *= dCNdEeffective;
+    return dCN_dParam;
   }
 
   double computedRate(const bool implicit) const override {
@@ -391,7 +442,7 @@ public:
 
     double g = M_PI * b * b;
     vecD dg_dx(_n_vars);
-    dg_dx[1] = M_PI * 2 * b;
+    dg_dx[1] = M_PI * 2. * b;
 
     const double term1 = (u_dot - vdot / g);
     vecD dterm1_dx(_n_vars);
@@ -406,7 +457,13 @@ public:
 
   vecD DComputedRatetDP(const bool implicit) const override {
     vecD deq_dparam(_n_params);
-    deq_dparam[_sysparams.getParamIndex("udot_N")] = 1. / CN(implicit);
+    vecD dcn_dparam = dCNdParam(implicit);
+    const double cn = CN(implicit);
+
+    deq_dparam[_sysparams.getParamIndex("udot_N")] =
+        1. / cn - _sysparams.getValue("udot_N") *
+                      dcn_dparam[_sysparams.getParamIndex("udot_N")] /
+                      (cn * cn);
     return deq_dparam;
   }
 
