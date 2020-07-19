@@ -144,7 +144,8 @@ public:
          const uint _max_iter, const miconossmath::normtype normtype);
 
 protected:
-  bool customSubstepInterruption(NLSystemParameters *const sysparams) override;
+  int customSubstepInterruption(NLSystemParameters *const sysparams,
+                                bool &custom_interruption_flag) override;
 };
 
 } // namespace ShamNeedlemann

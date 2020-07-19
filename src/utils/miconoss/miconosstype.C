@@ -27,24 +27,27 @@ void printMatrix(const matrixD &M, const std::string &Mname) {
 
 namespace miconossmath {
 
-double L2norm(const vecD &V) {
-  double norm = 0;
+int L2norm(const vecD &V, double &norm) {
+  int ierr = 0;
+  norm = 0;
   for (auto v : V) {
     if (std::isfinite(v))
       norm += v * v;
     else {
+      ierr = 1;
       norm = std::numeric_limits<double>::quiet_NaN();
       break;
     }
   }
-  if (std::isfinite(norm))
+  if (ierr == 0)
     norm = std::sqrt(norm);
 
-  return norm;
+  return ierr;
 }
 
-double LInfnorm(const vecD &V) {
-  double norm = 0;
+int LInfnorm(const vecD &V, double &norm) {
+  norm = 0;
+  int ierr = 0;
   for (auto v : V) {
     if (std::isfinite(v)) {
       double absv = std::abs(v);
@@ -52,23 +55,25 @@ double LInfnorm(const vecD &V) {
         norm = absv;
     } else {
       norm = std::numeric_limits<double>::quiet_NaN();
+      ierr = 1;
       break;
     }
   }
-  return norm;
+  return ierr;
 }
 
-double norm(const vecD &V, const normtype &nt) {
-  double norm = 0;
+int norm(const vecD &V, const normtype &nt, double &norm) {
+  norm = 0;
+  int ierr = 0;
   switch (nt) {
   case L2:
-    norm = L2norm(V);
+    ierr = L2norm(V, norm);
     break;
   case INF:
-    norm = LInfnorm(V);
+    ierr = LInfnorm(V, norm);
     break;
   }
-  return norm;
+  return ierr;
 }
 
 int solveAxb(const matrixD &A, const vecD &b, const uint &syssize,
@@ -100,8 +105,8 @@ int solveAxb(const matrixD &A, const vecD &b, const uint &syssize,
   return info;
 }
 
-int solveAxNb(const matrixD &A, const std::vector<std::vector<double>> &b,
-              const uint &syssize, matrixD &b_out) {
+int solveAxNb(const matrixD &A, const matrixD &b, const uint &syssize,
+              matrixD &b_out) {
   int neq = syssize;
   int nrhs = b.size();
   vecD b_to_use(neq * nrhs);
@@ -146,6 +151,20 @@ int solveAxNb(const matrixD &A, const std::vector<std::vector<double>> &b,
       }
   }
   return info;
+}
+
+int updateConsistenTangent(const matrixD &J, matrixD &TangentOld, matrixD &dRdP,
+                           const uint &syssize, matrixD &NewTangent,
+                           const double alpha) {
+
+  const uint nparam = dRdP.size();
+
+  for (uint p = 0; p < nparam; p++)
+    for (uint j = 0; j < syssize; j++)
+      TangentOld[p][j] -= alpha * dRdP[p][j];
+
+  int ierr = solveAxNb(J, TangentOld, syssize, NewTangent);
+  return ierr;
 }
 
 } // namespace miconossmath

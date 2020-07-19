@@ -601,11 +601,16 @@ Solver::Solver(NLSystem *_nlsys, NLSystemVars *sys_vars, const double tolerance,
                const uint _max_iter, const miconossmath::normtype normtype)
     : Newton(_nlsys, sys_vars, tolerance, _max_iter, normtype) {}
 
-bool Solver::customSubstepInterruption(NLSystemParameters *const sysparams) {
+int Solver::customSubstepInterruption(NLSystemParameters *const sysparams,
+                                      bool &custom_interruption_flag) {
 
+  custom_interruption_flag = false;
+  sysparams->setValue("element_failed", 0.);
+
+  // check if had an error somewhere
   for (uint i = 0; i < _n_eq; i++)
     if (!std::isfinite(_sys_vars->getValue(i)))
-      return false;
+      return 1;
 
   const double D = _sys_vars->getValue("a") / _sys_vars->getValue("b");
   const double D_old =
@@ -617,23 +622,26 @@ bool Solver::customSubstepInterruption(NLSystemParameters *const sysparams) {
 
   if (D > sysparams->getValue("max_damage")) {
     sysparams->setValue("element_failed", 1.);
-    return true;
+    custom_interruption_flag = true;
+    return 0;
   }
 
   if (D_rate > 0)
     if (residual_life < sysparams->getValue("minimum_allowed_residual_life")) {
       sysparams->setValue("element_failed", 1.);
-      return true;
+      custom_interruption_flag = true;
+      return 0;
     }
 
   if (_sys_vars->getValue("Tn") >
       sysparams->getValue("maximum_allowed_opening_traction")) {
     sysparams->setValue("element_failed", 1.);
-    return true;
+    custom_interruption_flag = true;
+    return 0;
   }
 
-  sysparams->setValue("element_failed", 0.);
-  return false;
+  // if we are here element still hasn't failed
+  return 0;
 }
 
 } // namespace ShamNeedlemann

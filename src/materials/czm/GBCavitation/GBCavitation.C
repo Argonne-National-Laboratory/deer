@@ -154,7 +154,19 @@ GBCavitation::GBCavitation(const InputParameters &parameters)
 {}
 
 void GBCavitation::computeTractionIncrementAndDerivatives() {
-  if (_element_failed_old[_qp] == 0) {
+
+  if (_element_failed_old[_qp] != 0) {
+    _element_failed[_qp] = 1;
+    _time_at_failure[_qp] = _time_at_failure_old[_qp];
+    _traction_at_failure[_qp] = _traction_at_failure_old[_qp];
+    _jump_at_failure[_qp] = _jump_at_failure_old[_qp];
+    _residual_life[_qp] = _residual_life_old[_qp];
+    _a[_qp] = _a_old[_qp];
+    _b[_qp] = _b_old[_qp];
+    _D[_qp] = _a[_qp] / _b[_qp];
+
+    tractionDecay();
+  } else {
     computeAverageBulkPorperties();
 
     uint neq = 5;
@@ -217,18 +229,24 @@ void GBCavitation::computeTractionIncrementAndDerivatives() {
                                         _max_nonlinear_iter,
                                         miconossmath::normtype::INF);
 
+    bool converged = false;
     bool custom_interruption = false;
     Real dt_effective = 0;
 
     // solve the system
     matrixD deq_dparam;
-    bool converged = newtonSolver.solveSubstep(
-        l0, J, &sysparams, {"udot_N", "udot_S1", "udot_S2"}, deq_dparam,
-        custom_interruption, dt_effective, _max_time_cut, _scale_variables,
-        _force_substep);
+    int ierr = newtonSolver.solveSubstep(
+        l0, J, converged, &sysparams, {"udot_N", "udot_S1", "udot_S2"},
+        deq_dparam, custom_interruption, dt_effective, _max_time_cut,
+        _scale_variables, _force_substep);
 
+    if (ierr != 0 || !converged) {
+      // if we didn't converge request a global cutback
+      throw MooseException(
+          "GB Cavitation traction update failed, requesting global cutback");
+    }
     // if we converged to a solution
-    if (converged) {
+    else {
       // update state var values
       _a[_qp] = a_var.getValue();
       _b[_qp] = b_var.getValue();
@@ -298,41 +316,28 @@ void GBCavitation::computeTractionIncrementAndDerivatives() {
           for (uint j = 0; j < 3; j++)
             _dtraction_djump[_qp](i, j) = deq_dparam[i][j + 2];
       }
-    } else // if we didn't converge request a global cutback
-      throw MooseException(
-          "GB Cavitation traction update failed, requesting global cutback");
-  } else {
-    _element_failed[_qp] = 1;
-    _time_at_failure[_qp] = _time_at_failure_old[_qp];
-    _traction_at_failure[_qp] = _traction_at_failure_old[_qp];
-    _jump_at_failure[_qp] = _jump_at_failure_old[_qp];
-    _residual_life[_qp] = _residual_life_old[_qp];
-    _a[_qp] = _a_old[_qp];
-    _b[_qp] = _b_old[_qp];
-    _D[_qp] = _a[_qp] / _b[_qp];
+    }
 
-    tractionDecay();
+    /// check for nans in traction and traction derivatives
+    for (uint i = 0; i < 3; i++)
+      if (!std::isfinite(_traction[_qp](i)))
+        mooseError("GBCavitation _traction[_qp] " + std::to_string(i) +
+                   " is not finite: " + std::to_string(_traction[_qp](i)));
+
+    if (!std::isfinite(_a[_qp]))
+      mooseError("GBCavitation _a[_qp] is not finite: " +
+                 std::to_string(_a[_qp]));
+    if (!std::isfinite(_b[_qp]))
+      mooseError("GBCavitation _b[_qp] is not finite: " +
+                 std::to_string(_b[_qp]));
+
+    for (uint i = 0; i < 3; i++)
+      for (uint j = 0; j < 3; j++)
+        if (!std::isfinite(_dtraction_djump[_qp](i, j)))
+          mooseError("GBCavitation _dtraction_djump[_qp](" + std::to_string(i) +
+                     "," + std::to_string(j) + ") is not finite: " +
+                     std::to_string(_dtraction_djump[_qp](i, j)));
   }
-
-  /// check for nans in traction and traction derivatives
-  for (uint i = 0; i < 3; i++)
-    if (!std::isfinite(_traction[_qp](i)))
-      mooseError("GBCavitation _traction[_qp] " + std::to_string(i) +
-                 " is not finite: " + std::to_string(_traction[_qp](i)));
-
-  if (!std::isfinite(_a[_qp]))
-    mooseError("GBCavitation _a[_qp] is not finite: " +
-               std::to_string(_a[_qp]));
-  if (!std::isfinite(_b[_qp]))
-    mooseError("GBCavitation _b[_qp] is not finite: " +
-               std::to_string(_b[_qp]));
-
-  for (uint i = 0; i < 3; i++)
-    for (uint j = 0; j < 3; j++)
-      if (!std::isfinite(_dtraction_djump[_qp](i, j)))
-        mooseError("GBCavitation _dtraction_djump[_qp](" + std::to_string(i) +
-                   "," + std::to_string(j) + ") is not finite: " +
-                   std::to_string(_dtraction_djump[_qp](i, j)));
 }
 
 void GBCavitation::tractionDecay() {
@@ -477,8 +482,8 @@ void GBCavitation::initNLSystemParamter(std::vector<std::string> &pname,
 //           _dt);
 //
 //   _dtraction_djump[_qp](1, 0) = 0;
-//   _dtraction_djump[_qp](1, 1) = eta / dt - std::exp(-dt / (eta * S)) * eta /
-//   dt; _dtraction_djump[_qp](1, 2) = 0;
+//   _dtraction_djump[_qp](1, 1) = eta / dt - std::exp(-dt / (eta * S)) * eta
+//   / dt; _dtraction_djump[_qp](1, 2) = 0;
 //
 //   _traction[_qp](2) =
 //       eta * _displacement_jump_inc[_qp](2) / _dt +
@@ -488,6 +493,6 @@ void GBCavitation::initNLSystemParamter(std::vector<std::string> &pname,
 //
 //   _dtraction_djump[_qp](2, 0) = 0;
 //   _dtraction_djump[_qp](2, 1) = 0;
-//   _dtraction_djump[_qp](2, 2) = eta / dt - std::exp(-dt / (eta * S)) * eta /
-//   dt;
+//   _dtraction_djump[_qp](2, 2) = eta / dt - std::exp(-dt / (eta * S)) * eta
+//   / dt;
 // }

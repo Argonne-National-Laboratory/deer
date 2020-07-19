@@ -15,17 +15,25 @@ int Newton::computeNewtonStep(const vecD &R, const matrixD &J) {
   return ierr;
 }
 
-bool Newton::solve(vecD &lm, matrixD &J, const bool auto_scale_equation) {
-  bool converged = false;
-  uint it = 0;
+int Newton::customSubstepInterruption(NLSystemParameters *const sysparams,
+                                      bool &custom_interruption_flag) {
+  custom_interruption_flag = false;
+  return 0;
+};
+
+int Newton::solve(vecD &lm, matrixD &J, bool &converged,
+                  const bool auto_scale_equation) {
+  converged = false;
+  double err = 1e6;
   int ierr = 0;
+  uint it = 0;
   if (auto_scale_equation)
     _nlsys->updateEquationScaling();
 
   _nlsys->updateEquationConstants();
   vecD R = _nlsys->assembleR(lm);
-  double err = miconossmath::norm(R, _normtype);
-  if (std::isfinite(err)) {
+  ierr = miconossmath::norm(R, _normtype, err);
+  if (ierr == 0) {
     // miconossprint::printVector(R, "intiial residual");
     while (err > _tolerance && it < _max_iter) {
       J = _nlsys->assembleJ(lm);
@@ -43,27 +51,31 @@ bool Newton::solve(vecD &lm, matrixD &J, const bool auto_scale_equation) {
         lm[i] += _dx[_n_eq + i];
 
       R = _nlsys->assembleR(lm);
-      err = miconossmath::norm(R, _normtype);
-      if (!std::isfinite(err))
+      ierr = miconossmath::norm(R, _normtype, err);
+      if (ierr != 0) {
+        std::cerr << "error is non finite: " << err << " \n";
         break;
+      }
       it++;
     }
-    if (std::isfinite(err) && err < _tolerance && ierr == 0) {
+    if (err < _tolerance && ierr == 0) {
       converged = true;
       J = _nlsys->assembleJ(lm);
     }
   }
-  return converged;
+  return ierr;
 }
 
-bool Newton::solveSubstep(vecD &lm, matrixD &J,
-                          NLSystemParameters *const sysparams,
-                          const std::vector<std::string> &pname,
-                          matrixD &Tangent, bool &custom_interruption,
-                          double &increment_at_custom_interruption,
-                          const uint max_ncut, const bool auto_scale_equation,
-                          const bool force_substep) {
-  bool converged = false;
+int Newton::solveSubstep(vecD &lm, matrixD &J, bool &converged,
+                         NLSystemParameters *const sysparams,
+                         const std::vector<std::string> &pname,
+                         matrixD &Tangent, bool &custom_interruption,
+                         double &increment_at_custom_interruption,
+                         const uint max_ncut, const bool auto_scale_equation,
+                         const bool force_substep) {
+  int ierr = 0;
+  converged = false;
+
   const vecD initVarValues = _sys_vars->getValueVectorOld();
   const double total_increment = sysparams->getValue("dt");
   uint n_cut = 0;
@@ -86,45 +98,50 @@ bool Newton::solveSubstep(vecD &lm, matrixD &J,
     Tangent = Tangent_old;
 
     increment_at_custom_interruption = 0;
+    ierr = 0;
     for (uint s = 0; s < n_total_step; s++) {
       sysparams->setValue("dt_accum", sysparams->getValue("dt") * (s + 1));
       const bool last_substep = s == (n_total_step - 1);
-      bool substep_converged = solve(lm, J, auto_scale_equation);
-      if (!last_substep)
-        increment_at_custom_interruption += sysparams->getValue("dt");
-      else
-        increment_at_custom_interruption = total_increment;
+      bool substep_converged = false;
+      ierr = solve(lm, J, substep_converged, auto_scale_equation);
 
-      if (substep_converged) {
+      if (substep_converged && ierr == 0) {
+        if (!last_substep)
+          increment_at_custom_interruption += sysparams->getValue("dt");
+        else
+          increment_at_custom_interruption = total_increment;
 
         // update global tangent
         Tangent_old = Tangent;
         J = _nlsys->unscaleJacobian(J);
         matrixD dRdP = _nlsys->getDResidualDParams(pname);
 
-        // if we have rate paramters, and we want the consistent tangent be
-        // we have to scale back dRdP using the derivative of the rate paramter
-        // w.r.t. the increment
-
         for (uint p = 0; p < np_tangent; p++) {
-          double dP_dinc = 1.;
-          if (sysparams->isRateParam(pname[p]))
-            dP_dinc = sysparams->getDRateDIncrement(pname[p]);
-          for (uint j = 0; j < _n_total; j++)
-            Tangent_old[p][j] -= alpha * dRdP[p][j] * dP_dinc;
+          if (sysparams->isRateParam(pname[p])) {
+            double dP_dinc = sysparams->getDRateDIncrement(pname[p]);
+            for (uint j = 0; j < _n_total; j++)
+              dRdP[p][j] *= dP_dinc;
+          }
         }
 
-        int ierr = miconossmath::solveAxNb(J, Tangent_old, _n_total, Tangent);
+        ierr = miconossmath::updateConsistenTangent(J, Tangent_old, dRdP,
+                                                    _n_total, Tangent, alpha);
         if (ierr != 0) {
           std::cerr << "error computing consitent tangent  \n";
           break;
         }
-        custom_interruption = customSubstepInterruption(sysparams);
+
+        ierr = customSubstepInterruption(sysparams, custom_interruption);
+        if (ierr != 0) {
+          std::cerr << "error custom interruption  \n";
+          break;
+        }
 
         // if we are at the last step or we receive a custom interruption
-        if (last_substep || custom_interruption)
+        if (last_substep || custom_interruption) {
           converged = true;
-        else {
+          break;
+        } else {
           // advance to next step
           _sys_vars->updateOldToCurrent();
           for (uint i = 0; i < _n_lm; i++)
@@ -148,5 +165,5 @@ bool Newton::solveSubstep(vecD &lm, matrixD &J,
     std::cerr << "did not converged after " << std::to_string(n_cut)
               << " cutabck" << std::endl;
 
-  return converged;
+  return ierr;
 }

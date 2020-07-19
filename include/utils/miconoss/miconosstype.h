@@ -26,15 +26,19 @@ extern "C" void dgesv_(int *, int *, double *, int *, int *, double *, int *,
 
 enum normtype { L2, INF };
 
-double L2norm(const vecD &V);
+int L2norm(const vecD &V, double &norm);
 
-double LInfnorm(const vecD &V);
+int LInfnorm(const vecD &V, double &norm);
 
-double norm(const vecD &V, const normtype &nt);
+int norm(const vecD &V, const normtype &nt, double &norm);
 
 int solveAxb(const matrixD &A, const vecD &b, const uint &syssize, vecD &b_out);
 
-int solveAxNb(const matrixD &A, const std::vector<std::vector<double>> &b,
-              const uint &syssize, matrixD &b_out);
+int solveAxNb(const matrixD &A, const matrixD &b, const uint &syssize,
+              matrixD &b_out);
+
+int updateConsistenTangent(const matrixD &J, matrixD &TangentOld, matrixD &dRdP,
+                           const uint &syssize, matrixD &NewTangent,
+                           const double alpha);
 
 } // namespace miconossmath
