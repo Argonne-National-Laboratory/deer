@@ -204,8 +204,8 @@ void GBCavitation::computeTractionIncrementAndDerivatives() {
     /// set up equations
     ShamNeedlemann::a_res a_eq(0, sysvars, sysparams, vdotfun, _theta,
                                _growth_on);
-    ShamNeedlemann::b_res b_eq(1, sysvars, sysparams, vdotfun, _theta, _FN,
-                               _FN_NI, _S0, _beta, _b_sat, _nucleation_on);
+    ShamNeedlemann::b_res b_eq(1, sysvars, sysparams, vdotfun, _FN, _FN_NI, _S0,
+                               _beta, _b_sat, _theta, _nucleation_on);
     ShamNeedlemann::TN_res Tn_eq(2, sysvars, sysparams, vdotfun, _thickness,
                                  _E_GB, _theta);
     ShamNeedlemann::TS_res Ts1_eq(3, sysvars, sysparams, vdotfun, 1, _thickness,
