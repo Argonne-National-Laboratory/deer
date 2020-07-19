@@ -7,6 +7,10 @@ NLParameter::NLParameter(const std::string &param_name, const double value,
                          const bool rate_param)
     : _name(param_name), _value(value), _rate_parameter(rate_param) {}
 
+double NLParameter::getValue() const { return _value; }
+std::string NLParameter::getName() const { return _name; }
+void NLParameter::setValue(const double value) { _value = value; }
+bool NLParameter::isRateParam() const { return _rate_parameter; };
 double NLParameter::getIncrement(const double dt) const {
   if (_rate_parameter)
     return getValue() * dt;
@@ -59,6 +63,8 @@ NLSystemParameters::NLSystemParameters(
     _params.push_back(&_params_vector[i]);
 }
 
+uint NLSystemParameters::getNParams() const { return _n_params; }
+
 uint NLSystemParameters::getParamIndex(const std::string &pname) const {
 
   auto it = _name_index_map.find(pname);
@@ -67,4 +73,40 @@ uint NLSystemParameters::getParamIndex(const std::string &pname) const {
                              " in the paramter list");
 
   return it->second;
+}
+
+bool NLSystemParameters::isRateParam(const uint index) const {
+  return _params[index]->isRateParam();
+}
+bool NLSystemParameters::isRateParam(const std::string &pname) const {
+  return _params[getParamIndex(pname)]->isRateParam();
+}
+
+double NLSystemParameters::getValue(const uint index) const {
+  return _params[index]->getValue();
+}
+double NLSystemParameters::getValue(const std::string &pname) const {
+  return _params[getParamIndex(pname)]->getValue();
+}
+
+double NLSystemParameters::getIncrement(const uint index) const {
+  return _params[index]->getIncrement(getValue("dt"));
+};
+double NLSystemParameters::getIncrement(const std::string &pname) const {
+  return _params[getParamIndex(pname)]->getIncrement(getValue("dt"));
+};
+
+double NLSystemParameters::getDRateDIncrement(const uint index) const {
+  return _params[index]->getIncrement(getDRateDIncrement("dt"));
+};
+double NLSystemParameters::getDRateDIncrement(const std::string &pname) const {
+  return _params[getParamIndex(pname)]->getDRateDIncrement(getValue("dt"));
+};
+
+void NLSystemParameters::setValue(const uint index, const double &p) const {
+  _params[index]->setValue(p);
+}
+void NLSystemParameters::setValue(const std::string &pname,
+                                  const double &p) const {
+  _params[getParamIndex(pname)]->setValue(p);
 }

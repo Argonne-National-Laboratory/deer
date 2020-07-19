@@ -9,7 +9,6 @@
 
 #include "GBCavitation.h"
 #include "NLSystem.h"
-#include "Newton.h"
 registerMooseObject("DeerApp", GBCavitation);
 
 InputParameters GBCavitation::validParams() {
@@ -24,10 +23,13 @@ InputParameters GBCavitation::validParams() {
       "sigma_0", 200.,
       "Traction normalization parameter for cavity nculeation");
   params.addParam<Real>("psi_degree", 75., "Cavity half-tip angle");
-
   params.addParam<Real>("beta", 2., "Cavity nucleation exponent");
   params.addParam<Real>("E_GB", 150e3, "Grain boundary opening stiffness");
-  params.addParam<Real>("E_penalty", 10, "Innerpenetration stiffness penalty");
+  params.addParam<Real>(
+      "E_penalty_minus_thickenss_over_2", 5,
+      "Element co-penetration penatly at jump = -thickness/2");
+  params.addParam<Real>("E_penalty_minus_thickenss", 10,
+                        "Element co-penetration penatly at jump = -thickness");
   params.addParam<Real>("G_GB", 57.69e3, "Grain boundary shear stiffness");
   params.addParam<Real>("D_GB", 1e-15, "Grain boundary diffusivity");
   params.addParam<Real>("eta_sliding", 1e6,
@@ -131,7 +133,9 @@ GBCavitation::GBCavitation(const InputParameters &parameters)
       _eta_sliding(getParam<Real>("eta_sliding")),
       _thickness(getParam<Real>("interface_thickness")),
       _n(getParam<Real>("n")), _theta(getParam<Real>("theta")),
-      _E_penalty(getParam<Real>("E_penalty")),
+      _E_penalty_minus_thickenss_over_2(
+          getParam<Real>("E_penalty_minus_thickenss_over_2")),
+      _E_penalty_minus_thickenss(getParam<Real>("E_penalty_minus_thickenss")),
       _nucleation_on(getParam<bool>("nucleation_on")),
       _growth_on(getParam<bool>("growth_on")),
       _use_triaxial_growth(getParam<bool>("use_triaxial_growth")),
@@ -182,20 +186,23 @@ void GBCavitation::computeTractionIncrementAndDerivatives() {
     NLSystemVars sysvars(myvars);
 
     /// set up precalculator
-    V_dot vdotfun(&sysvars, &sysparams, {"vdot"}, _use_triaxial_growth);
+    ShamNeedlemann::V_dot vdotfun(&sysvars, &sysparams, {"vdot"},
+                                  _use_triaxial_growth);
 
     /// set up equations
-    a_res a_eq(0, sysvars, sysparams, vdotfun, _theta, _growth_on);
-    b_res b_eq(1, sysvars, sysparams, vdotfun, _theta, _nucleation_on);
-    TN_res Tn_eq(2, sysvars, sysparams, vdotfun, _theta);
-    TS_res Ts1_eq(3, sysvars, sysparams, vdotfun, _theta, 1);
-    TS_res Ts2_eq(4, sysvars, sysparams, vdotfun, _theta, 2);
+    ShamNeedlemann::a_res a_eq(0, sysvars, sysparams, vdotfun, _theta,
+                               _growth_on);
+    ShamNeedlemann::b_res b_eq(1, sysvars, sysparams, vdotfun, _theta,
+                               _nucleation_on);
+    ShamNeedlemann::TN_res Tn_eq(2, sysvars, sysparams, vdotfun, _theta);
+    ShamNeedlemann::TS_res Ts1_eq(3, sysvars, sysparams, vdotfun, _theta, 1);
+    ShamNeedlemann::TS_res Ts2_eq(4, sysvars, sysparams, vdotfun, _theta, 2);
     std::vector<Equation *> my_eqs = {&a_eq, &b_eq, &Tn_eq, &Ts1_eq, &Ts2_eq};
 
     /// set up lagrange multiplier equations
-    a_lt_b c0(0, sysvars, sysparams, nsys);
-    a_gt_a0 c1(1, sysvars, sysparams, nsys);
-    b_lt_b_old c2(2, sysvars, sysparams, nsys);
+    ShamNeedlemann::a_lt_b c0(0, sysvars, sysparams, nsys);
+    ShamNeedlemann::a_gt_a0 c1(1, sysvars, sysparams, nsys);
+    ShamNeedlemann::b_lt_b_old c2(2, sysvars, sysparams, nsys);
     std::vector<const InequalityConstraint *> my_lms = {&c0, &c1, &c2};
     vecD l0(nlm);
 
@@ -206,9 +213,9 @@ void GBCavitation::computeTractionIncrementAndDerivatives() {
     matrixD J = mysys.assembleJ(l0);
 
     /// setup the newton solver
-    ShamNeedlemannNewtonSolver newtonSolver(
-        &mysys, &sysvars, _nl_residual_abs_tol, _max_nonlinear_iter,
-        miconossmath::normtype::INF);
+    ShamNeedlemann::Solver newtonSolver(&mysys, &sysvars, _nl_residual_abs_tol,
+                                        _max_nonlinear_iter,
+                                        miconossmath::normtype::INF);
 
     bool custom_interruption = false;
     Real dt_effective = 0;
@@ -406,7 +413,6 @@ void GBCavitation::initNLSystemParamter(std::vector<std::string> &pname,
            "beta",
            "h",
            "E",
-           "E_penalty",
            "G",
            "D",
            "nucleation_is_active",
@@ -433,7 +439,6 @@ void GBCavitation::initNLSystemParamter(std::vector<std::string> &pname,
             _beta,
             ShamNeedlemann::h_psi(_psi_degree * M_PI / 180.),
             _E_GB,
-            _E_penalty,
             _G_GB,
             _D_GB,
             (double)_nucleation_is_active[_qp],

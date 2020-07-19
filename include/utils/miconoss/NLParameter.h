@@ -6,14 +6,13 @@
 class NLParameter {
 public:
   NLParameter(const std::string &param_name, const double value);
-
-  double getValue() const { return _value; }
-  std::string getName() const { return _name; }
-  void setValue(const double value) { _value = value; }
   NLParameter(const std::string &param_name, const double value,
               const bool rate_param);
 
-  bool isRateParam() const { return _rate_parameter; };
+  double getValue() const;
+  std::string getName() const;
+  void setValue(const double value);
+  bool isRateParam() const;
   double getIncrement(const double dt) const;
   double getDRateDIncrement(const double dt) const;
 
@@ -31,41 +30,23 @@ public:
                      std::vector<std::string> rate_param_names,
                      vecD rate_param_values);
 
-  uint getNParams() const { return _n_params; }
+  uint getNParams() const;
   uint getParamIndex(const std::string &pname) const;
 
-  bool isRateParam(const uint index) const {
-    return _params[index]->isRateParam();
-  }
-  bool isRateParam(const std::string &pname) const {
-    return _params[getParamIndex(pname)]->isRateParam();
-  }
+  bool isRateParam(const uint index) const;
+  bool isRateParam(const std::string &pname) const;
 
-  double getValue(const uint index) const { return _params[index]->getValue(); }
-  double getValue(const std::string &pname) const {
-    return _params[getParamIndex(pname)]->getValue();
-  }
+  double getValue(const uint index) const;
+  double getValue(const std::string &pname) const;
 
-  double getIncrement(const uint index) const {
-    return _params[index]->getIncrement(getValue("dt"));
-  };
-  double getIncrement(const std::string &pname) const {
-    return _params[getParamIndex(pname)]->getIncrement(getValue("dt"));
-  };
+  double getIncrement(const uint index) const;
+  double getIncrement(const std::string &pname) const;
 
-  double getDRateDIncrement(const uint index) const {
-    return _params[index]->getIncrement(getDRateDIncrement("dt"));
-  };
-  double getDRateDIncrement(const std::string &pname) const {
-    return _params[getParamIndex(pname)]->getDRateDIncrement(getValue("dt"));
-  };
+  double getDRateDIncrement(const uint index) const;
+  double getDRateDIncrement(const std::string &pname) const;
 
-  void setValue(const uint index, const double &p) const {
-    _params[index]->setValue(p);
-  }
-  void setValue(const std::string &pname, const double &p) const {
-    _params[getParamIndex(pname)]->setValue(p);
-  }
+  void setValue(const uint index, const double &p) const;
+  void setValue(const std::string &pname, const double &p) const;
 
 protected:
   std::vector<NLParameter *> _params;

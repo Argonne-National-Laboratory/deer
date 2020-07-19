@@ -11,46 +11,37 @@ public:
 
   /// methods to override to achive custom scaling
   ///{@
-  virtual double realToNormalized(const double x) const {
-    return x / _scaling_factor;
-  };
-  virtual double normalizedToReal(const double x) const {
-    return x * _scaling_factor;
-  };
-  virtual double dRealdNormalized() const { return _scaling_factor; };
-  virtual double dNormalizeddReal() const { return 1. / _scaling_factor; };
+  virtual double realToNormalized(const double x) const;
+  virtual double normalizedToReal(const double x) const;
+  virtual double dRealdNormalized() const;
+  virtual double dNormalizeddReal() const;
   ///@}
 
   /// getter methods
   ///{@
-  double getValue() const { return _x; }
-  double getValueScaled() const { return realToNormalized(_x); }
-  double getValueOld() const { return _x_old; }
-  double getValueOldScaled() const { return realToNormalized(_x_old); }
-  double getScalingFactor() const { return _scaling_factor; }
-  double getDVarDVarScaled() const { return dRealdNormalized(); }
-  double getDVarScaledDVar() const { return dNormalizeddReal(); }
-  double getValueImplicit(const bool implicit) const {
-    return implicit ? getValue() : getValueOld();
-  }
-  uint getIndex() const { return _index; }
-  std::string getName() const { return _var_name; }
-  ///@}
+  double getValue() const;
+  double getValueScaled() const;
+  double getValueOld() const;
+  double getValueOldScaled() const;
+  double getScalingFactor() const;
+  double getDVarDVarScaled() const;
+  double getDVarScaledDVar() const;
+  double getValueImplicit(const bool implicit) const;
+  uint getIndex() const;
+  std::string getName() const;
 
   /// set methods
   ///{@
-  void setValue(const double &x) { _x = x; }
-  void setValueFromScaled(const double &x) { _x = normalizedToReal(x); }
-  void setValueOld(const double &x_old) { _x_old = x_old; }
-  void setValueOldFromScaled(const double &x_old) {
-    _x_old = normalizedToReal(_x_old);
-  }
+  void setValue(const double &x);
+  void setValueFromScaled(const double &x);
+  void setValueOld(const double &x_old);
+  void setValueOldFromScaled(const double &x_old);
   ///@}
 
-  void setToOld() { setValue(_x_old); };
-  void updateOldToCurrent() { setValueOld(_x); };
+  void setToOld();
+  void updateOldToCurrent();
   void setValues(const double &x, const double &x_old);
-  void setScaleFactor(const double &sf) { _scaling_factor = sf; }
+  void setScaleFactor(const double &sf);
 
 protected:
   double _x;
@@ -60,40 +51,15 @@ protected:
   const std::string _var_name;
 };
 
-// class NLVarShifedAlwaysPositive : public NLVar {
-//
-// public:
-//   NLVarShifedAlwaysPositive(const uint index, const std::string &var_name,
-//                             const double x = 0, const double x_old = 0,
-//                             const double scaling_factor = 1,
-//                             const double shift = 0);
-//
-//   /// methods to override to achive custom scaling
-//   ///{@
-//   virtual double realToNormalized(const double x) const { return x - _shift);
-//   };
-//   virtual double normalizedToReal(const double x) const {
-//     return std::abs(x) * _scaling_factor + _shift;
-//   };
-//   virtual double dRealdNormalized() const {
-//     const double s = _x >= 0 ? 1 : -1;
-//     return s * _scaling_factor;
-//   };
-//   virtual double dNormalizeddReal() const { return 1. / _scaling_factor; };
-//   ///@}
-//
-// protected:
-//   double _shift;
-// };
-
 class NLSystemVars {
 public:
   /// constructor starting from varaible pointers
   NLSystemVars(std::vector<NLVar *> vars);
 
   /// constructor starting from variables names, less flexible for intialization
-  /// but take out the burdne of allocating each single variable and providing
-  /// consistne indeces. THis method also hides varaible from the main program
+  /// but take out the burden of allocating each single variable and providing
+  /// consistent indeces. This method also hides variables pointer from the main
+  /// program
   NLSystemVars(std::vector<std::string> var_names);
 
   uint getNVars() const { return _n_vars; }
@@ -102,125 +68,47 @@ public:
   /*****************************************************************************
                                     GET METHODS
   ****************************************************************************/
-  double getValue(const uint &index) const { return _vars[index]->getValue(); }
-  double getValue(const std::string &vname) const {
-    return _vars[getVarIndex(vname)]->getValue();
-  }
-
-  double getValueImplicit(const uint &index, const bool implicit) const {
-    return _vars[index]->getValueImplicit(implicit);
-  }
-  double getValueImplicit(const std::string &vname, const bool implicit) const {
-    return _vars[getVarIndex(vname)]->getValueImplicit(implicit);
-  }
-
-  double getValueScaled(const uint &index) const {
-    return _vars[index]->getValueScaled();
-  }
-  double getValueScaled(const std::string &vname) const {
-    return _vars[getVarIndex(vname)]->getValueScaled();
-  }
-
-  double getDVarScaledDVar(const uint &index) const {
-    return _vars[index]->getDVarScaledDVar();
-  }
-  double getDVarScaledDVar(const std::string &vname) const {
-    return _vars[getVarIndex(vname)]->getDVarScaledDVar();
-  }
-
-  double getDVarDVarScaled(const uint &index) const {
-    return _vars[index]->getDVarDVarScaled();
-  }
-  double getDVarDVarScaled(const std::string &vname) const {
-    return _vars[getVarIndex(vname)]->getDVarDVarScaled();
-  }
-
-  double getValueOld(const uint &index) const {
-    return _vars[index]->getValueOld();
-  }
-  double getValueOld(const std::string &vname) const {
-    return _vars[getVarIndex(vname)]->getValueOld();
-  }
-  double getValueOldScaled(const uint &index) const {
-    return _vars[index]->getValueOldScaled();
-  }
-  double getValueOldScaled(const std::string &vname) const {
-    return _vars[getVarIndex(vname)]->getValueOldScaled();
-  }
-
-  double getScalingFactor(const uint &index) const {
-    return _vars[index]->getScalingFactor();
-  }
-  double getScalingFactor(const std::string &vname) const {
-    return _vars[getVarIndex(vname)]->getScalingFactor();
-  }
-
-  std::string getName(const uint &index) const {
-    return _vars[index]->getName();
-  }
+  double getValue(const uint &index) const;
+  double getValue(const std::string &vname) const;
+  double getValueImplicit(const uint &index, const bool implicit) const;
+  double getValueImplicit(const std::string &vname, const bool implicit) const;
+  double getValueScaled(const uint &index) const;
+  double getValueScaled(const std::string &vname) const;
+  double getDVarScaledDVar(const uint &index) const;
+  double getDVarScaledDVar(const std::string &vname) const;
+  double getDVarDVarScaled(const uint &index) const;
+  double getDVarDVarScaled(const std::string &vname) const;
+  double getValueOld(const uint &index) const;
+  double getValueOld(const std::string &vname) const;
+  double getValueOldScaled(const uint &index) const;
+  double getValueOldScaled(const std::string &vname) const;
+  double getScalingFactor(const uint &index) const;
+  double getScalingFactor(const std::string &vname) const;
+  std::string getName(const uint &index) const;
 
   /*****************************************************************************
                                     SET METHODS
   ****************************************************************************/
-  void setValue(const uint &index, const double &x) {
-    _vars[index]->setValue(x);
-  }
-  void setValue(const std::string &vname, const double &x) {
-    _vars[getVarIndex(vname)]->setValue(x);
-  }
-  void setValueFromScaled(const uint &index, const double &x) {
-    _vars[index]->setValueFromScaled(x);
-  }
-  void setValueFromScaled(const std::string &vname, const double &x) {
-    _vars[getVarIndex(vname)]->setValueFromScaled(x);
-  }
-
-  void setValueOld(const uint &index, const double &x_old) {
-    _vars[index]->setValueOld(x_old);
-  }
-  void setValueOld(const std::string &vname, const double &x_old) {
-    _vars[getVarIndex(vname)]->setValueOld(x_old);
-  }
-  void setValueOldFromScaled(const uint &index, const double &x_old) {
-    _vars[index]->setValueOldFromScaled(x_old);
-  }
-  void setValueOldFromScaled(const std::string &vname, const double &x_old) {
-    _vars[getVarIndex(vname)]->setValueOldFromScaled(x_old);
-  }
-
-  void setScaleFactor(const uint &index, const double &sf) {
-    _vars[index]->setScaleFactor(sf);
-  }
-  void setScaleFactor(const std::string &vname, const double &sf) {
-    _vars[getVarIndex(vname)]->setScaleFactor(sf);
-  }
+  void setValue(const uint &index, const double &x);
+  void setValue(const std::string &vname, const double &x);
+  void setValueFromScaled(const uint &index, const double &x);
+  void setValueFromScaled(const std::string &vname, const double &x);
+  void setValueOld(const uint &index, const double &x_old);
+  void setValueOld(const std::string &vname, const double &x_old);
+  void setValueOldFromScaled(const uint &index, const double &x_old);
+  void setValueOldFromScaled(const std::string &vname, const double &x_old);
+  void setScaleFactor(const uint &index, const double &sf);
+  void setScaleFactor(const std::string &vname, const double &sf);
 
   /**********************************************************************************
-  update and reset methods for all variables, typically used after solving the
-  the non linear sytem or while substepping.
+  update and reset and get methods for all variables, typically used after
+  solving the the non linear sytem or while substepping.
   **********************************************************************************/
 
-  void setToOld() {
-    for (uint i = 0; i < _n_vars; i++)
-      _vars[i]->setToOld();
-  }
-  void updateOldToCurrent() {
-    for (uint i = 0; i < _n_vars; i++)
-      _vars[i]->updateOldToCurrent();
-  }
-  void setFromVector(const vecD &new_value) {
-    for (uint i = 0; i < _n_vars; i++)
-      _vars[i]->setValue(new_value[i]);
-  }
-  void setOldFromVector(const vecD &new_value) {
-    for (uint i = 0; i < _n_vars; i++)
-      _vars[i]->setValueOld(new_value[i]);
-  }
-
-  /**********************************************************************************
-  varaiable value maps, useful for rate equations where we need both values for
-  using the theta intgeration method
-  **********************************************************************************/
+  void setToOld();
+  void updateOldToCurrent();
+  void setFromVector(const vecD &new_value);
+  void setOldFromVector(const vecD &new_value);
   vecD getValueVector() const;
   vecD getValueVectorOld() const;
 
