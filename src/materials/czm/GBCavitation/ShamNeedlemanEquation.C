@@ -251,25 +251,26 @@ double a_res::equationScalingRule() const { return 1e-3; }
 
 b_res::b_res(const unsigned int eq_index, NLSystemVars &sysvars,
              NLSystemParameters &sysparams,
-             NLPreEquationEvalautionCalc &pre_eval, const double theta,
-             const bool nucleation_on)
+             NLPreEquationEvalautionCalc &pre_eval, const double FN,
+             const double FN_NI, const double S0, const double beta,
+             const double b_sat, const double theta, const bool nucleation_on)
     : RateEquation(eq_index, sysvars, sysparams, pre_eval, theta),
-      _nucleation_on(nucleation_on) {}
+      _nucleation_on(nucleation_on), _FN(FN), _FN_NI(FN_NI), _S0(S0),
+      _beta(beta), _b_sat(b_sat) {}
 
 bool b_res::nucleationAboveThreshold(const bool implicit) const {
   bool active = false;
   const double tn = _sys_vars.getValueImplicit("Tn", implicit);
   if (tn > 0)
     active =
-        (std::pow(tn / _sysparams.getValue("S0"), _sysparams.getValue("beta")) *
-         _sysparams.getValue("e")) > (1. / _sysparams.getValue("FN_NI"));
+        (std::pow(tn / _S0, _beta) * _sysparams.getValue("e")) > (1. / _FN_NI);
   return active;
 }
 
 bool b_res::nucleationIsActive(const bool implicit) const {
   bool active = _sysparams.getValue("nucleation_is_active");
   if (active) {
-    active &= (_sys_vars.getValueOld("b") > _sysparams.getValue("b_sat"));
+    active &= (_sys_vars.getValueOld("b") > _b_sat);
     active &= (_sys_vars.getValueImplicit("Tn", implicit) > 0);
   } else
     active = nucleationAboveThreshold(implicit);
@@ -281,10 +282,8 @@ double b_res::computedRate(const bool implicit) const {
   double bdot = 0;
   if (_nucleation_on && nucleationIsActive(implicit)) {
     const double b = _sys_vars.getValueImplicit("b", implicit);
-    bdot = -M_PI * (b * b * b) * _sysparams.getValue("FN") *
-           std::pow(_sys_vars.getValueImplicit("Tn", implicit) /
-                        _sysparams.getValue("S0"),
-                    _sysparams.getValue("beta")) *
+    bdot = -M_PI * (b * b * b) * _FN *
+           std::pow(_sys_vars.getValueImplicit("Tn", implicit) / _S0, _beta) *
            _sysparams.getValue("edot");
   }
   return bdot;
@@ -295,13 +294,10 @@ vecD b_res::DComputedRatetDx(const bool implicit) const {
   if (_nucleation_on && nucleationIsActive(implicit)) {
     const double b = _sys_vars.getValueImplicit("b", implicit);
     const double T = _sys_vars.getValueImplicit("Tn", implicit);
-    const double S0 = _sysparams.getValue("S0");
-    const double beta = _sysparams.getValue("beta");
     const double edot = _sysparams.getValue("edot");
-    const double FN = _sysparams.getValue("FN");
-    dbdot_dx[1] = -3. * M_PI * (b * b) * FN * std::pow(T / S0, beta) * edot;
-    dbdot_dx[2] = -beta * M_PI * (b * b * b) * FN *
-                  std::pow(T / S0, beta - 1.) / S0 * edot;
+    dbdot_dx[1] = -3. * M_PI * (b * b) * _FN * std::pow(T / _S0, _beta) * edot;
+    dbdot_dx[2] = -_beta * M_PI * (b * b * b) * _FN *
+                  std::pow(T / _S0, _beta - 1.) / _S0 * edot;
   }
   return dbdot_dx;
 }
@@ -314,8 +310,10 @@ double b_res::equationScalingRule() const { return 1e-3; }
 
 TN_res::TN_res(const unsigned int eq_index, NLSystemVars &sysvars,
                NLSystemParameters &sysparams,
-               NLPreEquationEvalautionCalc &pre_eval, const double theta)
-    : RateEquation(eq_index, sysvars, sysparams, pre_eval, theta){};
+               NLPreEquationEvalautionCalc &pre_eval, const double thickness,
+               const double E_interface, const double theta)
+    : RateEquation(eq_index, sysvars, sysparams, pre_eval, theta),
+      _thickness(thickness), _E_interface(E_interface){};
 
 double TN_res::currentJump() const {
   return _sysparams.getValue("uN_old") +
@@ -339,9 +337,9 @@ double TN_res::quadraticPenalty() const {
   if (jump < 0) {
     const double P_mtover2 = 5;
     const double P_mt = 10;
-    const double t = _sysparams.getValue("thickness");
-    const double a_parabola = (2 * P_mt - 4 * P_mtover2 + 2.) / (t * t);
-    const double b_parabola = (P_mt - 4 * P_mtover2 + 3.) / t;
+    const double a_parabola =
+        (2 * P_mt - 4 * P_mtover2 + 2.) / (_thickness * _thickness);
+    const double b_parabola = (P_mt - 4 * P_mtover2 + 3.) / _thickness;
     P = a_parabola * jump * jump + b_parabola * jump + 1;
   }
   return P;
@@ -353,29 +351,26 @@ vecD TN_res::DQuadraticPenaltyDParam() const {
   if (jump < 0) {
     const double P_mtover2 = 5;
     const double P_mt = 10;
-    const double t = _sysparams.getValue("thickness");
-    const double a_parabola = (2 * P_mt - 4 * P_mtover2 + 2.) / (t * t);
-    const double b_parabola = (P_mt - 4 * P_mtover2 + 3.) / t;
+    const double a_parabola =
+        (2 * P_mt - 4 * P_mtover2 + 2.) / (_thickness * _thickness);
+    const double b_parabola = (P_mt - 4 * P_mtover2 + 3.) / _thickness;
     const double dPDJump = 2 * a_parabola * jump + b_parabola;
     dPenalty_dParam[_sysparams.getParamIndex("udot_N")] *= dPDJump;
   }
   return dPenalty_dParam;
 }
 
-double TN_res::Eeffective() const {
-  return _sysparams.getValue("E") * quadraticPenalty();
-}
+double TN_res::Eeffective() const { return _E_interface * quadraticPenalty(); }
 
 vecD TN_res::DEeffectiveDParam() const {
   vecD dEffective_dParam = DQuadraticPenaltyDParam();
-  dEffective_dParam[_sysparams.getParamIndex("udot_N")] *=
-      _sysparams.getValue("E");
+  dEffective_dParam[_sysparams.getParamIndex("udot_N")] *= _E_interface;
   return dEffective_dParam;
 }
 
 double TN_res::CN(const bool implicit) const {
   double C_effective =
-      _sysparams.getValue("thickness") /
+      _thickness /
       (Eeffective() * (1. - _sys_vars.getValueImplicit("a", implicit) /
                                 _sys_vars.getValueImplicit("b", implicit)));
 
@@ -386,9 +381,8 @@ vecD TN_res::dCNdX(const bool implicit) const {
   vecD dCN_dx(_n_vars);
   const double a = _sys_vars.getValueImplicit("a", implicit);
   const double b = _sys_vars.getValueImplicit("b", implicit);
-  const double thickness = _sysparams.getValue("thickness");
 
-  double prefactor = thickness / (Eeffective() * (b - a) * (b - a));
+  double prefactor = _thickness / (Eeffective() * (b - a) * (b - a));
 
   dCN_dx[0] = b * prefactor;
   dCN_dx[1] = -a * prefactor;
@@ -452,28 +446,27 @@ double TN_res::equationScalingRule() const { return 1000.; }
 
 TS_res::TS_res(const uint eq_index, NLSystemVars &sysvars,
                NLSystemParameters &sysparams,
-               NLPreEquationEvalautionCalc &pre_eval, const double theta,
-               const uint shear_index)
+               NLPreEquationEvalautionCalc &pre_eval, const uint shear_index,
+               const double thickness, const double eta_sliding,
+               const double G_interface, const double theta)
     : RateEquation(eq_index, sysvars, sysparams, pre_eval, theta),
       _vname("Ts" + std::to_string(shear_index)),
-      _udotname("udot_S" + std::to_string(shear_index)) {}
+      _udotname("udot_S" + std::to_string(shear_index)), _thickness(thickness),
+      _eta_sliding(eta_sliding), _G_interface(G_interface) {}
 
 double TS_res::CS(const bool implicit) const {
 
-  return _sysparams.getValue("thickness") /
-         (_sysparams.getValue("G") *
-          (1. - _sys_vars.getValueImplicit("a", implicit) /
-                    _sys_vars.getValueImplicit("b", implicit)));
+  return _thickness /
+         (_G_interface * (1. - _sys_vars.getValueImplicit("a", implicit) /
+                                   _sys_vars.getValueImplicit("b", implicit)));
 }
 
 vecD TS_res::dCSdX(const bool implicit) const {
   vecD dCS_dx(_n_vars);
   const double a = _sys_vars.getValueImplicit("a", implicit);
   const double b = _sys_vars.getValueImplicit("b", implicit);
-  const double thickness = _sysparams.getValue("thickness");
-  const double G = _sysparams.getValue("G");
 
-  const double prefactor = thickness / (G * (b - a) * (b - a));
+  const double prefactor = _thickness / (_G_interface * (b - a) * (b - a));
 
   dCS_dx[0] = b * prefactor;
   dCS_dx[1] = -a * prefactor;
@@ -482,7 +475,7 @@ vecD TS_res::dCSdX(const bool implicit) const {
 }
 
 double TS_res::etaFun(const bool implicit) const {
-  double eta = _sysparams.getValue("eta_sliding");
+  double eta = _eta_sliding;
   const double a_b = _sys_vars.getValueImplicit("a", implicit) /
                      _sys_vars.getValueImplicit("b", implicit);
 
@@ -499,7 +492,7 @@ vecD TS_res::DetaFunDX(const bool implicit) const {
 
   if (a_b > 0.5) {
     const double b = _sys_vars.getValueImplicit("b", implicit);
-    const double temp = _sysparams.getValue("eta_sliding") * 2.;
+    const double temp = _eta_sliding * 2.;
     deta_dx[0] = -temp / b;
     deta_dx[1] = temp * a_b / b;
   }

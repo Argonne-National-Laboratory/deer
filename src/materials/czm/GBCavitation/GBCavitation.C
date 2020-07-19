@@ -204,11 +204,14 @@ void GBCavitation::computeTractionIncrementAndDerivatives() {
     /// set up equations
     ShamNeedlemann::a_res a_eq(0, sysvars, sysparams, vdotfun, _theta,
                                _growth_on);
-    ShamNeedlemann::b_res b_eq(1, sysvars, sysparams, vdotfun, _theta,
-                               _nucleation_on);
-    ShamNeedlemann::TN_res Tn_eq(2, sysvars, sysparams, vdotfun, _theta);
-    ShamNeedlemann::TS_res Ts1_eq(3, sysvars, sysparams, vdotfun, _theta, 1);
-    ShamNeedlemann::TS_res Ts2_eq(4, sysvars, sysparams, vdotfun, _theta, 2);
+    ShamNeedlemann::b_res b_eq(1, sysvars, sysparams, vdotfun, _theta, _FN,
+                               _FN_NI, _S0, _beta, _b_sat, _nucleation_on);
+    ShamNeedlemann::TN_res Tn_eq(2, sysvars, sysparams, vdotfun, _thickness,
+                                 _E_GB, _theta);
+    ShamNeedlemann::TS_res Ts1_eq(3, sysvars, sysparams, vdotfun, 1, _thickness,
+                                  _eta_sliding, _G_GB, _theta);
+    ShamNeedlemann::TS_res Ts2_eq(4, sysvars, sysparams, vdotfun, 2, _thickness,
+                                  _eta_sliding, _G_GB, _theta);
     std::vector<Equation *> my_eqs = {&a_eq, &b_eq, &Tn_eq, &Ts1_eq, &Ts2_eq};
 
     /// set up lagrange multiplier equations
@@ -410,20 +413,11 @@ void GBCavitation::initNLSystemParamter(std::vector<std::string> &pname,
   pname = {"dt",
            "dt_accum",
            "max_ab",
-           "FN",
-           "FN_NI",
            "a0",
-           "b_sat",
-           "S0",
-           "beta",
            "h",
-           "E",
-           "G",
            "D",
            "nucleation_is_active",
            "n",
-           "eta_sliding",
-           "thickness",
            "Svm",
            "Sh",
            "e",
@@ -436,20 +430,11 @@ void GBCavitation::initNLSystemParamter(std::vector<std::string> &pname,
   pvalue = {_dt,
             _dt,
             1. - 1e-3,
-            _FN,
-            _FN_NI,
             _a0,
-            _b_sat,
-            _S0,
-            _beta,
             ShamNeedlemann::h_psi(_psi_degree * M_PI / 180.),
-            _E_GB,
-            _G_GB,
             _D_GB,
             (double)_nucleation_is_active[_qp],
             _n,
-            _eta_sliding,
-            _thickness,
             _use_old_bulk_property ? _stress_vm_old[_qp] : _stress_vm[_qp],
             _use_old_bulk_property ? _stress_H_old[_qp] : _stress_H[_qp],
             _use_old_bulk_property ? _strain_eq_old[_qp] : _strain_eq[_qp],

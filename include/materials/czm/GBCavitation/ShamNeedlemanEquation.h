@@ -53,7 +53,9 @@ class b_res : public RateEquation {
 public:
   b_res(const unsigned int eq_index, NLSystemVars &sysvars,
         NLSystemParameters &sysparams, NLPreEquationEvalautionCalc &pre_eval,
-        const double theta = 0, const bool nucleation_on = true);
+        const double FN, const double FN_NI, const double S0, const double beta,
+        const double b_sat, const double theta = 0,
+        const bool nucleation_on = true);
 
   bool nucleationAboveThreshold(const bool implicit) const;
   bool nucleationIsActive(const bool implicit) const;
@@ -63,12 +65,18 @@ public:
   double equationScalingRule() const override;
 
   const bool _nucleation_on;
+  const double _FN;
+  const double _FN_NI;
+  const double _S0;
+  const double _beta;
+  const double _b_sat;
 };
 
 class TN_res : public RateEquation {
 public:
   TN_res(const unsigned int eq_index, NLSystemVars &sysvars,
          NLSystemParameters &sysparams, NLPreEquationEvalautionCalc &pre_eval,
+         const double thickness, const double E_interface,
          const double theta = 0);
 
   double computedRate(const bool implicit) const override;
@@ -87,13 +95,18 @@ protected:
   double CN(const bool implicit) const;
   vecD dCNdX(const bool implicit) const;
   vecD dCNdParam(const bool implicit) const;
+
+  const double _thickness;
+  const double _E_interface;
 };
 
 class TS_res : public RateEquation {
 public:
   TS_res(const uint eq_index, NLSystemVars &sysvars,
          NLSystemParameters &sysparams, NLPreEquationEvalautionCalc &pre_eval,
-         const double theta, const uint shear_index);
+         const uint shear_index, const double thickness,
+         const double eta_sliding, const double G_interface,
+         const double theta = 0);
 
 public:
   double computedRate(const bool implicit) const override;
@@ -109,6 +122,9 @@ protected:
 
   const std::string _vname;
   const std::string _udotname;
+  const double _thickness;
+  const double _eta_sliding;
+  const double _G_interface;
 };
 
 class a_lt_b : public InequalityConstraint {
