@@ -18,27 +18,17 @@ public:
   // this function must fill the _dequation_dparam vector
   virtual void computeDEquationDP() = 0;
   virtual void updateConstants(){};
+  void autoScaleEquation() const;
 
-  void autoScaleEquation() const {
-    _sys_vars.setScaleFactor(_eq_index, std::abs(equationScalingRule()));
-  }
+  ///{@ get and sets methods
+  double getDEquationDParam(const uint i) const;
+  double getDEquationDParam(const std::string &pname) const;
+  void setDEquationDParam(const uint i, const double deqdx);
+  void setDEquationDParam(const std::string &pname, const double deqdx);
+  ///}@
 
-  // method to override to set custom scaling rule, default is old value
-  virtual double equationScalingRule() const {
-    return _sys_vars.getValueOld(_eq_index);
-  }
-
-  double getDEquationDParam(const uint i) const { return _dequation_dparam[i]; }
-  double getDEquationDParam(const std::string &pname) const {
-    return _dequation_dparam[_sysparams.getParamIndex(pname)];
-  }
-
-  void setDEquationDParam(const uint i, const double deqdx) {
-    _dequation_dparam[i] = deqdx;
-  }
-  void setDEquationDParam(const std::string &pname, const double deqdx) {
-    _dequation_dparam[_sysparams.getParamIndex(pname)] = deqdx;
-  }
+  /// method to override to set custom scaling rule, default is 1.
+  virtual double equationScalingRule() const;
 
 protected:
   const uint _eq_index;

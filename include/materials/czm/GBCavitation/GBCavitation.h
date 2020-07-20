@@ -27,8 +27,6 @@ protected:
                             std::vector<std::string> &rate_pname,
                             vecD &rate_pvalue);
 
-  void decoupeldShearTraction(const Real &dt);
-
   /// method to kill the traction
   void tractionDecay();
 

@@ -12,7 +12,8 @@ class V_dot : public NLPreEquationEvalautionCalc {
 
 public:
   V_dot(NLSystemVars *const sysvars, const NLSystemParameters *sysparams,
-        const std::vector<std::string> &value_names, const bool use_vl_triax);
+        const std::vector<std::string> &value_names, const double n,
+        const double h, const double D, const bool use_vl_triax);
 
   void updateValues(const bool implicit = true) override;
   void updateDerivatives(const bool implicit = true) override;
@@ -32,6 +33,10 @@ protected:
   double Vdot(const bool implicit);
   vecD dVdotdX(const bool implicit);
 
+  const double _n;
+  const double _alpha_n;
+  const double _h;
+  const double _D;
   const bool _use_vl_triax;
 };
 
@@ -39,13 +44,16 @@ class a_res : public RateEquation {
 public:
   a_res(const unsigned int eq_index, NLSystemVars &sysvars,
         NLSystemParameters &sysparams, NLPreEquationEvalautionCalc &pre_eval,
-        const double theta = 0, const bool growth_on = true);
+        const double h, const double a0, const double theta = 0,
+        const bool growth_on = true);
 
   double computedRate(const bool implicit) const override;
   vecD DComputedRatetDx(const bool implicit) const override;
   vecD DComputedRatetDP(const bool implicit) const override;
   double equationScalingRule() const override;
 
+  const double _h;
+  const double _a0;
   const bool _growth_on;
 };
 
@@ -139,10 +147,13 @@ public:
 class a_gt_a0 : public InequalityConstraint {
 public:
   a_gt_a0(const uint lm_index, const NLSystemVars &sys_vars,
-          const NLSystemParameters &sysparams, const uint n_sys);
+          const NLSystemParameters &sysparams, const uint n_sys,
+          const double a0);
 
   double gFun() const override;
   vecD dgFun_dx() const override;
+
+  const double _a0;
 };
 
 class b_lt_b_old : public InequalityConstraint {

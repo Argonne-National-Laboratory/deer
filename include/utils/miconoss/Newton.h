@@ -18,7 +18,7 @@ public:
                    bool &custom_interruption,
                    double &increment_at_custom_interruption,
                    const uint max_ncut = 1,
-                   const bool auto_scale_equation = true,
+                   const bool auto_scale_equation = false,
                    const bool force_substep = false);
 
 protected:

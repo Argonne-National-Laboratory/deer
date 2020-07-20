@@ -35,6 +35,28 @@ void Equation::checkGradinet(double tol, double eps) {
   }
 }
 
+void Equation::autoScaleEquation() const {
+  _sys_vars.setScaleFactor(_eq_index, std::abs(equationScalingRule()));
+}
+
+/// method to override to set custom scaling rule, default is old value
+double Equation::equationScalingRule() const { return 1.; }
+
+double Equation::getDEquationDParam(const uint i) const {
+  return _dequation_dparam[i];
+}
+double Equation::getDEquationDParam(const std::string &pname) const {
+  return _dequation_dparam[_sysparams.getParamIndex(pname)];
+}
+
+void Equation::setDEquationDParam(const uint i, const double deqdx) {
+  _dequation_dparam[i] = deqdx;
+}
+void Equation::setDEquationDParam(const std::string &pname,
+                                  const double deqdx) {
+  _dequation_dparam[_sysparams.getParamIndex(pname)] = deqdx;
+}
+
 RateEquation::RateEquation(const uint eq_index, NLSystemVars &sysvars,
                            NLSystemParameters &sysparams,
                            NLPreEquationEvalautionCalc &pre_eval,

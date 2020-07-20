@@ -198,11 +198,11 @@ void GBCavitation::computeTractionIncrementAndDerivatives() {
     NLSystemVars sysvars(myvars);
 
     /// set up precalculator
-    ShamNeedlemann::V_dot vdotfun(&sysvars, &sysparams, {"vdot"},
+    ShamNeedlemann::V_dot vdotfun(&sysvars, &sysparams, {"vdot"}, _n, _h, _D_GB,
                                   _use_triaxial_growth);
 
     /// set up equations
-    ShamNeedlemann::a_res a_eq(0, sysvars, sysparams, vdotfun, _theta,
+    ShamNeedlemann::a_res a_eq(0, sysvars, sysparams, vdotfun, _h, _a0, _theta,
                                _growth_on);
     ShamNeedlemann::b_res b_eq(1, sysvars, sysparams, vdotfun, _FN, _FN_NI, _S0,
                                _beta, _b_sat, _theta, _nucleation_on);
@@ -216,7 +216,7 @@ void GBCavitation::computeTractionIncrementAndDerivatives() {
 
     /// set up lagrange multiplier equations
     ShamNeedlemann::a_lt_b c0(0, sysvars, sysparams, nsys);
-    ShamNeedlemann::a_gt_a0 c1(1, sysvars, sysparams, nsys);
+    ShamNeedlemann::a_gt_a0 c1(1, sysvars, sysparams, nsys, _a0);
     ShamNeedlemann::b_lt_b_old c2(2, sysvars, sysparams, nsys);
     std::vector<const InequalityConstraint *> my_lms = {&c0, &c1, &c2};
     vecD l0(nlm);
@@ -224,8 +224,8 @@ void GBCavitation::computeTractionIncrementAndDerivatives() {
     /// set up the constrained nonlinear system
     NLSystem mysys(&sysvars, &sysparams, my_eqs, my_lms, &vdotfun);
 
-    vecD R = mysys.assembleR(l0);
-    matrixD J = mysys.assembleJ(l0);
+    /// reference matrix containg the jacobian o f the nonlinear system
+    matrixD J(mysys.getDim(), vecD(mysys.getDim()));
 
     /// setup the newton solver
     ShamNeedlemann::Solver newtonSolver(&mysys, &sysvars, _nl_residual_abs_tol,
@@ -413,11 +413,7 @@ void GBCavitation::initNLSystemParamter(std::vector<std::string> &pname,
   pname = {"dt",
            "dt_accum",
            "max_ab",
-           "a0",
-           "h",
-           "D",
            "nucleation_is_active",
-           "n",
            "Svm",
            "Sh",
            "e",
@@ -430,11 +426,7 @@ void GBCavitation::initNLSystemParamter(std::vector<std::string> &pname,
   pvalue = {_dt,
             _dt,
             1. - 1e-3,
-            _a0,
-            ShamNeedlemann::h_psi(_psi_degree * M_PI / 180.),
-            _D_GB,
             (double)_nucleation_is_active[_qp],
-            _n,
             _use_old_bulk_property ? _stress_vm_old[_qp] : _stress_vm[_qp],
             _use_old_bulk_property ? _stress_H_old[_qp] : _stress_H[_qp],
             _use_old_bulk_property ? _strain_eq_old[_qp] : _strain_eq[_qp],
@@ -452,32 +444,3 @@ void GBCavitation::initNLSystemParamter(std::vector<std::string> &pname,
                  _use_old_bulk_property ? _strain_rate_eq_old[_qp]
                                         : _strain_rate_eq[_qp]};
 }
-
-// void GBCavitation::decoupeldShearTraction(const Real &dt) {
-//   Real a = _a_old[_qp];
-//   Real b = _b_old[_qp];
-//   Real S = _thickness / (_G_GB * (1. - (a / b)));
-//   Real eta = _eta_sliding;
-//   if (a / b > 0.5)
-//     eta = 2 * _eta_sliding * (1. - a / b);
-//   _traction[_qp](1) =
-//       eta * _displacement_jump_inc[_qp](1) / _dt +
-//       std::exp(-dt / (eta * S)) *
-//           (_traction_old[_qp](1) - eta * _displacement_jump_inc[_qp](1) /
-//           _dt);
-//
-//   _dtraction_djump[_qp](1, 0) = 0;
-//   _dtraction_djump[_qp](1, 1) = eta / dt - std::exp(-dt / (eta * S)) * eta
-//   / dt; _dtraction_djump[_qp](1, 2) = 0;
-//
-//   _traction[_qp](2) =
-//       eta * _displacement_jump_inc[_qp](2) / _dt +
-//       std::exp(-dt / (eta * S)) *
-//           (_traction_old[_qp](2) - eta * _displacement_jump_inc[_qp](2) /
-//           _dt);
-//
-//   _dtraction_djump[_qp](2, 0) = 0;
-//   _dtraction_djump[_qp](2, 1) = 0;
-//   _dtraction_djump[_qp](2, 2) = eta / dt - std::exp(-dt / (eta * S)) * eta
-//   / dt;
-// }

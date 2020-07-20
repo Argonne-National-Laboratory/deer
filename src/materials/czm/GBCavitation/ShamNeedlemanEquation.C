@@ -10,21 +10,20 @@ double h_psi(const double psi) {
 }
 
 V_dot::V_dot(NLSystemVars *const sysvars, const NLSystemParameters *sysparams,
-             const std::vector<std::string> &value_names,
-             const bool use_vl_triax)
-    : NLPreEquationEvalautionCalc(sysvars, sysparams, value_names),
-      _use_vl_triax(use_vl_triax) {}
+             const std::vector<std::string> &value_names, const double n,
+             const double h, const double D, const bool use_vl_triax)
+    : NLPreEquationEvalautionCalc(sysvars, sysparams, value_names), _n(n),
+      _alpha_n(alphanFun()), _h(h), _D(D), _use_vl_triax(use_vl_triax) {}
 
 double V_dot::mFun() { return _sysparams->getValue("Sh") >= 0 ? 1 : -1; }
 
-double V_dot::alphanFun() { return 3. / (2. * _sysparams->getValue("n")); }
+double V_dot::alphanFun() { return 3. / (2. * _n); }
 
 double V_dot::betanFun() {
-  const double g1 = std::log(3) - 2. / 3.;
+  const double g1 = std::log(3.) - 2. / 3.;
   const double gm1 = 2. * M_PI / (9. * std::sqrt(3));
   const double g = _sysparams->getValue("Sh") >= 0 ? g1 : gm1;
-  const double n = _sysparams->getValue("n");
-  return (n - 1) * (n + g) / (n * n);
+  return (_n - 1.) * (_n + g) / (_n * _n);
 }
 
 double V_dot::VL2dotFun(const bool implicit) {
@@ -35,17 +34,14 @@ double V_dot::VL2dotFun(const bool implicit) {
     const double m = mFun();
     const double triax = sh / svm;
     const double a = _sys_vars->getValueImplicit("a", implicit);
-    const double alpha_n = alphanFun();
     const double betan = betanFun();
-    const double n = _sysparams->getValue("n");
 
-    double vL2dot = 2 * _sysparams->getValue("edot") * (a * a * a) * M_PI *
-                    _sysparams->getValue("h");
+    double vL2dot = 2 * _sysparams->getValue("edot") * (a * a * a) * M_PI * _h;
 
     if (std::abs(triax) >= 1)
-      vL2dot *= m * std::pow(alpha_n * std::abs(triax) + betan, n);
+      vL2dot *= m * std::pow(_alpha_n * std::abs(triax) + betan, _n);
     else
-      vL2dot *= std::pow(alpha_n + betan, n) * triax;
+      vL2dot *= std::pow(_alpha_n + betan, _n) * triax;
   }
   return vL2dot;
 }
@@ -58,17 +54,14 @@ vecD V_dot::dVL2dotFundX(const bool implicit) {
     const double m = mFun();
     const double triax = sh / svm;
     const double a = _sys_vars->getValueImplicit("a", implicit);
-    const double alpha_n = alphanFun();
     const double betan = betanFun();
-    const double n = _sysparams->getValue("n");
 
-    dvL2dotdx[0] = 6 * _sysparams->getValue("edot") * (a * a) * M_PI *
-                   _sysparams->getValue("h");
+    dvL2dotdx[0] = 6 * _sysparams->getValue("edot") * (a * a) * M_PI * _h;
 
     if (std::abs(triax) >= 1)
-      dvL2dotdx[0] *= m * std::pow(alpha_n * std::abs(triax) + betan, n);
+      dvL2dotdx[0] *= m * std::pow(_alpha_n * std::abs(triax) + betan, _n);
     else
-      dvL2dotdx[0] *= std::pow(alpha_n + betan, n) * triax;
+      dvL2dotdx[0] *= std::pow(_alpha_n + betan, _n) * triax;
   }
   return dvL2dotdx;
 }
@@ -99,7 +92,7 @@ double V_dot::faLFun(const bool implicit) {
 
   if (edot != 0 && svm != 0) {
     const double a = _sys_vars->getValueImplicit("a", implicit);
-    L = std::pow(_sysparams->getValue("D") * svm / edot, 1. / 3.);
+    L = std::pow(_D * svm / edot, 1. / 3.);
     FL = a * a / ((a + 1.5 * L) * (a + 1.5 * L));
   }
   return FL;
@@ -113,7 +106,7 @@ vecD V_dot::dfaLFundX(const bool implicit) {
   if (edot != 0 && svm != 0) {
 
     const double a = _sys_vars->getValueImplicit("a", implicit);
-    L = std::pow(_sysparams->getValue("D") * svm / edot, 1. / 3.);
+    L = std::pow(_D * svm / edot, 1. / 3.);
     dfaldx[0] = 24. * L * a / std::pow(2 * a + 3 * L, 3.);
   }
   return dfaldx;
@@ -157,8 +150,8 @@ vecD V_dot::dqFundX(const bool implicit) {
 }
 
 double V_dot::Vdot(const bool implicit) {
-  double vdot = 8 * M_PI * _sysparams->getValue("D") *
-                _sys_vars->getValueImplicit("Tn", implicit) / qFun(implicit);
+  double vdot = 8 * M_PI * _D * _sys_vars->getValueImplicit("Tn", implicit) /
+                qFun(implicit);
 
   if (_use_vl_triax)
     vdot += VL2dotFun(implicit);
@@ -169,7 +162,7 @@ double V_dot::Vdot(const bool implicit) {
 vecD V_dot::dVdotdX(const bool implicit) {
   vecD dvdot_dx(_n_vars);
   const double num = _sys_vars->getValueImplicit("Tn", implicit);
-  const double prefactor = 8 * M_PI * _sysparams->getValue("D");
+  const double prefactor = 8. * M_PI * _D;
 
   vecD dnum_dx(_n_vars);
   dnum_dx[2] = 1;
@@ -199,10 +192,10 @@ void V_dot::updateDerivatives(const bool implicit) {
 
 a_res::a_res(const unsigned int eq_index, NLSystemVars &sysvars,
              NLSystemParameters &sysparams,
-             NLPreEquationEvalautionCalc &pre_eval, const double theta,
-             const bool growth_on)
-    : RateEquation(eq_index, sysvars, sysparams, pre_eval, theta),
-      _growth_on(growth_on) {}
+             NLPreEquationEvalautionCalc &pre_eval, const double h,
+             const double a0, const double theta, const bool growth_on)
+    : RateEquation(eq_index, sysvars, sysparams, pre_eval, theta), _h(h),
+      _a0(a0), _growth_on(growth_on) {}
 
 double a_res::computedRate(const bool implicit) const {
 
@@ -211,11 +204,9 @@ double a_res::computedRate(const bool implicit) const {
 
   if (_growth_on) {
     const double udot = _sysparams.getValue("udot_N");
-    if (udot > 0 ||
-        (udot < 0 && _sys_vars.getValueOld("a") > _sysparams.getValue("a0"))) {
+    if (udot > 0 || (udot < 0 && _sys_vars.getValueOld("a") > _a0)) {
       const double a = _sys_vars.getValueImplicit("a", implicit);
-      a_dot = _pre_eval.getValue("vdot", implicit) /
-              (4. * M_PI * _sysparams.getValue("h") * a * a);
+      a_dot = _pre_eval.getValue("vdot", implicit) / (4. * M_PI * _h * a * a);
     }
   }
   return a_dot;
@@ -225,16 +216,14 @@ vecD a_res::DComputedRatetDx(const bool implicit) const {
   vecD dadot_dx(_n_vars);
   if (_growth_on) {
     const double udot = _sysparams.getValue("udot_N");
-    if (udot > 0 ||
-        (udot < 0 && _sys_vars.getValueOld("a") > _sysparams.getValue("a0"))) {
+    if (udot > 0 || (udot < 0 && _sys_vars.getValueOld("a") > _a0)) {
       const double a = _sys_vars.getValueImplicit("a", implicit);
       const double vdot = _pre_eval.getValue("vdot", implicit);
       const vecD dvdot_dx = _pre_eval.getDValueDX("vdot", implicit);
-      const double h = _sysparams.getValue("h");
 
-      double g = (4. * M_PI * h * a * a);
+      double g = (4. * M_PI * _h * a * a);
       vecD dg_dx(_n_vars);
-      dg_dx[0] = (8. * M_PI * h * a);
+      dg_dx[0] = (8. * M_PI * _h * a);
 
       for (uint i = 0; i < _n_vars; i++)
         dadot_dx[i] = dvdot_dx[i] / g - vdot * dg_dx[i] / (g * g);
@@ -562,12 +551,12 @@ vecD a_lt_b::dgFun_dx() const {
 }
 
 a_gt_a0::a_gt_a0(const uint lm_index, const NLSystemVars &sys_vars,
-                 const NLSystemParameters &sysparams, const uint n_sys)
-    : InequalityConstraint(lm_index, sys_vars, sysparams, n_sys) {}
+                 const NLSystemParameters &sysparams, const uint n_sys,
+                 const double a0)
+    : InequalityConstraint(lm_index, sys_vars, sysparams, n_sys), _a0(a0) {}
 
 double a_gt_a0::gFun() const {
-  return _sysparams.getValue("a0") / _sys_vars.getScalingFactor("a") -
-         _sys_vars.getValueScaled("a");
+  return _a0 / _sys_vars.getScalingFactor("a") - _sys_vars.getValueScaled("a");
 }
 
 vecD a_gt_a0::dgFun_dx() const {
