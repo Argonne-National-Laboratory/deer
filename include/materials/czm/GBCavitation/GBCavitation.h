@@ -121,7 +121,6 @@ protected:
 
   /// non linear solver paramters
   ///@{
-  const bool _scale_variables;
   const unsigned int _max_time_cut;
   const unsigned int _max_nonlinear_iter;
   const Real _nl_residual_abs_tol;

@@ -1,4 +1,4 @@
-# Test under displacement cotrolled condition.
+# Test under stress cotrolled condition BC. Load reversal is very quick
 
 [Mesh]
   [./msh]
@@ -41,34 +41,29 @@
   [./applied_load_x]
     type = PiecewiseLinear
     x = '0 0.1 1e7'
-    y = '0 0 0'
+    y = '0 -200 -200'
   [../]
   [./applied_load_y]
     type = PiecewiseLinear
     x = '0 0.1 1e7'
+    y = '0 100 100'
+  [../]
+  [./applied_load_z]
+    type = PiecewiseLinear
+    x = '0 0.1 1e7'
     y = '0 0 0'
   [../]
-  [./applied_displacement_z]
-    type = PiecewiseLinear
-    x = '0 1e7'
-    y = '0 100'
-  [../]
-  [./dt_fun]
-    type = PiecewiseConstant
-    x = '0 0.99 2'
-    y = '0.01 0.001 0.001'
-  []
 []
 [BCs]
     [./x]
       type = DirichletBC
-      boundary = left
+      boundary = back
       variable = disp_x
       value = 0.0
     [../]
     [./y]
       type = DirichletBC
-      boundary = bottom
+      boundary = back
       variable = disp_y
       value = 0.0
     [../]
@@ -91,26 +86,14 @@
       variable = disp_y
     [../]
     [./z1]
-      type = FunctionDirichletBC
+      type = FunctionNeumannBC
       boundary = front
-      function = applied_displacement_z
+      function = applied_load_z
       variable = disp_z
     [../]
 []
 
 [AuxVariables]
-  [./t_solid_X]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-  [./t_solid_Y]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-  [./t_solid_Z]
-    family = MONOMIAL
-    order = CONSTANT
-  []
   [./tczm_X]
     family = MONOMIAL
     order = CONSTANT
@@ -132,18 +115,6 @@
     order = CONSTANT
   []
   [./tczm_S2]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-  [./TPK1_solid_X]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-  [./TPK1_solid_Y]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-  [./TPK1_solid_Z]
     family = MONOMIAL
     order = CONSTANT
   []
@@ -180,62 +151,9 @@
     family = MONOMIAL
     order = CONSTANT
   []
-  [./e]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-  [./edot]
-    family = MONOMIAL
-    order = CONSTANT
-  []
 []
 
 [AuxKernels]
-  [./T_cauchy_solid_x]
-    type = TractionAux
-    scalar_type = 'X'
-    variable = t_solid_X
-    property = stress
-    boundary = 'interface'
-  []
-  [./T_cauchy_solid_y]
-    type = TractionAux
-    scalar_type = 'Y'
-    variable = t_solid_Y
-    property = stress
-    boundary = 'interface'
-  []
-  [./T_cauchy_solid_z]
-    type = TractionAux
-    scalar_type = 'Z'
-    variable = t_solid_Z
-    property = stress
-    boundary = 'interface'
-  []
-  [./T_PK1_solid_x]
-    type = TractionAux
-    scalar_type = 'X'
-    variable = TPK1_solid_X
-    property = stress
-    boundary = 'interface'
-    PK1 = true
-  []
-  [./T_PK1_solid_y]
-    type = TractionAux
-    scalar_type = 'Y'
-    variable = TPK1_solid_Y
-    property = stress
-    boundary = 'interface'
-    PK1 = true
-  []
-  [./T_PK1_solid_z]
-    type = TractionAux
-    scalar_type = 'Z'
-    variable = TPK1_solid_Z
-    property = stress
-    boundary = 'interface'
-    PK1 = true
-  []
   [./tczm_X]
     type = MaterialRealVectorValueAux
     boundary = 'interface'
@@ -346,20 +264,6 @@
     execute_on = 'TIMESTEP_END'
     variable = b
   []
-  [./e]
-    type = MaterialRealAux
-    boundary = 'interface'
-    property = strain_eq_interface
-    execute_on = 'TIMESTEP_END'
-    variable = e
-  []
-  [./edot]
-    type = MaterialRealAux
-    boundary = 'interface'
-    property = strain_rate_eq_interface
-    execute_on = 'TIMESTEP_END'
-    variable = edot
-  []
 []
 
 [NEMLMechanics]
@@ -385,9 +289,9 @@
   [./czm_mat]
     type = GBCavitation
     boundary = 'interface'
-    max_time_cut = 0
+    max_time_cut = 4
     D_failure = 0.9
-    max_nonlinear_iter = 10
+    max_nonlinear_iter = 20
     minimum_allowed_stiffness = 1
     minimum_allowed_residual_life = 10
     nucleation_on = true
@@ -421,12 +325,55 @@
     dt =  0.1
   []
   dtmin = 1e-4
-  end_time = 12
-  dtmax = 1
+  end_time = 11
+  dtmax = 50
+[]
+
+[Postprocessors]
+  [a]
+    type = SideAverageValue
+    variable = a
+    boundary = interface
+  []
+  [b]
+    type = SideAverageValue
+    variable = b
+    boundary = interface
+  []
+  [t_X]
+    type = SideAverageValue
+    variable = tczm_X
+    boundary = interface
+  []
+  [t_Y]
+    type = SideAverageValue
+    variable = tczm_Y
+    boundary = interface
+  []
+  [t_Z]
+    type = SideAverageValue
+    variable = tczm_Z
+    boundary = interface
+  []
+  [tpk1_X]
+    type = SideAverageValue
+    variable = TPK1czm_X
+    boundary = interface
+  []
+  [tpk1_Y]
+    type = SideAverageValue
+    variable = TPK1czm_Y
+    boundary = interface
+  []
+  [tpk1_Z]
+    type = SideAverageValue
+    variable = TPK1czm_Z
+    boundary = interface
+  []
 []
 
 [Outputs]
-  sync_times = '10 10.001 1'
+  exodus = false
   csv = true
-  exodus = true
+  sync_times = '0 0.1 10 10.0001 11'
 []

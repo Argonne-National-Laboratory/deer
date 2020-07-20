@@ -236,7 +236,7 @@ vecD a_res::DComputedRatetDP(const bool implicit) const {
   return vecD(_n_params);
 }
 
-double a_res::equationScalingRule() const { return 1e-3; }
+// double a_res::equationScalingRule() const { return 1e-3; }
 
 b_res::b_res(const unsigned int eq_index, NLSystemVars &sysvars,
              NLSystemParameters &sysparams,
@@ -295,7 +295,7 @@ vecD b_res::DComputedRatetDP(const bool implicit) const {
   return vecD(_n_params);
 }
 
-double b_res::equationScalingRule() const { return 1e-3; }
+// double b_res::equationScalingRule() const { return 1e-3; }
 
 TN_res::TN_res(const unsigned int eq_index, NLSystemVars &sysvars,
                NLSystemParameters &sysparams,
@@ -431,7 +431,7 @@ vecD TN_res::DComputedRatetDP(const bool implicit) const {
   return deq_dparam;
 }
 
-double TN_res::equationScalingRule() const { return 1000.; }
+// double TN_res::equationScalingRule() const { return 1000.; }
 
 TS_res::TS_res(const uint eq_index, NLSystemVars &sysvars,
                NLSystemParameters &sysparams,
@@ -528,7 +528,7 @@ vecD TS_res::DComputedRatetDP(const bool implicit) const {
   return deq_dparam;
 }
 
-double TS_res::equationScalingRule() const { return 1; }
+// double TS_res::equationScalingRule() const { return 1; }
 
 a_lt_b::a_lt_b(const uint lm_index, const NLSystemVars &sys_vars,
                const NLSystemParameters &sysparams, const uint n_sys)

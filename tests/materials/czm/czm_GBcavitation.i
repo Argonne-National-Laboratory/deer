@@ -94,18 +94,6 @@
 []
 
 [AuxVariables]
-  [./t_solid_X]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-  [./t_solid_Y]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-  [./t_solid_Z]
-    family = MONOMIAL
-    order = CONSTANT
-  []
   [./tczm_X]
     family = MONOMIAL
     order = CONSTANT
@@ -127,18 +115,6 @@
     order = CONSTANT
   []
   [./tczm_S2]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-  [./TPK1_solid_X]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-  [./TPK1_solid_Y]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-  [./TPK1_solid_Z]
     family = MONOMIAL
     order = CONSTANT
   []
@@ -175,62 +151,9 @@
     family = MONOMIAL
     order = CONSTANT
   []
-  [./e]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-  [./edot]
-    family = MONOMIAL
-    order = CONSTANT
-  []
 []
 
 [AuxKernels]
-  [./T_cauchy_solid_x]
-    type = TractionAux
-    scalar_type = 'X'
-    variable = t_solid_X
-    property = stress
-    boundary = 'interface'
-  []
-  [./T_cauchy_solid_y]
-    type = TractionAux
-    scalar_type = 'Y'
-    variable = t_solid_Y
-    property = stress
-    boundary = 'interface'
-  []
-  [./T_cauchy_solid_z]
-    type = TractionAux
-    scalar_type = 'Z'
-    variable = t_solid_Z
-    property = stress
-    boundary = 'interface'
-  []
-  [./T_PK1_solid_x]
-    type = TractionAux
-    scalar_type = 'X'
-    variable = TPK1_solid_X
-    property = stress
-    boundary = 'interface'
-    PK1 = true
-  []
-  [./T_PK1_solid_y]
-    type = TractionAux
-    scalar_type = 'Y'
-    variable = TPK1_solid_Y
-    property = stress
-    boundary = 'interface'
-    PK1 = true
-  []
-  [./T_PK1_solid_z]
-    type = TractionAux
-    scalar_type = 'Z'
-    variable = TPK1_solid_Z
-    property = stress
-    boundary = 'interface'
-    PK1 = true
-  []
   [./tczm_X]
     type = MaterialRealVectorValueAux
     boundary = 'interface'
@@ -341,20 +264,6 @@
     execute_on = 'TIMESTEP_END'
     variable = b
   []
-  [./e]
-    type = MaterialRealAux
-    boundary = 'interface'
-    property = strain_eq_interface
-    execute_on = 'TIMESTEP_END'
-    variable = e
-  []
-  [./edot]
-    type = MaterialRealAux
-    boundary = 'interface'
-    property = strain_rate_eq_interface
-    execute_on = 'TIMESTEP_END'
-    variable = edot
-  []
 []
 
 [NEMLMechanics]
@@ -380,7 +289,7 @@
   [./czm_mat]
     type = GBCavitation
     boundary = 'interface'
-    max_time_cut = 0
+    max_time_cut = 4
     D_failure = 0.9
     max_nonlinear_iter = 20
     minimum_allowed_stiffness = 1
@@ -420,7 +329,31 @@
   dtmax = 50
 []
 
+[Postprocessors]
+  [a]
+    type = SideAverageValue
+    variable = a
+    boundary = interface
+  []
+  [b]
+    type = SideAverageValue
+    variable = b
+    boundary = interface
+  []
+  [t_Z]
+    type = SideAverageValue
+    variable = tczm_Z
+    boundary = interface
+  []
+  [tpk1_Z]
+    type = SideAverageValue
+    variable = TPK1czm_Z
+    boundary = interface
+  []
+[]
+
 [Outputs]
-  exodus = true
-  sync_times = '0 0.1 300 300.02 410 410.1'
+  exodus = false
+  csv = true
+  sync_times = '0 0.1 150 150.0001 300 300.02 410 410.1'
 []

@@ -50,7 +50,7 @@ public:
   double computedRate(const bool implicit) const override;
   vecD DComputedRatetDx(const bool implicit) const override;
   vecD DComputedRatetDP(const bool implicit) const override;
-  double equationScalingRule() const override;
+  // double equationScalingRule() const override;
 
   const double _h;
   const double _a0;
@@ -70,7 +70,7 @@ public:
   double computedRate(const bool implicit) const override;
   vecD DComputedRatetDx(const bool implicit) const override;
   vecD DComputedRatetDP(const bool implicit) const override;
-  double equationScalingRule() const override;
+  // double equationScalingRule() const override;
 
   const bool _nucleation_on;
   const double _FN;
@@ -90,7 +90,7 @@ public:
   double computedRate(const bool implicit) const override;
   vecD DComputedRatetDx(const bool implicit) const override;
   vecD DComputedRatetDP(const bool implicit) const override;
-  double equationScalingRule() const override;
+  // double equationScalingRule() const override;
 
 protected:
   double currentJump() const;
@@ -120,7 +120,7 @@ public:
   double computedRate(const bool implicit) const override;
   vecD DComputedRatetDx(const bool implicit) const override;
   vecD DComputedRatetDP(const bool implicit) const override;
-  double equationScalingRule() const override;
+  // double equationScalingRule() const override;
 
 protected:
   double CS(const bool implicit) const;

@@ -47,9 +47,6 @@ InputParameters GBCavitation::validParams() {
                         "if true(default) turns on triaxial cavity growth");
   params.addParam<bool>("use_old_bulk_property", true,
                         "If true (default) use old bulk material property.");
-  params.addParam<bool>("scale_variables", true,
-                        "If true (default) scale cavitation equations to "
-                        "better condition the NL system.");
   params.addParam<unsigned int>("max_time_cut", 5,
                                 "the maximum number of times _dt is divided "
                                 "by 2 (default 5, e.g. dt_min = _dt/(2^5))");
@@ -145,7 +142,6 @@ GBCavitation::GBCavitation(const InputParameters &parameters)
       _maximum_allowed_opening_traction(
           getParam<Real>("maximum_allowed_opening_traction")),
       _minimum_allowed_stiffness(getParam<Real>("minimum_allowed_stiffness")),
-      _scale_variables(getParam<bool>("scale_variables")),
       _max_time_cut(getParam<unsigned int>("max_time_cut") + 1),
       _max_nonlinear_iter(getParam<unsigned int>("max_nonlinear_iter") + 1),
       _nl_residual_abs_tol(getParam<Real>("nl_residual_abs_tol")),
@@ -184,15 +180,6 @@ void GBCavitation::computeTractionIncrementAndDerivatives() {
     NLVar TN_var(2, "Tn", _traction_old[_qp](0), _traction_old[_qp](0));
     NLVar TS1_var(3, "Ts1", _traction_old[_qp](1), _traction_old[_qp](1));
     NLVar TS2_var(4, "Ts2", _traction_old[_qp](2), _traction_old[_qp](2));
-
-    /// set system up variables
-    if (_scale_variables) {
-      a_var.setScaleFactor(1e-3);
-      b_var.setScaleFactor(1e-3);
-      TN_var.setScaleFactor(1e3);
-      TS1_var.setScaleFactor(1);
-      TS2_var.setScaleFactor(1);
-    }
 
     std::vector<NLVar *> myvars{&a_var, &b_var, &TN_var, &TS1_var, &TS2_var};
     NLSystemVars sysvars(myvars);
@@ -241,7 +228,7 @@ void GBCavitation::computeTractionIncrementAndDerivatives() {
     int ierr = newtonSolver.solveSubstep(
         l0, J, converged, &sysparams, {"udot_N", "udot_S1", "udot_S2"},
         deq_dparam, custom_interruption, dt_effective, _max_time_cut,
-        _scale_variables, _force_substep);
+        /*auto_scale_equation = */ false, _force_substep);
 
     if (ierr != 0 || !converged) {
       // if we didn't converge request a global cutback
