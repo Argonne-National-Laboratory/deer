@@ -63,6 +63,10 @@ protected:
   const MaterialProperty<int> &_nucleation_is_active_old;
   MaterialProperty<Real> &_D;
   MaterialProperty<Real> &_D_rate;
+  MaterialProperty<Real> &_VLdot;
+  MaterialProperty<Real> &_VL1dot;
+  MaterialProperty<Real> &_VL2dot;
+  MaterialProperty<Real> &_L;
   ///@}
 
   /// failure state variables
@@ -77,7 +81,6 @@ protected:
   const MaterialProperty<RealVectorValue> &_jump_at_failure_old;
   MaterialProperty<Real> &_residual_life;
   const MaterialProperty<Real> &_residual_life_old;
-
   ///@}
 
   /// sham needleman eqauations paramters

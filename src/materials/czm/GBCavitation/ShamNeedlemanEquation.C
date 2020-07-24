@@ -36,13 +36,14 @@ double V_dot::VL2dotFun(const bool implicit) {
     const double a = _sys_vars->getValueImplicit("a", implicit);
     const double betan = betanFun();
 
-    double vL2dot = 2 * _sysparams->getValue("edot") * (a * a * a) * M_PI * _h;
+    vL2dot = 2 * _sysparams->getValue("edot") * (a * a * a) * M_PI * _h;
 
     if (std::abs(triax) >= 1)
       vL2dot *= m * std::pow(_alpha_n * std::abs(triax) + betan, _n);
     else
       vL2dot *= std::pow(_alpha_n + betan, _n) * triax;
   }
+  setValue("vL2dot", vL2dot, implicit);
   return vL2dot;
 }
 
@@ -95,6 +96,7 @@ double V_dot::faLFun(const bool implicit) {
     L = std::pow(_D * svm / edot, 1. / 3.);
     FL = a * a / ((a + 1.5 * L) * (a + 1.5 * L));
   }
+  setValue("L", L, implicit);
   return FL;
 }
 
@@ -150,9 +152,9 @@ vecD V_dot::dqFundX(const bool implicit) {
 }
 
 double V_dot::Vdot(const bool implicit) {
-  double vdot = 8 * M_PI * _D * _sys_vars->getValueImplicit("Tn", implicit) /
+  double vdot = 8. * M_PI * _D * _sys_vars->getValueImplicit("Tn", implicit) /
                 qFun(implicit);
-
+  setValue("vL1dot", vdot, implicit);
   if (_use_vl_triax)
     vdot += VL2dotFun(implicit);
 

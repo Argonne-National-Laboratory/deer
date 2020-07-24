@@ -104,6 +104,9 @@ GBCavitation::GBCavitation(const InputParameters &parameters)
           getMaterialPropertyOldByName<int>("nucleation_is_active")),
       _D(declareProperty<Real>("interface_damage")),
       _D_rate(declareProperty<Real>("interface_damage_rate")),
+      _VLdot(declareProperty<Real>("VLdot")),
+      _VL1dot(declareProperty<Real>("VL1dot")),
+      _VL2dot(declareProperty<Real>("VL2dot")), _L(declareProperty<Real>("L")),
       _element_failed(declareProperty<int>("element_failed")),
       _element_failed_old(getMaterialPropertyOldByName<int>("element_failed")),
       _time_at_failure(declareProperty<Real>("time_at_failure")),
@@ -185,8 +188,9 @@ void GBCavitation::computeTractionIncrementAndDerivatives() {
     NLSystemVars sysvars(myvars);
 
     /// set up precalculator
-    ShamNeedlemann::V_dot vdotfun(&sysvars, &sysparams, {"vdot"}, _n, _h, _D_GB,
-                                  _use_triaxial_growth);
+    ShamNeedlemann::V_dot vdotfun(&sysvars, &sysparams,
+                                  {"vdot", "vL1dot", "vL2dot", "L"}, _n, _h,
+                                  _D_GB, _use_triaxial_growth);
 
     /// set up equations
     ShamNeedlemann::a_res a_eq(0, sysvars, sysparams, vdotfun, _h, _a0, _theta,
@@ -245,6 +249,11 @@ void GBCavitation::computeTractionIncrementAndDerivatives() {
       _residual_life[_qp] = sysparams.getValue("residual_life");
       _time_at_failure[_qp] = _t - _dt + dt_effective;
 
+      _VLdot[_qp] = vdotfun.getValue("vdot", true);
+      _VL1dot[_qp] = vdotfun.getValue("vL1dot", true);
+      _VL2dot[_qp] = vdotfun.getValue("vL2dot", true);
+      _L[_qp] = vdotfun.getValue("L", true);
+
       if (dt_effective < _dt) {
 
         _traction_at_failure[_qp](0) = TN_var.getValue();
@@ -271,7 +280,6 @@ void GBCavitation::computeTractionIncrementAndDerivatives() {
             _displacement_jump_inc[_qp] / _dt * dt_effective;
 
         tractionDecay();
-
       } else {
         _traction[_qp](0) = TN_var.getValue();
         _traction[_qp](1) = TS1_var.getValue();

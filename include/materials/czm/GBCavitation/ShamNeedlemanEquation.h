@@ -17,12 +17,13 @@ public:
 
   void updateValues(const bool implicit = true) override;
   void updateDerivatives(const bool implicit = true) override;
+  double VL2dotFun(const bool implicit);
 
 protected:
   double mFun();
   double alphanFun();
   double betanFun();
-  double VL2dotFun(const bool implicit);
+
   vecD dVL2dotFundX(const bool implicit);
   double fabFun(const bool implicit);
   vecD dfabFundX(const bool implicit);

@@ -183,6 +183,26 @@
     family = MONOMIAL
     order = CONSTANT
   []
+  [./SH_interface]
+  family = MONOMIAL
+  order = CONSTANT
+  []
+  [./SVM_interface]
+    family = MONOMIAL
+    order = CONSTANT
+  []
+  [./VLdot]
+    family = MONOMIAL
+    order = CONSTANT
+  []
+  [./VL1dot]
+    family = MONOMIAL
+    order = CONSTANT
+  []
+  [./VL2dot]
+    family = MONOMIAL
+    order = CONSTANT
+  []
 []
 
 [AuxKernels]
@@ -355,6 +375,41 @@
     execute_on = 'TIMESTEP_END'
     variable = edot
   []
+  [./SH_interface]
+    type = MaterialRealAux
+    boundary = 'interface'
+    property = stress_H_interface
+    execute_on = 'TIMESTEP_END'
+    variable = SH_interface
+  []
+  [./SVM_interface]
+    type = MaterialRealAux
+    boundary = 'interface'
+    property = stress_vm_interface
+    execute_on = 'TIMESTEP_END'
+    variable = SVM_interface
+  []
+  [./VLdot]
+    type = MaterialRealAux
+    boundary = 'interface'
+    property = VLdot
+    execute_on = 'TIMESTEP_END'
+    variable = VLdot
+  []
+  [./VL1dot]
+    type = MaterialRealAux
+    boundary = 'interface'
+    property = VL1dot
+    execute_on = 'TIMESTEP_END'
+    variable = VL1dot
+  []
+  [./VL2dot]
+    type = MaterialRealAux
+    boundary = 'interface'
+    property = VL2dot
+    execute_on = 'TIMESTEP_END'
+    variable = VL2dot
+  []
 []
 
 [NEMLMechanics]
@@ -387,6 +442,7 @@
     minimum_allowed_residual_life = 10
     nucleation_on = true
     growth_on = true
+    nl_residual_abs_tol = 1e-12
   [../]
 []
 
