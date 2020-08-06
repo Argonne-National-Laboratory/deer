@@ -97,7 +97,7 @@ int solveAxb(const matrixD &A, const vecD &b, const uint &syssize,
 
   if (info < 0)
     std::cerr << "solveAxb the " + std::to_string(info) +
-                     "th argument has an illegal value";
+                     "the argument has an illegal value";
 
   if (info > 0)
     std::cerr << "solveAxb factorization U si singular \n";
@@ -164,6 +164,14 @@ int updateConsistenTangent(const matrixD &J, matrixD &TangentOld, matrixD &dRdP,
       TangentOld[p][j] -= alpha * dRdP[p][j];
 
   int ierr = solveAxNb(J, TangentOld, syssize, NewTangent);
+
+  for (uint p = 0; p < nparam; p++)
+    for (uint j = 0; j < syssize; j++)
+      if (!std::isfinite(NewTangent[p][j])) {
+        ierr = 1;
+        break;
+      }
+
   return ierr;
 }
 

@@ -25,10 +25,9 @@ InputParameters GBCavitation::validParams() {
   params.addParam<Real>("psi_degree", 75., "Cavity half-tip angle");
   params.addParam<Real>("beta", 2., "Cavity nucleation exponent");
   params.addParam<Real>("E_GB", 150e3, "Grain boundary opening stiffness");
-  params.addParam<Real>(
-      "E_penalty_minus_thickenss_over_2", 5,
-      "Element co-penetration penatly at jump = -thickness/2");
   params.addParam<Real>("E_penalty_minus_thickenss", 10,
+                        "Element co-penetration penatly at jump = -thickness");
+  params.addParam<Real>("E_penalty_after_failure_minus_thickenss", 1e6,
                         "Element co-penetration penatly at jump = -thickness");
   params.addParam<Real>("G_GB", 57.69e3, "Grain boundary shear stiffness");
   params.addParam<Real>("D_GB", 1e-15, "Grain boundary diffusivity");
@@ -36,6 +35,8 @@ InputParameters GBCavitation::validParams() {
                         "Grain boundary sliding viscosisty");
   params.addParam<Real>("interface_thickness", 0.0113842,
                         "The interface thickness");
+  params.addParam<Real>("interface_thickness_after_failure", 0.00113842,
+                        "The interface thickness for the failure model");
   params.addParam<Real>("n", 5., "Creep rate exponent");
   params.addParam<Real>(
       "theta", 0.,
@@ -45,8 +46,8 @@ InputParameters GBCavitation::validParams() {
   params.addParam<bool>("growth_on", true, "Turns on cavity growth");
   params.addParam<bool>("use_triaxial_growth", true,
                         "if true(default) turns on triaxial cavity growth");
-  params.addParam<bool>("use_old_bulk_property", true,
-                        "If true (default) use old bulk material property.");
+  params.addParam<bool>("use_old_bulk_property", false,
+                        "If true use old bulk material property.");
   params.addParam<unsigned int>("max_time_cut", 5,
                                 "the maximum number of times _dt is divided "
                                 "by 2 (default 5, e.g. dt_min = _dt/(2^5))");
@@ -54,8 +55,8 @@ InputParameters GBCavitation::validParams() {
                                 "the maximum number of nonlinear iterations "
                                 "(default 10) for each substep.");
   params.addParam<Real>(
-      "nl_residual_abs_tol", 1e-10,
-      "The solver uses the max(abs(Residual)) as stopping criteria. 1e-10 is "
+      "nl_residual_abs_tol", 1e-12,
+      "The solver uses the max(abs(Residual)) as stopping criteria. 1e-12 is "
       "the default value.");
   params.addParam<Real>("D_failure", 0.95, "Damage at failure");
   params.addParam<Real>(
@@ -128,14 +129,16 @@ GBCavitation::GBCavitation(const InputParameters &parameters)
       _S0(getParam<Real>("sigma_0")), _beta(getParam<Real>("beta")),
       _psi_degree(getParam<Real>("psi_degree")),
       _h(ShamNeedlemann::h_psi(_psi_degree * M_PI / 180.)),
-      _E_GB(getParam<Real>("E_GB")), _G_GB(getParam<Real>("G_GB")),
-      _D_GB(getParam<Real>("D_GB")),
+      _E_GB(getParam<Real>("E_GB")),
+      _E_penalty_minus_thickenss(getParam<Real>("E_penalty_minus_thickenss")),
+      _E_penalty_after_failure_minus_thickenss(
+          getParam<Real>("E_penalty_after_failure_minus_thickenss")),
+      _G_GB(getParam<Real>("G_GB")), _D_GB(getParam<Real>("D_GB")),
       _eta_sliding(getParam<Real>("eta_sliding")),
       _thickness(getParam<Real>("interface_thickness")),
+      _thickness_after_failure(
+          getParam<Real>("interface_thickness_after_failure")),
       _n(getParam<Real>("n")), _theta(getParam<Real>("theta")),
-      _E_penalty_minus_thickenss_over_2(
-          getParam<Real>("E_penalty_minus_thickenss_over_2")),
-      _E_penalty_minus_thickenss(getParam<Real>("E_penalty_minus_thickenss")),
       _nucleation_on(getParam<bool>("nucleation_on")),
       _growth_on(getParam<bool>("growth_on")),
       _use_triaxial_growth(getParam<bool>("use_triaxial_growth")),
@@ -150,7 +153,18 @@ GBCavitation::GBCavitation(const InputParameters &parameters)
       _nl_residual_abs_tol(getParam<Real>("nl_residual_abs_tol")),
       _force_substep(getParam<bool>("force_substep"))
 
-{}
+{
+  // sanity checks
+  if (_E_penalty_after_failure_minus_thickenss <= 1)
+    mooseError("E_penalty_after_failure_minus_thickenss must be greater or "
+               "equalt to 1");
+
+  if (_E_penalty_minus_thickenss <= 1)
+    mooseError("E_penalty_minus_thickenss must be greater or equalt to 1");
+
+  if (_psi_degree < 0 || _psi_degree > 90.)
+    mooseError("psi_degree must be between 0 and 90 degrees");
+}
 
 void GBCavitation::computeTractionIncrementAndDerivatives() {
 
@@ -188,9 +202,10 @@ void GBCavitation::computeTractionIncrementAndDerivatives() {
     NLSystemVars sysvars(myvars);
 
     /// set up precalculator
-    ShamNeedlemann::V_dot vdotfun(&sysvars, &sysparams,
-                                  {"vdot", "vL1dot", "vL2dot", "L"}, _n, _h,
-                                  _D_GB, _use_triaxial_growth);
+    ShamNeedlemann::V_dot vdotfun(
+        &sysvars, &sysparams,
+        {"vdot", "vL1dot", "vL2dot", "vH1dot", "vH2dot", "L"}, _n, _h, _D_GB,
+        _use_triaxial_growth);
 
     /// set up equations
     ShamNeedlemann::a_res a_eq(0, sysvars, sysparams, vdotfun, _h, _a0, _theta,
@@ -198,7 +213,8 @@ void GBCavitation::computeTractionIncrementAndDerivatives() {
     ShamNeedlemann::b_res b_eq(1, sysvars, sysparams, vdotfun, _FN, _FN_NI, _S0,
                                _beta, _b_sat, _theta, _nucleation_on);
     ShamNeedlemann::TN_res Tn_eq(2, sysvars, sysparams, vdotfun, _thickness,
-                                 _E_GB, _theta);
+                                 _E_GB, _E_penalty_minus_thickenss, _thickness,
+                                 _theta);
     ShamNeedlemann::TS_res Ts1_eq(3, sysvars, sysparams, vdotfun, 1, _thickness,
                                   _eta_sliding, _G_GB, _theta);
     ShamNeedlemann::TS_res Ts2_eq(4, sysvars, sysparams, vdotfun, 2, _thickness,
@@ -332,13 +348,28 @@ void GBCavitation::computeTractionIncrementAndDerivatives() {
     for (uint i = 0; i < 3; i++)
       for (uint j = 0; j < 3; j++)
         if (!std::isfinite(_dtraction_djump[_qp](i, j)))
-          mooseError("GBCavitation _dtraction_djump[_qp](" + std::to_string(i) +
-                     "," + std::to_string(j) + ") is not finite: " +
-                     std::to_string(_dtraction_djump[_qp](i, j)));
+          mooseWarning(
+              "GBCavitation _dtraction_djump[_qp](" + std::to_string(i) + "," +
+              std::to_string(j) + ") is not finite: " +
+              std::to_string(_dtraction_djump[_qp](i, j)) + " increment i = " +
+              std::to_string(_displacement_jump_inc[_qp](i)));
   }
 }
 
+/* TODO ADD innerpentration penalty for broken elements to add */
+
 void GBCavitation::tractionDecay() {
+  Real P = 1.;
+  Real dP_djump = 0.;
+  if (_displacement_jump[_qp](0) < 0) {
+    const Real jump = _displacement_jump[_qp](0);
+    const Real &P_mt = _E_penalty_after_failure_minus_thickenss;
+    const double a_parabola =
+        (P_mt - 1.) / (_thickness_after_failure * _thickness_after_failure);
+    P = a_parabola * jump * jump + 1;
+    dP_djump = 2 * a_parabola * jump;
+  }
+
   const Real decay_factor =
       std::exp((_time_at_failure[_qp] - _t) / (_residual_life[_qp] / 5.));
   for (int i = 0; i < 3; i++) {
@@ -346,17 +377,27 @@ void GBCavitation::tractionDecay() {
         std::abs(_traction_at_failure[_qp](i) / _jump_at_failure[_qp](i)) *
             decay_factor,
         _minimum_allowed_stiffness);
+    if (i == 0)
+      C *= P;
     _traction[_qp](i) =
-        (_displacement_jump[_qp](i) - _jump_at_failure[_qp](i)) * C +
+        (_displacement_jump[_qp](i) - _jump_at_failure[_qp](i) * decay_factor) *
+            C +
         _traction_at_failure[_qp](i) * decay_factor;
 
     for (int j = 0; j < 3; j++) {
-      if (i == j)
+      if (i == j) {
         _dtraction_djump[_qp](i, j) = C;
-      else
+        if (i == 0) {
+          _dtraction_djump[_qp](i, j) +=
+              (_displacement_jump[_qp](i) -
+               _jump_at_failure[_qp](i) * decay_factor) *
+              C / P * dP_djump;
+        }
+      } else
         _dtraction_djump[_qp](i, j) = 0;
     }
   }
+
   _traction_inc[_qp] = _traction[_qp] - _traction_old[_qp];
 }
 

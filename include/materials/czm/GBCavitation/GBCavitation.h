@@ -97,14 +97,15 @@ protected:
   const Real _psi_degree;
   const Real _h;
   const Real _E_GB;
+  const Real _E_penalty_minus_thickenss;
+  const Real _E_penalty_after_failure_minus_thickenss;
   const Real _G_GB;
   const Real _D_GB;
   const Real _eta_sliding;
   const Real _thickness;
+  const Real _thickness_after_failure;
   const Real _n;
   const Real _theta;
-  const Real _E_penalty_minus_thickenss_over_2;
-  const Real _E_penalty_minus_thickenss;
   ///@}
 
   /// switch for activing physics

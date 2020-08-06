@@ -40,7 +40,7 @@ int Newton::solve(vecD &lm, matrixD &J, bool &converged,
       // miconossprint::printMatrix(J, "Jacobian");
       ierr = computeNewtonStep(R, J);
       if (ierr != 0) {
-        std::cerr << "error solving substep  \n";
+        // std::cerr << "error solving substep  \n";
         break;
       }
       // miconossprint::printVector(_dx, "dx");
@@ -53,7 +53,7 @@ int Newton::solve(vecD &lm, matrixD &J, bool &converged,
       R = _nlsys->assembleR(lm);
       ierr = miconossmath::norm(R, _normtype, err);
       if (ierr != 0) {
-        std::cerr << "error is non finite: " << err << " \n";
+        // std::cerr << "error is non finite: " << err << " \n";
         break;
       }
       it++;
@@ -119,20 +119,26 @@ int Newton::solveSubstep(vecD &lm, matrixD &J, bool &converged,
         for (uint p = 0; p < np_tangent; p++) {
           if (sysparams->isRateParam(pname[p])) {
             double dP_dinc = sysparams->getDRateDIncrement(pname[p]);
-            for (uint j = 0; j < _n_total; j++)
+            for (uint j = 0; j < _n_total; j++) {
               dRdP[p][j] *= dP_dinc;
+              if (!std::isfinite(dRdP[p][j]))
+                std::cerr << "dRdP[p][j] is not finite"
+                          << std::to_string(dRdP[p][j]) << " \n ";
+            }
           }
         }
 
         ierr = miconossmath::updateConsistenTangent(J, Tangent_old, dRdP,
                                                     _n_total, Tangent, alpha);
         if (ierr != 0) {
+          converged = false;
           std::cerr << "error computing consitent tangent  \n";
           break;
         }
 
         ierr = customSubstepInterruption(sysparams, custom_interruption);
         if (ierr != 0) {
+          converged = false;
           std::cerr << "error custom interruption  \n";
           break;
         }
@@ -161,9 +167,10 @@ int Newton::solveSubstep(vecD &lm, matrixD &J, bool &converged,
     }
   } while (n_cut < max_ncut && !converged);
 
-  if (!converged)
+  if (!converged) {
+    ierr = 1;
     std::cerr << "did not converged after " << std::to_string(n_cut)
               << " cutabck" << std::endl;
-
+  }
   return ierr;
 }

@@ -17,20 +17,31 @@ public:
 
   void updateValues(const bool implicit = true) override;
   void updateDerivatives(const bool implicit = true) override;
-  double VL2dotFun(const bool implicit);
 
 protected:
   double mFun();
   double alphanFun();
   double betanFun();
-
+  double VLdotFun(const bool implicit);
+  vecD dVLdotFundX(const bool implicit);
+  double VL1dotFun(const bool implicit);
+  vecD dVL1dotFundX(const bool implicit);
+  double VL2dotFun(const bool implicit);
   vecD dVL2dotFundX(const bool implicit);
+  double VHdotFun(const bool implicit);
+  vecD dVHdotFundX(const bool implicit);
+  double VH1dotFun(const bool implicit);
+  vecD dVH1dotFundX(const bool implicit);
+  double VH2dotFun(const bool implicit);
+  vecD dVH2dotFundX(const bool implicit);
   double fabFun(const bool implicit);
   vecD dfabFundX(const bool implicit);
   double faLFun(const bool implicit);
   vecD dfaLFundX(const bool implicit);
   double qFun(const bool implicit);
   vecD dqFundX(const bool implicit);
+  double qHFun(const bool implicit);
+  vecD dqHFundX(const bool implicit);
   double Vdot(const bool implicit);
   vecD dVdotdX(const bool implicit);
 
@@ -85,8 +96,8 @@ class TN_res : public RateEquation {
 public:
   TN_res(const unsigned int eq_index, NLSystemVars &sysvars,
          NLSystemParameters &sysparams, NLPreEquationEvalautionCalc &pre_eval,
-         const double thickness, const double E_interface,
-         const double theta = 0);
+         const double thickness, const double E_interface, const double P_mt,
+         const double _P_thickness, const double theta = 0);
 
   double computedRate(const bool implicit) const override;
   vecD DComputedRatetDx(const bool implicit) const override;
@@ -107,6 +118,8 @@ protected:
 
   const double _thickness;
   const double _E_interface;
+  const double _P_mt;
+  const double _P_thickness;
 };
 
 class TS_res : public RateEquation {

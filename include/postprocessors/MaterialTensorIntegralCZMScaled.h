@@ -18,16 +18,19 @@
  * resulting integral can be scaled by the value of another postprocessor.
  */
 template <bool is_ad>
-class MaterialTensorIntegralInterfaceScaledTempl
+class MaterialTensorIntegralCZMScaledTempl
     : public InterfaceIntegralPostprocessor {
 public:
   static InputParameters validParams();
 
-  MaterialTensorIntegralInterfaceScaledTempl(const InputParameters &parameters);
+  MaterialTensorIntegralCZMScaledTempl(const InputParameters &parameters);
+  virtual void initialize() override;
+  virtual void execute() override;
   virtual void finalize() override;
 
 protected:
-  virtual Real computeQpIntegral();
+  Real computeIntegral() override;
+  Real computeQpIntegral() override;
 
 private:
   const GenericMaterialProperty<RankTwoTensor, is_ad> &_tensor;
@@ -35,9 +38,11 @@ private:
   const unsigned int _j;
   const PostprocessorValue *_scaling_factor_PP;
   const bool _normalize_integral_by_area;
+  Real _czm_area = 0;
+  const MaterialProperty<Real> &_czm_area_mp;
 };
 
-typedef MaterialTensorIntegralInterfaceScaledTempl<false>
-    MaterialTensorIntegralInterfaceScaled;
-typedef MaterialTensorIntegralInterfaceScaledTempl<true>
-    ADMaterialTensorIntegralInterfaceScaled;
+typedef MaterialTensorIntegralCZMScaledTempl<false>
+    MaterialTensorIntegralCZMScaled;
+typedef MaterialTensorIntegralCZMScaledTempl<true>
+    ADMaterialTensorIntegralCZMScaled;

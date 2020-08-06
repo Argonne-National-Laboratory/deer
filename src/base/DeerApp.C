@@ -32,6 +32,10 @@ static void associateSyntaxInner(Syntax &syntax,
                  "RankTwoTensorIntegralOnDomain/*");
   registerSyntax("RankTwoTensorPostprocessorTimeIntegralAction",
                  "RankTwoTensorPostprocessorTimeIntegral/*");
+  registerSyntax("RankTwoTensorPostprocessorTimeDerivativeAction",
+                 "RankTwoTensorPostprocessorTimeDerivative/*");
+  registerSyntax("RankTwoTensorPostprocessorSumAction",
+                 "RankTwoTensorPostprocessorSum/*");
   registerSyntax("CZMStrainAction", "CZMStrain");
 }
 

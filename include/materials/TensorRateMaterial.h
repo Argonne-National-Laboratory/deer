@@ -24,4 +24,5 @@ protected:
   const MaterialProperty<RankTwoTensor> &_tensor;
   const MaterialProperty<RankTwoTensor> &_tensor_old;
   MaterialProperty<RankTwoTensor> &_tensor_rate;
+  const bool _log;
 };

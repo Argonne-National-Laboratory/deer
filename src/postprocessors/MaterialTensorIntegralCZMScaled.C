@@ -7,17 +7,16 @@
 //* Licensed under LGPL 2.1, please see LICENSE for details
 //* https://www.gnu.org/licenses/lgpl-2.1.html
 
-#include "MaterialTensorIntegralInterfaceScaled.h"
+#include "MaterialTensorIntegralCZMScaled.h"
 #include "RankTwoScalarTools.h"
 
 #include "metaphysicl/raw_type.h"
 
-registerMooseObject("DeerApp", MaterialTensorIntegralInterfaceScaled);
-registerMooseObject("DeerApp", ADMaterialTensorIntegralInterfaceScaled);
+registerMooseObject("DeerApp", MaterialTensorIntegralCZMScaled);
+registerMooseObject("DeerApp", ADMaterialTensorIntegralCZMScaled);
 
 template <bool is_ad>
-InputParameters
-MaterialTensorIntegralInterfaceScaledTempl<is_ad>::validParams() {
+InputParameters MaterialTensorIntegralCZMScaledTempl<is_ad>::validParams() {
   InputParameters params = InterfaceIntegralPostprocessor::validParams();
   params.addClassDescription("Computes an interface integral of "
                              "a component of a material tensor as specified by "
@@ -41,9 +40,8 @@ MaterialTensorIntegralInterfaceScaledTempl<is_ad>::validParams() {
 }
 
 template <bool is_ad>
-MaterialTensorIntegralInterfaceScaledTempl<
-    is_ad>::MaterialTensorIntegralInterfaceScaledTempl(const InputParameters
-                                                           &parameters)
+MaterialTensorIntegralCZMScaledTempl<is_ad>::
+    MaterialTensorIntegralCZMScaledTempl(const InputParameters &parameters)
     : InterfaceIntegralPostprocessor(parameters),
       _tensor(
           getGenericMaterialProperty<RankTwoTensor, is_ad>("rank_two_tensor")),
@@ -54,23 +52,45 @@ MaterialTensorIntegralInterfaceScaledTempl<
               ? &getPostprocessorValueByName(
                     getParam<PostprocessorName>("scaling_factor_PP"))
               : nullptr),
-      _normalize_integral_by_area(
-          getParam<bool>("normalize_integral_by_area")) {}
+      _normalize_integral_by_area(getParam<bool>("normalize_integral_by_area")),
+      _czm_area_mp(getMaterialPropertyByName<Real>("czm_area_mp")) {}
 
 template <bool is_ad>
-Real MaterialTensorIntegralInterfaceScaledTempl<is_ad>::computeQpIntegral() {
+Real MaterialTensorIntegralCZMScaledTempl<is_ad>::computeQpIntegral() {
   return RankTwoScalarTools::component(MetaPhysicL::raw_value(_tensor[_qp]), _i,
                                        _j);
 }
 
 template <bool is_ad>
-void MaterialTensorIntegralInterfaceScaledTempl<is_ad>::finalize() {
+Real MaterialTensorIntegralCZMScaledTempl<is_ad>::computeIntegral() {
+  Real sum = 0;
+  for (_qp = 0; _qp < _qrule->n_points(); _qp++)
+    sum += _czm_area_mp[_qp] * _coord[_qp] * computeQpIntegral();
+  return sum;
+}
+
+template <bool is_ad>
+void MaterialTensorIntegralCZMScaledTempl<is_ad>::initialize() {
+  InterfaceIntegralPostprocessor::initialize();
+  _czm_area = 0;
+}
+
+template <bool is_ad>
+void MaterialTensorIntegralCZMScaledTempl<is_ad>::execute() {
+  InterfaceIntegralPostprocessor::execute();
+  for (_qp = 0; _qp < _qrule->n_points(); _qp++)
+    _czm_area += _czm_area_mp[_qp];
+}
+
+template <bool is_ad>
+void MaterialTensorIntegralCZMScaledTempl<is_ad>::finalize() {
   InterfaceIntegralPostprocessor::finalize();
+  gatherSum(_czm_area);
   if (_scaling_factor_PP)
     _integral_value /= *_scaling_factor_PP;
   if (_normalize_integral_by_area)
-    _integral_value /= _interface_primary_area;
+    _integral_value /= _czm_area;
 }
 
-template class MaterialTensorIntegralInterfaceScaledTempl<false>;
-template class MaterialTensorIntegralInterfaceScaledTempl<true>;
+template class MaterialTensorIntegralCZMScaledTempl<false>;
+template class MaterialTensorIntegralCZMScaledTempl<true>;

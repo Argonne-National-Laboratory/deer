@@ -151,18 +151,15 @@ vecD V_dot::dqFundX(const bool implicit) {
   return dqdx;
 }
 
-double V_dot::Vdot(const bool implicit) {
-  double vdot = 8. * M_PI * _D * _sys_vars->getValueImplicit("Tn", implicit) /
-                qFun(implicit);
-  setValue("vL1dot", vdot, implicit);
-  if (_use_vl_triax)
-    vdot += VL2dotFun(implicit);
-
-  return vdot;
+double V_dot::VL1dotFun(const bool implicit) {
+  double vL1dot = 8. * M_PI * _D * _sys_vars->getValueImplicit("Tn", implicit) /
+                  qFun(implicit);
+  setValue("vL1dot", vL1dot, implicit);
+  return vL1dot;
 }
 
-vecD V_dot::dVdotdX(const bool implicit) {
-  vecD dvdot_dx(_n_vars);
+vecD V_dot::dVL1dotFundX(const bool implicit) {
+  vecD dvL1dot_dx(_n_vars);
   const double num = _sys_vars->getValueImplicit("Tn", implicit);
   const double prefactor = 8. * M_PI * _D;
 
@@ -173,16 +170,155 @@ vecD V_dot::dVdotdX(const bool implicit) {
   const vecD dqdx = dqFundX(implicit);
 
   for (uint i = 0; i < _n_vars; i++)
-    dvdot_dx[i] = prefactor * (dnum_dx[i] / q - num * dqdx[i] / (q * q));
+    dvL1dot_dx[i] = prefactor * (dnum_dx[i] / q - num * dqdx[i] / (q * q));
+
+  return dvL1dot_dx;
+}
+
+double V_dot::VLdotFun(const bool implicit) {
+  double vLdot = VL1dotFun(implicit);
+  if (_use_vl_triax)
+    vLdot += VL2dotFun(implicit);
+  return vLdot;
+}
+
+vecD V_dot::dVLdotFundX(const bool implicit) {
+  vecD dvLdot_dx = dVL1dotFundX(implicit);
 
   if (_use_vl_triax) {
     const vecD dvL2dx = dVL2dotFundX(implicit);
     for (uint i = 0; i < _n_vars; i++)
-      dvdot_dx[i] += dvL2dx[i];
+      dvLdot_dx[i] += dvL2dx[i];
+  }
+  return dvLdot_dx;
+}
+
+double V_dot::qHFun(const bool implicit) {
+  const double f = fabFun(implicit);
+  double qH = -2. * std::log(f) - (1. - f) * (3. - f);
+  return qH;
+}
+
+vecD V_dot::dqHFundX(const bool implicit) {
+
+  const double f = fabFun(implicit);
+  vecD dqHdx = dfabFundX(implicit);
+
+  const double dqdf = -2. * f - 2. / f + 4.;
+  for (uint i = 0; i < _n_vars; i++)
+    dqHdx[i] *= dqdf;
+
+  return dqHdx;
+}
+
+double V_dot::VH1dotFun(const bool implicit) {
+  double vH1dot = 8. * M_PI * _D * _sys_vars->getValueImplicit("Tn", implicit) /
+                  qHFun(implicit);
+  setValue("vH1dot", vH1dot, implicit);
+  return vH1dot;
+}
+
+vecD V_dot::dVH1dotFundX(const bool implicit) {
+  vecD dvH1dot_dx(_n_vars);
+  const double num = _sys_vars->getValueImplicit("Tn", implicit);
+  const double prefactor = 8. * M_PI * _D;
+
+  vecD dnum_dx(_n_vars);
+  dnum_dx[2] = 1;
+
+  const double q = qHFun(implicit);
+  const vecD dqdx = dqHFundX(implicit);
+
+  for (uint i = 0; i < _n_vars; i++)
+    dvH1dot_dx[i] = prefactor * (dnum_dx[i] / q - num * dqdx[i] / (q * q));
+
+  return dvH1dot_dx;
+}
+
+double V_dot::VH2dotFun(const bool implicit) {
+  const double svm = _sysparams->getValue("Svm");
+  const double sh = _sysparams->getValue("Sh");
+  double vH2dot = 0;
+  if (svm != 0 && sh != 0) {
+    const double m = mFun();
+    const double triax = sh / svm;
+    const double a = _sys_vars->getValueImplicit("a", implicit);
+    const double b = _sys_vars->getValueImplicit("b", implicit);
+
+    vH2dot = 2 * _sysparams->getValue("edot") * (a * a * a) * M_PI * _h;
+
+    const double temp = std::pow(0.87 * a / b, 3. / _n);
+    const double accelerating_term = (1. - temp);
+
+    double f_exp = 0;
+    if (std::abs(triax) >= 1) {
+      f_exp = std::pow(
+          (_alpha_n * std::abs(triax) + m / _n) / accelerating_term, _n);
+      vH2dot *= m * f_exp;
+    } else {
+      f_exp = std::pow((_alpha_n + m / _n) / accelerating_term, _n);
+      vH2dot *= f_exp * triax;
+    }
+  }
+  setValue("vH2dot", vH2dot, implicit);
+  return vH2dot;
+}
+
+vecD V_dot::dVH2dotFundX(const bool implicit) {
+  const double svm = _sysparams->getValue("Svm");
+  const double sh = _sysparams->getValue("Sh");
+  vecD dvH2dotdx(_n_vars);
+  if (svm != 0 && sh != 0) {
+    const double m = mFun();
+    const double triax = sh / svm;
+    const double a = _sys_vars->getValueImplicit("a", implicit);
+    const double b = _sys_vars->getValueImplicit("b", implicit);
+    const double edot = _sysparams->getValue("edot");
+
+    const double temp = std::pow(0.87 * a / b, 3. / _n);
+    const double accelerating_term = (1 - temp);
+
+    dvH2dotdx[0] = 6 * edot * (a * a) * M_PI * _h / accelerating_term;
+
+    dvH2dotdx[1] =
+        -6 * edot * (a * a * a) * M_PI * _h * temp / (accelerating_term * b);
+
+    double f_exp = 0;
+    if (std::abs(triax) >= 1) {
+      f_exp = std::pow(
+          (_alpha_n * std::abs(triax) + m / _n) / accelerating_term, _n);
+      dvH2dotdx[0] *= m * f_exp;
+      dvH2dotdx[1] *= m * f_exp;
+    } else {
+      f_exp = std::pow((_alpha_n + m / _n) / accelerating_term, _n);
+      dvH2dotdx[0] *= f_exp * triax;
+      dvH2dotdx[1] *= f_exp * triax;
+    }
+  }
+  return dvH2dotdx;
+}
+
+double V_dot::VHdotFun(const bool implicit) {
+  double vHdot = VL1dotFun(implicit);
+  if (_use_vl_triax)
+    vHdot += VL2dotFun(implicit);
+  return vHdot;
+}
+
+vecD V_dot::dVHdotFundX(const bool implicit) {
+  vecD dvHdot_dx = dVL1dotFundX(implicit);
+
+  if (_use_vl_triax) {
+    const vecD dvH2dx = dVL2dotFundX(implicit);
+    for (uint i = 0; i < _n_vars; i++)
+      dvHdot_dx[i] += dvH2dx[i];
   }
 
-  return dvdot_dx;
+  return dvHdot_dx;
 }
+
+double V_dot::Vdot(const bool implicit) { return VHdotFun(implicit); }
+vecD V_dot::dVdotdX(const bool implicit) { return dVHdotFundX(implicit); }
 
 void V_dot::updateValues(const bool implicit) {
   setValue("vdot", Vdot(implicit), implicit);
@@ -206,10 +342,10 @@ double a_res::computedRate(const bool implicit) const {
 
   if (_growth_on) {
     const double udot = _sysparams.getValue("udot_N");
-    if (udot > 0 || (udot < 0 && _sys_vars.getValueOld("a") > _a0)) {
-      const double a = _sys_vars.getValueImplicit("a", implicit);
-      a_dot = _pre_eval.getValue("vdot", implicit) / (4. * M_PI * _h * a * a);
-    }
+    // if (udot > 0 || (udot < 0 && _sys_vars.getValueOld("a") > _a0)) {
+    const double a = _sys_vars.getValueImplicit("a", implicit);
+    a_dot = _pre_eval.getValue("vdot", implicit) / (4. * M_PI * _h * a * a);
+    // }
   }
   return a_dot;
 }
@@ -218,18 +354,18 @@ vecD a_res::DComputedRatetDx(const bool implicit) const {
   vecD dadot_dx(_n_vars);
   if (_growth_on) {
     const double udot = _sysparams.getValue("udot_N");
-    if (udot > 0 || (udot < 0 && _sys_vars.getValueOld("a") > _a0)) {
-      const double a = _sys_vars.getValueImplicit("a", implicit);
-      const double vdot = _pre_eval.getValue("vdot", implicit);
-      const vecD dvdot_dx = _pre_eval.getDValueDX("vdot", implicit);
+    // if (udot > 0 || (udot < 0 && _sys_vars.getValueOld("a") > _a0)) {
+    const double a = _sys_vars.getValueImplicit("a", implicit);
+    const double vdot = _pre_eval.getValue("vdot", implicit);
+    const vecD dvdot_dx = _pre_eval.getDValueDX("vdot", implicit);
 
-      double g = (4. * M_PI * _h * a * a);
-      vecD dg_dx(_n_vars);
-      dg_dx[0] = (8. * M_PI * _h * a);
+    double g = (4. * M_PI * _h * a * a);
+    vecD dg_dx(_n_vars);
+    dg_dx[0] = (8. * M_PI * _h * a);
 
-      for (uint i = 0; i < _n_vars; i++)
-        dadot_dx[i] = dvdot_dx[i] / g - vdot * dg_dx[i] / (g * g);
-    }
+    for (uint i = 0; i < _n_vars; i++)
+      dadot_dx[i] = dvdot_dx[i] / g - vdot * dg_dx[i] / (g * g);
+    // }
   }
   return dadot_dx;
 }
@@ -302,9 +438,11 @@ vecD b_res::DComputedRatetDP(const bool implicit) const {
 TN_res::TN_res(const unsigned int eq_index, NLSystemVars &sysvars,
                NLSystemParameters &sysparams,
                NLPreEquationEvalautionCalc &pre_eval, const double thickness,
-               const double E_interface, const double theta)
+               const double E_interface, const double P_mt,
+               const double P_thickness, const double theta)
     : RateEquation(eq_index, sysvars, sysparams, pre_eval, theta),
-      _thickness(thickness), _E_interface(E_interface){};
+      _thickness(thickness), _E_interface(E_interface), _P_mt(P_mt),
+      _P_thickness(P_thickness){};
 
 double TN_res::currentJump() const {
   return _sysparams.getValue("uN_old") +
@@ -326,12 +464,8 @@ double TN_res::quadraticPenalty() const {
   const double jump = currentJump();
   double P = 1.;
   if (jump < 0) {
-    const double P_mtover2 = 5;
-    const double P_mt = 10;
-    const double a_parabola =
-        (2 * P_mt - 4 * P_mtover2 + 2.) / (_thickness * _thickness);
-    const double b_parabola = (P_mt - 4 * P_mtover2 + 3.) / _thickness;
-    P = a_parabola * jump * jump + b_parabola * jump + 1;
+    const double a_parabola = (_P_mt - 1.) / (_P_thickness * _P_thickness);
+    P = a_parabola * jump * jump + 1;
   }
   return P;
 }
@@ -340,12 +474,8 @@ vecD TN_res::DQuadraticPenaltyDParam() const {
   const double jump = currentJump();
   vecD dPenalty_dParam = DcurrentJumpDParam();
   if (jump < 0) {
-    const double P_mtover2 = 5;
-    const double P_mt = 10;
-    const double a_parabola =
-        (2 * P_mt - 4 * P_mtover2 + 2.) / (_thickness * _thickness);
-    const double b_parabola = (P_mt - 4 * P_mtover2 + 3.) / _thickness;
-    const double dPDJump = 2 * a_parabola * jump + b_parabola;
+    const double a_parabola = (_P_mt - 1.) / (_P_thickness * _P_thickness);
+    const double dPDJump = 2 * a_parabola * jump;
     dPenalty_dParam[_sysparams.getParamIndex("udot_N")] *= dPDJump;
   }
   return dPenalty_dParam;

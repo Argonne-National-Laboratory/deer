@@ -24,7 +24,7 @@
     </plastic>
     <creep type="J2CreepModel">
       <rule type="PowerLawCreep">
-        <A>2e-10</A>
+        <A>2e-11</A>
         <n>2.5</n>
       </rule>
     </creep>

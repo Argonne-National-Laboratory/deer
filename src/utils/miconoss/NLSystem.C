@@ -104,7 +104,8 @@ matrixD NLSystem::getDSystemVarsDParams(const std::vector<std::string> &pname,
   matrixD dRdp = getDResidualDParams(pname);
   matrixD dxdP;
   int ierr = miconossmath::solveAxNb(J, dRdp, _nsys, dxdP);
-
+  if (ierr != 0)
+    std::cerr << "failed solving getDSystemVarsDParams \n";
   for (uint p = 0; p < n_param; p++)
     for (uint i = 0; i < _nx; i++)
       dxdP[p][i] *= -1;

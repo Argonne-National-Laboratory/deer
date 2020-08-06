@@ -38,59 +38,54 @@
 []
 
 [Functions]
-  [./applied_load_x]
+  [./applied_disp_z]
     type = PiecewiseLinear
-    x = '0 0.1 1e7'
-    y = '0 0 0'
-  [../]
-  [./applied_load_y]
-    type = PiecewiseLinear
-    x = '0 0.1 1e7'
-    y = '0 0 0'
-  [../]
-  [./applied_load_z]
-    type = PiecewiseLinear
-    x = '0 0.1 300 300.02 1e6'
-    y = '0 100 100 -500 -500'
+    x = '0.0000000000000 1000 5000 10000'
+    y = '0 0.06 0 -0.03'
   [../]
 []
+
 [BCs]
-    [./x]
-      type = DirichletBC
-      boundary = left
-      variable = disp_x
-      value = 0.0
-    [../]
-    [./y]
-      type = DirichletBC
-      boundary = bottom
-      variable = disp_y
-      value = 0.0
-    [../]
-    [./z]
-      type = DirichletBC
-      boundary = back
-      variable = disp_z
-      value = 0.0
-    [../]
-    [./x1]
-      type = FunctionNeumannBC
-      boundary = right
-      function = applied_load_x
-      variable = disp_x
-    [../]
-    [./y1]
-      type = FunctionNeumannBC
-      boundary = top
-      function = applied_load_y
-      variable = disp_y
-    [../]
-    [./z1]
-      type = FunctionNeumannBC
-      boundary = front
-      function = applied_load_z
-      variable = disp_z
-    [../]
+  [./x0]
+    type = DirichletBC
+    variable = disp_x
+    boundary = left
+    value = 0.0
+  [../]
+  [./y0]
+    type = DirichletBC
+    variable = disp_y
+    boundary = bottom
+    value = 0.0
+  [../]
+  [./z0]
+    type = DirichletBC
+    variable = disp_z
+    boundary = back
+    value = 0.0
+  [../]
+  [./z1]
+    type = FunctionDirichletBC
+    variable = disp_z
+    boundary = front
+    function  = applied_disp_z
+  [../]
+[]
+
+# Constraint System
+[Constraints]
+  [./x1]
+    type = EqualValueBoundaryConstraint
+    variable = disp_x
+    secondary = 'right'    # boundary
+    penalty = 1e6
+  [../]
+  [./y1]
+    type = EqualValueBoundaryConstraint
+    variable = disp_y
+    secondary = 'top'    # boundary
+    penalty = 1e6
+  [../]
 []
 
 [AuxVariables]
@@ -200,6 +195,10 @@
     order = CONSTANT
   []
   [./VL2dot]
+    family = MONOMIAL
+    order = CONSTANT
+  []
+  [./u_N]
     family = MONOMIAL
     order = CONSTANT
   []
@@ -410,6 +409,14 @@
     execute_on = 'TIMESTEP_END'
     variable = VL2dot
   []
+  [./U_N]
+    type = MaterialRealVectorValueAux
+    boundary = 'interface'
+    property = displacement_jump
+    component = 0
+    execute_on = 'TIMESTEP_END'
+    variable = u_N
+  []
 []
 
 [NEMLMechanics]
@@ -442,7 +449,10 @@
     minimum_allowed_residual_life = 10
     nucleation_on = true
     growth_on = true
+    use_old_bulk_property = false
     nl_residual_abs_tol = 1e-12
+    interface_thickness = 1e-4
+    E_penalty_after_failure_minus_thickenss = 1e8
   [../]
 []
 
@@ -456,13 +466,14 @@
 [Executioner]
   # Executioner
   type = Transient
-
+  automatic_scaling = true
+  compute_scaling_once = false
   solve_type = 'NEWTON'
   line_search = none
   petsc_options_iname = '-pc_type '
   petsc_options_value = 'lu'
-  nl_rel_tol = 1e-8
-  nl_abs_tol = 1e-8
+  nl_rel_tol = 1e-6
+  nl_abs_tol = 1e-5
   l_max_its = 2
   nl_max_its = 10
   start_time = 0.0
@@ -471,14 +482,14 @@
     optimal_iterations = 10
     dt =  0.1
   []
-  dtmin = 1e-4
-  end_time = 8290
+  dtmin = 1e-10
+  end_time = 10000
   dtmax = 50
 []
 
 [Outputs]
   exodus = true
-  sync_times = '0 0.1 300 300.02 410 410.1'
-  print_linear_converged_reason = false
   print_nonlinear_converged_reason = false
+  print_linear_converged_reason = false
+  # sync_times = '0 0.1 300 300.02 410 410.1 2000 3000'
 []

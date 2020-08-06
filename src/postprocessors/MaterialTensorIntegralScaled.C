@@ -21,6 +21,8 @@ InputParameters MaterialTensorIntegralScaledTempl<is_ad>::validParams() {
   params.addClassDescription(
       "Computes a volume integral of a material tensor component scaled "
       "by the value of another postprocessor.");
+  params.set<ExecFlagEnum>("execute_on") = EXEC_TIMESTEP_END;
+
   return params;
 }
 
@@ -32,10 +34,9 @@ MaterialTensorIntegralScaledTempl<is_ad>::MaterialTensorIntegralScaledTempl(
           this->template getParam<PostprocessorName>("scaling_factor_PP"))) {}
 
 template <bool is_ad>
-Real MaterialTensorIntegralScaledTempl<is_ad>::getValue() {
-  this->_integral_value = MaterialTensorIntegralTempl<is_ad>::getValue();
+void MaterialTensorIntegralScaledTempl<is_ad>::finalize() {
+  MaterialTensorIntegralTempl<is_ad>::finalize();
   this->_integral_value /= _scaling_factor_PP;
-  return this->_integral_value;
 }
 
 template class MaterialTensorIntegralScaledTempl<false>;

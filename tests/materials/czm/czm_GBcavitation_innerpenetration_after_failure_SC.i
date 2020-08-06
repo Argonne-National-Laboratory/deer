@@ -50,8 +50,8 @@
   [../]
   [./applied_load_z]
     type = PiecewiseLinear
-    x = '0 0.1 300 300.02 1e6'
-    y = '0 100 100 -500 -500'
+    x = '0 0.1 1200 2000 1e6'
+    y = '0 100 500 -200 -200'
   [../]
 []
 [BCs]
@@ -200,6 +200,10 @@
     order = CONSTANT
   []
   [./VL2dot]
+    family = MONOMIAL
+    order = CONSTANT
+  []
+  [./u_N]
     family = MONOMIAL
     order = CONSTANT
   []
@@ -410,6 +414,14 @@
     execute_on = 'TIMESTEP_END'
     variable = VL2dot
   []
+  [./U_N]
+    type = MaterialRealVectorValueAux
+    boundary = 'interface'
+    property = displacement_jump
+    component = 0
+    execute_on = 'TIMESTEP_END'
+    variable = u_N
+  []
 []
 
 [NEMLMechanics]
@@ -443,6 +455,9 @@
     nucleation_on = true
     growth_on = true
     nl_residual_abs_tol = 1e-12
+    use_old_bulk_property =false
+    # interface_thickness = 1e-3
+    E_penalty_after_failure_minus_thickenss =1e8
   [../]
 []
 
@@ -471,14 +486,14 @@
     optimal_iterations = 10
     dt =  0.1
   []
-  dtmin = 1e-4
-  end_time = 8290
+  # dtmin = 1e-4
+  end_time = 1e4
   dtmax = 50
 []
 
 [Outputs]
   exodus = true
-  sync_times = '0 0.1 300 300.02 410 410.1'
-  print_linear_converged_reason = false
+  sync_times = '0 0.1 300 300.02 1200 2000'
   print_nonlinear_converged_reason = false
+  print_linear_converged_reason = false
 []
