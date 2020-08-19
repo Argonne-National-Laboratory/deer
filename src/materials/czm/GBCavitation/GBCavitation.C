@@ -29,7 +29,7 @@ InputParameters GBCavitation::validParams() {
                         "Element co-penetration penatly at jump = -thickness");
   params.addParam<Real>("E_penalty_after_failure_minus_thickenss", 1e6,
                         "Element co-penetration penatly at jump = -thickness");
-  params.addParam<Real>("G_GB", 57.69e3, "Grain boundary shear stiffness");
+  params.addParam<Real>("G_GB", 58.3657588e3, "Grain boundary shear stiffness");
   params.addParam<Real>("D_GB", 1e-15, "Grain boundary diffusivity");
   params.addParam<Real>("eta_sliding", 1e6,
                         "Grain boundary sliding viscosisty");
