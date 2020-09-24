@@ -169,6 +169,11 @@ void CZMMaterialBasePK1::computeF() {
                                             (*_grad_disp_neighbor[2])[_qp]));
 
   _F_avg[_qp] = 0.5 * (F + F_neighbor);
+  // According to Cody mooseError are always fatal, so nothing we can do about
+  // them. The norm of the tensor might work, but there is the risk of an
+  // unwanted overflow (I tried and it happens). So checking component by
+  // component remains the only reasonable strategy. If someone finds a  better
+  // way this could be changed in the future
   for (uint i = 0; i < 3; i++)
     for (uint j = 0; j < 3; j++)
       if (!std::isfinite(_F_avg[_qp](i, j)))
