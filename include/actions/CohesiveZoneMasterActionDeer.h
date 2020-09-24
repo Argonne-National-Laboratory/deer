@@ -16,5 +16,9 @@ public:
   static InputParameters validParams();
   CohesiveZoneMasterActionDeer(const InputParameters &params);
 
+  using Action::addRelationshipManagers;
+  virtual void addRelationshipManagers(
+      Moose::RelationshipManagerType input_rm_type) override;
+
   void act() override;
 };
