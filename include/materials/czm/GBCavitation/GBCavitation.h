@@ -113,6 +113,7 @@ protected:
   const bool _nucleation_on;
   const bool _growth_on;
   const bool _use_triaxial_growth;
+  const unsigned int _vdot_method;
   ///@}
 
   /// failure constants

@@ -46,6 +46,8 @@ InputParameters GBCavitation::validParams() {
   params.addParam<bool>("growth_on", true, "Turns on cavity growth");
   params.addParam<bool>("use_triaxial_growth", true,
                         "if true(default) turns on triaxial cavity growth");
+  params.addParam<unsigned int>("vdot_method", 0,
+                                "0 use vdotL, 1 use vdotH, 2 use both");
   params.addParam<bool>("use_old_bulk_property", false,
                         "If true use old bulk material property.");
   params.addParam<unsigned int>("max_time_cut", 5,
@@ -142,6 +144,7 @@ GBCavitation::GBCavitation(const InputParameters &parameters)
       _nucleation_on(getParam<bool>("nucleation_on")),
       _growth_on(getParam<bool>("growth_on")),
       _use_triaxial_growth(getParam<bool>("use_triaxial_growth")),
+      _vdot_method(getParam<unsigned int>("vdot_method")),
       _D_failure(getParam<Real>("D_failure")),
       _minimum_allowed_residual_life(
           getParam<Real>("minimum_allowed_residual_life")),
@@ -205,7 +208,7 @@ void GBCavitation::computeTractionIncrementAndDerivatives() {
     ShamNeedlemann::V_dot vdotfun(
         &sysvars, &sysparams,
         {"vdot", "vL1dot", "vL2dot", "vH1dot", "vH2dot", "L"}, _n, _h, _D_GB,
-        _use_triaxial_growth);
+        _use_triaxial_growth, _vdot_method, _nucleation_on);
 
     /// set up equations
     ShamNeedlemann::a_res a_eq(0, sysvars, sysparams, vdotfun, _h, _a0, _theta,
@@ -334,25 +337,28 @@ void GBCavitation::computeTractionIncrementAndDerivatives() {
 
     /// check for nans in traction and traction derivatives
     for (uint i = 0; i < 3; i++)
-      if (!std::isfinite(_traction[_qp](i)))
-        mooseError("GBCavitation _traction[_qp] " + std::to_string(i) +
-                   " is not finite: " + std::to_string(_traction[_qp](i)));
+      mooseAssert(std::isfinite(_traction[_qp](i)),
+                  "GBCavitation _traction[_qp] " + std::to_string(i) +
+                      " is not finite: " + std::to_string(_traction[_qp](i)));
 
-    if (!std::isfinite(_a[_qp]))
-      mooseError("GBCavitation _a[_qp] is not finite: " +
-                 std::to_string(_a[_qp]));
-    if (!std::isfinite(_b[_qp]))
-      mooseError("GBCavitation _b[_qp] is not finite: " +
-                 std::to_string(_b[_qp]));
+    mooseAssert(std::isfinite(_a[_qp]), "GBCavitation _a[_qp] is not finite: " +
+                                            std::to_string(_a[_qp]));
+
+    mooseAssert(std::isfinite(_b[_qp]), "GBCavitation _b[_qp] is not finite: " +
+                                            std::to_string(_b[_qp]));
 
     for (uint i = 0; i < 3; i++)
       for (uint j = 0; j < 3; j++)
-        if (!std::isfinite(_dtraction_djump[_qp](i, j)))
-          mooseWarning(
-              "GBCavitation _dtraction_djump[_qp](" + std::to_string(i) + "," +
-              std::to_string(j) + ") is not finite: " +
-              std::to_string(_dtraction_djump[_qp](i, j)) + " increment i = " +
-              std::to_string(_displacement_jump_inc[_qp](i)));
+        mooseAssert(std::isfinite(_dtraction_djump[_qp](i, j)),
+                    "GBCavitation _dtraction_djump[_qp](" + std::to_string(i) +
+                        "," + std::to_string(j) + ") is not finite: " +
+                        std::to_string(_dtraction_djump[_qp](i, j)) +
+                        " increment i = " +
+                        std::to_string(_displacement_jump_inc[_qp](i)));
+    mooseAssert(std::isfinite(_dtraction_djump[_qp].det()),
+                "determinatn of _dtraction_djump is not finite");
+    mooseAssert(_dtraction_djump[_qp].det() > 0.,
+                "determinatn of _dtraction_djump is <= 0");
   }
 }
 

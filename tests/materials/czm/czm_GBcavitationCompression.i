@@ -443,6 +443,7 @@
     nucleation_on = true
     growth_on = true
     nl_residual_abs_tol = 1e-12
+    vdot_method = 2
   [../]
 []
 
@@ -459,8 +460,8 @@
 
   solve_type = 'NEWTON'
   line_search = none
-  petsc_options_iname = '-pc_type '
-  petsc_options_value = 'lu'
+  petsc_options_iname = '-pc_type -snes_stol'
+  petsc_options_value = 'lu 0'
   nl_rel_tol = 1e-8
   nl_abs_tol = 1e-8
   l_max_its = 2

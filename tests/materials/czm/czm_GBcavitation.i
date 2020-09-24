@@ -296,6 +296,7 @@
     minimum_allowed_residual_life = 10
     nucleation_on = true
     growth_on = true
+    vdot_method = 2
   [../]
 []
 

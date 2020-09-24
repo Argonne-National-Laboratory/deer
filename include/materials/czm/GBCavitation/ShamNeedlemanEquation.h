@@ -13,7 +13,8 @@ class V_dot : public NLPreEquationEvalautionCalc {
 public:
   V_dot(NLSystemVars *const sysvars, const NLSystemParameters *sysparams,
         const std::vector<std::string> &value_names, const double n,
-        const double h, const double D, const bool use_vl_triax);
+        const double h, const double D, const bool use_vdot_creep,
+        const unsigned int vdot_method, const bool nucleation_on);
 
   void updateValues(const bool implicit = true) override;
   void updateDerivatives(const bool implicit = true) override;
@@ -49,7 +50,9 @@ protected:
   const double _alpha_n;
   const double _h;
   const double _D;
-  const bool _use_vl_triax;
+  const bool _use_vdot_creep;
+  const unsigned int _vdot_method;
+  const bool _nucleation_on;
 };
 
 class a_res : public RateEquation {

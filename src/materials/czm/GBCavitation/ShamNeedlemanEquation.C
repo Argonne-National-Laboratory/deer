@@ -11,9 +11,11 @@ double h_psi(const double psi) {
 
 V_dot::V_dot(NLSystemVars *const sysvars, const NLSystemParameters *sysparams,
              const std::vector<std::string> &value_names, const double n,
-             const double h, const double D, const bool use_vl_triax)
+             const double h, const double D, const bool use_vdot_creep,
+             const unsigned int vdot_method, const bool nucleation_on)
     : NLPreEquationEvalautionCalc(sysvars, sysparams, value_names), _n(n),
-      _alpha_n(alphanFun()), _h(h), _D(D), _use_vl_triax(use_vl_triax) {}
+      _alpha_n(alphanFun()), _h(h), _D(D), _use_vdot_creep(use_vdot_creep),
+      _vdot_method(vdot_method), _nucleation_on(nucleation_on) {}
 
 double V_dot::mFun() { return _sysparams->getValue("Sh") >= 0 ? 1 : -1; }
 
@@ -79,7 +81,8 @@ vecD V_dot::dfabFundX(const bool implicit) {
   const double b = _sys_vars->getValueImplicit("b", implicit);
 
   dfabdx[0] = 2 * a / (b * b);
-  dfabdx[1] = -2 * a * a / (b * b * b);
+  if (_nucleation_on)
+    dfabdx[1] = -2 * a * a / (b * b * b);
 
   return dfabdx;
 }
@@ -116,8 +119,16 @@ vecD V_dot::dfaLFundX(const bool implicit) {
 
 double V_dot::qFun(const bool implicit) {
   const double p = 30;
-  const double f = std::pow(
-      std::pow(fabFun(implicit), p) + std::pow(faLFun(implicit), p), 1. / p);
+  const double faL = faLFun(implicit);
+  const double fab = fabFun(implicit);
+  // const double f = std::pow(
+  //     std::pow(fabFun(implicit), p) + std::pow(faLFun(implicit), p), 1. / p);
+
+  double f;
+  if (faL > fab)
+    f = faL;
+  else
+    f = fab;
 
   double q = -2. * std::log(f) - (1. - f) * (3. - f);
 
@@ -129,27 +140,40 @@ vecD V_dot::dqFundX(const bool implicit) {
   const double fab = fabFun(implicit);
   const double faL = faLFun(implicit);
   vecD dqdx(_n_vars);
-
-  const double p = 30;
-  const double fabP = std::pow(fab, p);
-  const double faLP = std::pow(faL, p);
-  const double f = std::pow(fabP + faLP, 1. / p);
-
-  const double prefactor = std::pow(fabP + faLP, (1. - p) / p);
-
-  vecD dfabdX = dfabFundX(implicit);
-  vecD dfaLdX = dfaLFundX(implicit);
-
-  for (uint i = 0; i < _n_vars; i++)
-    dqdx[i] = prefactor *
-              (fabP / fab * dfabdX[i] + std::pow(faL, p - 1.) * dfaLdX[i]);
+  // vecD dfdx(_n_vars);
+  double f;
+  if (faL > fab) {
+    f = faL;
+    dqdx = dfaLFundX(implicit);
+  } else {
+    f = fab;
+    dqdx = dfabFundX(implicit);
+  }
 
   const double dqdf = -2. * f - 2. / f + 4.;
   for (uint i = 0; i < _n_vars; i++)
     dqdx[i] *= dqdf;
 
+  // const double p = 30;
+  // const double fabP = std::pow(fab, p);
+  // const double faLP = std::pow(faL, p);
+  // const double f = std::pow(fabP + faLP, 1. / p);
+  //
+  // const double prefactor = std::pow(fabP + faLP, (1. - p) / p);
+  //
+  // vecD dfabdX = dfabFundX(implicit);
+  // vecD dfaLdX = dfaLFundX(implicit);
+  //
+  // for (uint i = 0; i < _n_vars; i++)
+  //   dqdx[i] = prefactor *
+  //             (fabP / fab * dfabdX[i] + std::pow(faL, p - 1.) * dfaLdX[i]);
+  //
+  // const double dqdf = -2. * f - 2. / f + 4.;
+  // for (uint i = 0; i < _n_vars; i++)
+  //   dqdx[i] *= dqdf;
+
   return dqdx;
-}
+} // namespace ShamNeedlemann
 
 double V_dot::VL1dotFun(const bool implicit) {
   double vL1dot = 8. * M_PI * _D * _sys_vars->getValueImplicit("Tn", implicit) /
@@ -177,7 +201,7 @@ vecD V_dot::dVL1dotFundX(const bool implicit) {
 
 double V_dot::VLdotFun(const bool implicit) {
   double vLdot = VL1dotFun(implicit);
-  if (_use_vl_triax)
+  if (_use_vdot_creep)
     vLdot += VL2dotFun(implicit);
   return vLdot;
 }
@@ -185,7 +209,7 @@ double V_dot::VLdotFun(const bool implicit) {
 vecD V_dot::dVLdotFundX(const bool implicit) {
   vecD dvLdot_dx = dVL1dotFundX(implicit);
 
-  if (_use_vl_triax) {
+  if (_use_vdot_creep) {
     const vecD dvL2dx = dVL2dotFundX(implicit);
     for (uint i = 0; i < _n_vars; i++)
       dvLdot_dx[i] += dvL2dx[i];
@@ -247,16 +271,18 @@ double V_dot::VH2dotFun(const bool implicit) {
 
     vH2dot = 2 * _sysparams->getValue("edot") * (a * a * a) * M_PI * _h;
 
-    const double temp = std::pow(0.87 * a / b, 3. / _n);
+    const double y = 0.87;
+    const double temp = std::pow(y * std::abs(a / b), 3. / _n);
     const double accelerating_term = (1. - temp);
 
     double f_exp = 0;
     if (std::abs(triax) >= 1) {
-      f_exp = std::pow(
-          (_alpha_n * std::abs(triax) + m / _n) / accelerating_term, _n);
+      const double z = _alpha_n * std::abs(triax) + m / _n;
+      f_exp = std::pow(z / accelerating_term, _n);
       vH2dot *= m * f_exp;
     } else {
-      f_exp = std::pow((_alpha_n + m / _n) / accelerating_term, _n);
+      const double z = (_alpha_n + m / _n);
+      f_exp = std::pow(z / accelerating_term, _n);
       vH2dot *= f_exp * triax;
     }
   }
@@ -275,41 +301,46 @@ vecD V_dot::dVH2dotFundX(const bool implicit) {
     const double b = _sys_vars->getValueImplicit("b", implicit);
     const double edot = _sysparams->getValue("edot");
 
-    const double temp = std::pow(0.87 * a / b, 3. / _n);
-    const double accelerating_term = (1 - temp);
+    const double y = 0.87;
+    const double temp = std::pow(y * std::abs(a / b), 3. / _n);
+    const double accelerating_term = (1. - temp);
+    const double prefactor = 2 * edot * M_PI * _h;
+    dvH2dotdx[0] = 3 * prefactor * (a * a) / accelerating_term;
 
-    dvH2dotdx[0] = 6 * edot * (a * a) * M_PI * _h / accelerating_term;
-
-    dvH2dotdx[1] =
-        -6 * edot * (a * a * a) * M_PI * _h * temp / (accelerating_term * b);
+    if (_nucleation_on)
+      dvH2dotdx[1] =
+          -3 * prefactor * (a * a * a) / (accelerating_term * b) * temp;
 
     double f_exp = 0;
     if (std::abs(triax) >= 1) {
-      f_exp = std::pow(
-          (_alpha_n * std::abs(triax) + m / _n) / accelerating_term, _n);
+      const double z = _alpha_n * std::abs(triax) + m / _n;
+      f_exp = std::pow(z / accelerating_term, _n);
       dvH2dotdx[0] *= m * f_exp;
-      dvH2dotdx[1] *= m * f_exp;
+      if (_nucleation_on)
+        dvH2dotdx[1] *= m * f_exp;
     } else {
-      f_exp = std::pow((_alpha_n + m / _n) / accelerating_term, _n);
+      const double z = (_alpha_n + m / _n);
+      f_exp = std::pow(z / accelerating_term, _n);
       dvH2dotdx[0] *= f_exp * triax;
-      dvH2dotdx[1] *= f_exp * triax;
+      if (_nucleation_on)
+        dvH2dotdx[1] *= f_exp * triax;
     }
   }
   return dvH2dotdx;
 }
 
 double V_dot::VHdotFun(const bool implicit) {
-  double vHdot = VL1dotFun(implicit);
-  if (_use_vl_triax)
-    vHdot += VL2dotFun(implicit);
+  double vHdot = VH1dotFun(implicit);
+  if (_use_vdot_creep)
+    vHdot += VH2dotFun(implicit);
   return vHdot;
 }
 
 vecD V_dot::dVHdotFundX(const bool implicit) {
-  vecD dvHdot_dx = dVL1dotFundX(implicit);
+  vecD dvHdot_dx = dVH1dotFundX(implicit);
 
-  if (_use_vl_triax) {
-    const vecD dvH2dx = dVL2dotFundX(implicit);
+  if (_use_vdot_creep) {
+    const vecD dvH2dx = dVH2dotFundX(implicit);
     for (uint i = 0; i < _n_vars; i++)
       dvHdot_dx[i] += dvH2dx[i];
   }
@@ -317,8 +348,39 @@ vecD V_dot::dVHdotFundX(const bool implicit) {
   return dvHdot_dx;
 }
 
-double V_dot::Vdot(const bool implicit) { return VHdotFun(implicit); }
-vecD V_dot::dVdotdX(const bool implicit) { return dVHdotFundX(implicit); }
+double V_dot::Vdot(const bool implicit) {
+  double V = 0;
+  if (_vdot_method == 0)
+    V = VLdotFun(implicit);
+  else if (_vdot_method == 1)
+    V = VHdotFun(implicit);
+  else if (_vdot_method == 2) {
+    double vL = VLdotFun(implicit);
+    double vH = VHdotFun(implicit);
+    if (std::abs(vL >= vH))
+      V = vL;
+    else
+      V = vH;
+  }
+  return V;
+}
+
+vecD V_dot::dVdotdX(const bool implicit) {
+  vecD dvdotdx(_n_vars);
+  if (_vdot_method == 0)
+    dvdotdx = dVLdotFundX(implicit);
+  else if (_vdot_method == 1)
+    dvdotdx = dVHdotFundX(implicit);
+  else if (_vdot_method == 2) {
+    double vL = VLdotFun(implicit);
+    double vH = VHdotFun(implicit);
+    if (std::abs(vL >= vH))
+      dvdotdx = dVLdotFundX(implicit);
+    else
+      dvdotdx = dVHdotFundX(implicit);
+  }
+  return dvdotdx;
+}
 
 void V_dot::updateValues(const bool implicit) {
   setValue("vdot", Vdot(implicit), implicit);
@@ -341,7 +403,7 @@ double a_res::computedRate(const bool implicit) const {
   double a_dot = 0;
 
   if (_growth_on) {
-    const double udot = _sysparams.getValue("udot_N");
+    // const double udot = _sysparams.getValue("udot_N");
     // if (udot > 0 || (udot < 0 && _sys_vars.getValueOld("a") > _a0)) {
     const double a = _sys_vars.getValueImplicit("a", implicit);
     a_dot = _pre_eval.getValue("vdot", implicit) / (4. * M_PI * _h * a * a);
@@ -353,7 +415,7 @@ double a_res::computedRate(const bool implicit) const {
 vecD a_res::DComputedRatetDx(const bool implicit) const {
   vecD dadot_dx(_n_vars);
   if (_growth_on) {
-    const double udot = _sysparams.getValue("udot_N");
+    // const double udot = _sysparams.getValue("udot_N");
     // if (udot > 0 || (udot < 0 && _sys_vars.getValueOld("a") > _a0)) {
     const double a = _sys_vars.getValueImplicit("a", implicit);
     const double vdot = _pre_eval.getValue("vdot", implicit);
