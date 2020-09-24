@@ -1,6 +1,7 @@
 .libs
 *-opt
 *-dbg
+*-devel
 *.so
 *.so.*
 *.la
