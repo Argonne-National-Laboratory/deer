@@ -10,6 +10,14 @@
 *.swp
 *.lo.d
 *.e
+*.e.*
+*.rd*
+*.xdr.*
+*.xdr
+*.cpr
+*.xda.*
+*.xda
+*.cpa
 *.exo
 *.dylib
 *print_trace.*
