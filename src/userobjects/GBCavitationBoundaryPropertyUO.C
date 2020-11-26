@@ -79,29 +79,29 @@ void GBCavitationBoundaryPropertyUO::ReadGBPropertyFile() {
     inFile.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
   SubdomainID gid1, gid2;
-  Real FN_NI, Nmax_NI, S_thr, a_0, b_0, sigma_0, D_gb, beta_exponent,
-      n_exponent, E_interface, G_interface, eta_sliding, psi_angle;
+  Real FN_NI, Nmax_NI, thickness, a_0, b_0, sigma_0, D_GB, beta_exponent,
+      n_exponent, E_GB, G_GB, eta_sliding, psi_degree;
 
-  while (inFile >> gid1 >> gid2 >> FN_NI >> Nmax_NI >> S_thr >> a_0 >> b_0 >>
-         sigma_0 >> D_gb >> beta_exponent >> n_exponent >> E_interface >>
-         G_interface >> eta_sliding >> psi_angle) {
+  while (inFile >> gid1 >> gid2 >> FN_NI >> Nmax_NI >> thickness >> a_0 >>
+         b_0 >> sigma_0 >> D_GB >> beta_exponent >> n_exponent >> E_GB >>
+         G_GB >> eta_sliding >> psi_degree) {
 
     std::pair<SubdomainID, SubdomainID> gb_pair = std::make_pair(gid1, gid2);
     std::map<std::string, Real> boundary_property;
 
     boundary_property["FN_NI"] = FN_NI;
     boundary_property["Nmax_NI"] = Nmax_NI;
-    boundary_property["S_thr"] = S_thr;
+    boundary_property["thickness"] = thickness;
     boundary_property["a0"] = a_0;
     boundary_property["b0"] = b_0;
     boundary_property["sigma_0"] = sigma_0;
-    boundary_property["D_gb"] = D_gb;
+    boundary_property["D_GB"] = D_GB;
     boundary_property["beta_exponent"] = beta_exponent;
     boundary_property["n_exponent"] = n_exponent;
-    boundary_property["E_interface"] = E_interface;
-    boundary_property["G_interface"] = G_interface;
+    boundary_property["E_GB"] = E_GB;
+    boundary_property["G_GB"] = G_GB;
     boundary_property["eta_sliding"] = eta_sliding;
-    boundary_property["psi_angle"] = psi_angle;
+    boundary_property["psi_degree"] = psi_degree;
 
     gb_property_map[gb_pair] = boundary_property;
   }
@@ -121,7 +121,7 @@ GBCavitationBoundaryPropertyUO::getPropertyMap(const dof_id_type elem_id,
                "elem_id and side: " +
                std::to_string(elem_id) + ", " + std::to_string(side));
 
-  // retirve properties give a subdomain pairs
+  // retrive properties give a subdomain pairs
   auto property_map = gb_property_map.find(gb_pairs);
   if (property_map != gb_property_map.end())
     return property_map->second;

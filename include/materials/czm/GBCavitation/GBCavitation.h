@@ -10,6 +10,7 @@
 #pragma once
 
 #include "CZMMaterialBasePK1.h"
+#include "GBCavitationBoundaryPropertyUO.h"
 #include "ShamNeedlemanEquation.h"
 /**
  * Implementation of teh grain boundary cavitation model proposed by Sham
@@ -85,26 +86,38 @@ protected:
 
   /// sham needleman eqauations paramters
   ///@{
-  const Real _a0;
-  const Real _b0;
-  const Real _NI;
-  const Real _FN_NI;
-  const Real _FN;
-  const Real _Nmax_NI;
-  const Real _b_sat;
-  const Real _S0;
-  const Real _beta;
-  const Real _psi_degree;
-  const Real _h;
-  const Real _E_GB;
+  // qp dependent properties
+  MaterialProperty<Real> &_n_exponent;
+  const MaterialProperty<Real> &_n_exponent_old;
+  MaterialProperty<Real> &_beta_exponent;
+  const MaterialProperty<Real> &_beta_exponent_old;
+  MaterialProperty<Real> &_a0;
+  const MaterialProperty<Real> &_a0_old;
+  MaterialProperty<Real> &_NI;
+  const MaterialProperty<Real> &_NI_old;
+  MaterialProperty<Real> &_FN;
+  const MaterialProperty<Real> &_FN_old;
+  MaterialProperty<Real> &_D_GB;
+  const MaterialProperty<Real> &_D_GB_old;
+  MaterialProperty<Real> &_eta_sliding;
+  const MaterialProperty<Real> &_eta_sliding_old;
+  MaterialProperty<Real> &_h;
+  const MaterialProperty<Real> &_h_old;
+  MaterialProperty<Real> &_b_sat;
+  const MaterialProperty<Real> &_b_sat_old;
+  MaterialProperty<Real> &_E_GB;
+  const MaterialProperty<Real> &_E_GB_old;
+  MaterialProperty<Real> &_G_GB;
+  const MaterialProperty<Real> &_G_GB_old;
+  MaterialProperty<Real> &_thickness;
+  const MaterialProperty<Real> &_thickness_old;
+  MaterialProperty<Real> &_sigma_0;
+  const MaterialProperty<Real> &_sigma_0_old;
+
   const Real _E_penalty_minus_thickenss;
   const Real _E_penalty_after_failure_minus_thickenss;
-  const Real _G_GB;
-  const Real _D_GB;
-  const Real _eta_sliding;
-  const Real _thickness;
   const Real _thickness_after_failure;
-  const Real _n;
+
   const Real _theta;
   ///@}
 
@@ -131,4 +144,28 @@ protected:
   const Real _nl_residual_abs_tol;
   const bool _force_substep;
   ///@}
+
+  const GBCavitationBoundaryPropertyUO *_GBCavitationBoundaryPropertyUO;
+  /* INTERFACE PARAMETERS */
+  // const Real _a0;                  /*initial cavity half radius*/
+  // const Real _b0;                  /*initial cavity half spacing*/
+  // const Real _b_saturation;        /*saturation cavity half spacing*/
+  // const Real _NI;                  /*number of intial cavity*/
+  // const Real _FN;                  /*cavitration rate*/
+  // const Real _S_thr;               /*thresould value for cavitation to
+  // occur*/ const Real _thickness; /*interface Young modulus*/ const
+  // Real _E_interface;         /*interface Young modulus*/
+
+  void InitGBCavitationParamsAndProperties();
+  void getInitPropertyValuesFromParams(Real &FN_NI, Real &Nmax_NI, Real &a0,
+                                       Real &b0, Real &psi, Real &D_gb,
+                                       Real &E_GB, Real &G_GB,
+                                       Real &eta_sliding, Real &sigma_0,
+                                       Real &thickness, Real &beta_exponent,
+                                       Real &n_exponent) const;
+  void getInitPropertyValuesFromUO(Real &FN_NI, Real &Nmax_NI, Real &a0,
+                                   Real &b0, Real &psi, Real &D_gb, Real &E_GB,
+                                   Real &G_GB, Real &eta_sliding, Real &sigma_0,
+                                   Real &thickness, Real &beta_exponent,
+                                   Real &n_exponent) const;
 };

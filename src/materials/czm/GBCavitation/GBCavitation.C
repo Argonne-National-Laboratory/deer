@@ -23,7 +23,7 @@ InputParameters GBCavitation::validParams() {
       "sigma_0", 200.,
       "Traction normalization parameter for cavity nculeation");
   params.addParam<Real>("psi_degree", 75., "Cavity half-tip angle");
-  params.addParam<Real>("beta", 2., "Cavity nucleation exponent");
+  params.addParam<Real>("beta_exponent", 2., "Cavity nucleation exponent");
   params.addParam<Real>("E_GB", 150e3, "Grain boundary opening stiffness");
   params.addParam<Real>("E_penalty_minus_thickenss", 10,
                         "Element co-penetration penatly at jump = -thickness");
@@ -37,7 +37,7 @@ InputParameters GBCavitation::validParams() {
                         "The interface thickness");
   params.addParam<Real>("interface_thickness_after_failure", 0.00113842,
                         "The interface thickness for the failure model");
-  params.addParam<Real>("n", 5., "Creep rate exponent");
+  params.addParam<Real>("n_exponent", 5., "Creep rate exponent");
   params.addParam<Real>(
       "theta", 0.,
       "Parameter for the time integration scheme: 0 implicit (default), "
@@ -73,6 +73,9 @@ InputParameters GBCavitation::validParams() {
                         "The minimum allowed stiffness to prevent floating "
                         "domains during traction decay");
   params.addParam<bool>("force_substep", false, "force substep");
+  params.addParam<UserObjectName>(
+      "GBCavitationBoundaryPropertyUO",
+      "the user object containing material GB dependent material properties");
   return params;
 }
 
@@ -124,23 +127,42 @@ GBCavitation::GBCavitation(const InputParameters &parameters)
           getMaterialPropertyOldByName<RealVectorValue>("jump_at_failure")),
       _residual_life(declareProperty<Real>("residual_life")),
       _residual_life_old(getMaterialPropertyOldByName<Real>("residual_life")),
-      _a0(getParam<Real>("a0")), _b0(getParam<Real>("b0")),
-      _NI(1. / (M_PI * _b0 * _b0)), _FN_NI(getParam<Real>("FN_NI")),
-      _FN(_FN_NI * _NI), _Nmax_NI(getParam<Real>("Nmax_NI")),
-      _b_sat(1. / std::sqrt(M_PI * _Nmax_NI * _NI)),
-      _S0(getParam<Real>("sigma_0")), _beta(getParam<Real>("beta")),
-      _psi_degree(getParam<Real>("psi_degree")),
-      _h(ShamNeedlemann::h_psi(_psi_degree * M_PI / 180.)),
-      _E_GB(getParam<Real>("E_GB")),
+      _n_exponent(declareProperty<Real>("n_exponent")),
+      _n_exponent_old(getMaterialPropertyOldByName<Real>("n_exponent")),
+      _beta_exponent(declareProperty<Real>("beta_exponent")),
+      _beta_exponent_old(getMaterialPropertyOldByName<Real>("beta_exponent")),
+      _a0(declareProperty<Real>("intial_cavity_radius")),
+      _a0_old(getMaterialPropertyOldByName<Real>("intial_cavity_radius")),
+      _NI(declareProperty<Real>("intial_cavity_density")),
+      _NI_old(getMaterialPropertyOldByName<Real>("intial_cavity_density")),
+      _FN(declareProperty<Real>("cavity_nucleation_rate")),
+      _FN_old(getMaterialPropertyOldByName<Real>("cavity_nucleation_rate")),
+      _D_GB(declareProperty<Real>("GB_diffusivity")),
+      _D_GB_old(getMaterialPropertyOldByName<Real>("GB_diffusivity")),
+      _eta_sliding(declareProperty<Real>("GB_sliding_viscosity")),
+      _eta_sliding_old(
+          getMaterialPropertyOldByName<Real>("GB_sliding_viscosity")),
+      _h(declareProperty<Real>("cavity_half_tip_function")),
+      _h_old(getMaterialPropertyOldByName<Real>("cavity_half_tip_function")),
+      _b_sat(declareProperty<Real>("saturation_cavity_spacing")),
+      _b_sat_old(
+          getMaterialPropertyOldByName<Real>("saturation_cavity_spacing")),
+      _E_GB(declareProperty<Real>("GB_young_modulus")),
+      _E_GB_old(getMaterialPropertyOldByName<Real>("GB_young_modulus")),
+      _G_GB(declareProperty<Real>("GB_shear_modulus")),
+      _G_GB_old(getMaterialPropertyOldByName<Real>("GB_shear_modulus")),
+      _thickness(declareProperty<Real>("GB_thickness")),
+      _thickness_old(getMaterialPropertyOldByName<Real>("GB_thickness")),
+      _sigma_0(declareProperty<Real>("traction_normalization_constant")),
+      _sigma_0_old(getMaterialPropertyOldByName<Real>(
+          "traction_normalization_constant")),
       _E_penalty_minus_thickenss(getParam<Real>("E_penalty_minus_thickenss")),
       _E_penalty_after_failure_minus_thickenss(
           getParam<Real>("E_penalty_after_failure_minus_thickenss")),
-      _G_GB(getParam<Real>("G_GB")), _D_GB(getParam<Real>("D_GB")),
-      _eta_sliding(getParam<Real>("eta_sliding")),
-      _thickness(getParam<Real>("interface_thickness")),
       _thickness_after_failure(
           getParam<Real>("interface_thickness_after_failure")),
-      _n(getParam<Real>("n")), _theta(getParam<Real>("theta")),
+      _theta(getParam<Real>("theta")),
+      // _psi_degree(getParam<Real>("psi_degree")),
       _nucleation_on(getParam<bool>("nucleation_on")),
       _growth_on(getParam<bool>("growth_on")),
       _use_triaxial_growth(getParam<bool>("use_triaxial_growth")),
@@ -154,9 +176,12 @@ GBCavitation::GBCavitation(const InputParameters &parameters)
       _max_time_cut(getParam<unsigned int>("max_time_cut") + 1),
       _max_nonlinear_iter(getParam<unsigned int>("max_nonlinear_iter") + 1),
       _nl_residual_abs_tol(getParam<Real>("nl_residual_abs_tol")),
-      _force_substep(getParam<bool>("force_substep"))
-
-{
+      _force_substep(getParam<bool>("force_substep")),
+      _GBCavitationBoundaryPropertyUO(
+          parameters.isParamSetByUser("GBCavitationBoundaryPropertyUO")
+              ? &getUserObjectByName<GBCavitationBoundaryPropertyUO>(
+                    getParam<UserObjectName>("GBCavitationBoundaryPropertyUO"))
+              : nullptr) {
   // sanity checks
   if (_E_penalty_after_failure_minus_thickenss <= 1)
     mooseError("E_penalty_after_failure_minus_thickenss must be greater or "
@@ -165,12 +190,27 @@ GBCavitation::GBCavitation(const InputParameters &parameters)
   if (_E_penalty_minus_thickenss <= 1)
     mooseError("E_penalty_minus_thickenss must be greater or equalt to 1");
 
-  if (_psi_degree < 0 || _psi_degree > 90.)
-    mooseError("psi_degree must be between 0 and 90 degrees");
+  if (_GBCavitationBoundaryPropertyUO == nullptr) {
+    if (getParam<Real>("psi_degree") < 0 || getParam<Real>("psi_degree") > 90.)
+      mooseError("psi_degree must be between 0 and 90 degrees");
+  }
 }
 
 void GBCavitation::computeTractionIncrementAndDerivatives() {
-
+  // copy qp dependent properties
+  _a0[_qp] = _a0_old[_qp];
+  _NI[_qp] = _NI_old[_qp];
+  _FN[_qp] = _FN_old[_qp];
+  _D_GB[_qp] = _D_GB_old[_qp];
+  _eta_sliding[_qp] = _eta_sliding_old[_qp];
+  _h[_qp] = _h_old[_qp];
+  _b_sat[_qp] = _b_sat_old[_qp];
+  _E_GB[_qp] = _E_GB_old[_qp];
+  _G_GB[_qp] = _G_GB_old[_qp];
+  _thickness[_qp] = _thickness_old[_qp];
+  _sigma_0[_qp] = _sigma_0_old[_qp];
+  _n_exponent[_qp] = _n_exponent_old[_qp];
+  _beta_exponent[_qp] = _beta_exponent_old[_qp];
   if (_element_failed_old[_qp] != 0) {
     _element_failed[_qp] = 1;
     _time_at_failure[_qp] = _time_at_failure_old[_qp];
@@ -207,26 +247,31 @@ void GBCavitation::computeTractionIncrementAndDerivatives() {
     /// set up precalculator
     ShamNeedlemann::V_dot vdotfun(
         &sysvars, &sysparams,
-        {"vdot", "vL1dot", "vL2dot", "vH1dot", "vH2dot", "L"}, _n, _h, _D_GB,
-        _use_triaxial_growth, _vdot_method, _nucleation_on);
+        {"vdot", "vL1dot", "vL2dot", "vH1dot", "vH2dot", "L"}, _n_exponent[_qp],
+        _h[_qp], _D_GB[_qp], _use_triaxial_growth, _vdot_method,
+        _nucleation_on);
 
     /// set up equations
-    ShamNeedlemann::a_res a_eq(0, sysvars, sysparams, vdotfun, _h, _a0, _theta,
-                               _growth_on);
-    ShamNeedlemann::b_res b_eq(1, sysvars, sysparams, vdotfun, _FN, _FN_NI, _S0,
-                               _beta, _b_sat, _theta, _nucleation_on);
-    ShamNeedlemann::TN_res Tn_eq(2, sysvars, sysparams, vdotfun, _thickness,
-                                 _E_GB, _E_penalty_minus_thickenss, _thickness,
-                                 _theta);
-    ShamNeedlemann::TS_res Ts1_eq(3, sysvars, sysparams, vdotfun, 1, _thickness,
-                                  _eta_sliding, _G_GB, _theta);
-    ShamNeedlemann::TS_res Ts2_eq(4, sysvars, sysparams, vdotfun, 2, _thickness,
-                                  _eta_sliding, _G_GB, _theta);
+    ShamNeedlemann::a_res a_eq(0, sysvars, sysparams, vdotfun, _h[_qp],
+                               _a0[_qp], _theta, _growth_on);
+    ShamNeedlemann::b_res b_eq(1, sysvars, sysparams, vdotfun, _FN[_qp],
+                               _FN[_qp] / _NI[_qp], _sigma_0[_qp],
+                               _beta_exponent[_qp], _b_sat[_qp], _theta,
+                               _nucleation_on);
+    ShamNeedlemann::TN_res Tn_eq(
+        2, sysvars, sysparams, vdotfun, _thickness[_qp], _E_GB[_qp],
+        _E_penalty_minus_thickenss, _thickness[_qp], _theta);
+    ShamNeedlemann::TS_res Ts1_eq(3, sysvars, sysparams, vdotfun, 1,
+                                  _thickness[_qp], _eta_sliding[_qp],
+                                  _G_GB[_qp], _theta);
+    ShamNeedlemann::TS_res Ts2_eq(4, sysvars, sysparams, vdotfun, 2,
+                                  _thickness[_qp], _eta_sliding[_qp],
+                                  _G_GB[_qp], _theta);
     std::vector<Equation *> my_eqs = {&a_eq, &b_eq, &Tn_eq, &Ts1_eq, &Ts2_eq};
 
     /// set up lagrange multiplier equations
     ShamNeedlemann::a_lt_b c0(0, sysvars, sysparams, nsys);
-    ShamNeedlemann::a_gt_a0 c1(1, sysvars, sysparams, nsys, _a0);
+    ShamNeedlemann::a_gt_a0 c1(1, sysvars, sysparams, nsys, _a0[_qp]);
     ShamNeedlemann::b_lt_b_old c2(2, sysvars, sysparams, nsys);
     std::vector<const InequalityConstraint *> my_lms = {&c0, &c1, &c2};
     vecD l0(nlm);
@@ -412,14 +457,14 @@ void GBCavitation::initQpStatefulProperties() {
   _stress_vm[_qp] = 0;
   _stress_H[_qp] = 0;
   _strain_rate_eq[_qp] = 0;
-  _a[_qp] = _a0;
-  _b[_qp] = _b0;
   _nucleation_is_active[_qp] = 0;
   _element_failed[_qp] = 0;
   _time_at_failure[_qp] = 0;
   _traction_at_failure[_qp] = 0;
   _jump_at_failure[_qp] = 0;
   _residual_life[_qp] = 1e6;
+
+  InitGBCavitationParamsAndProperties();
 }
 
 void GBCavitation::computeAverageBulkPorperties() {
@@ -485,4 +530,141 @@ void GBCavitation::initNLSystemParamter(std::vector<std::string> &pname,
                  _displacement_jump_inc[_qp](2) / _dt,
                  _use_old_bulk_property ? _strain_rate_eq_old[_qp]
                                         : _strain_rate_eq[_qp]};
+}
+
+void GBCavitation::InitGBCavitationParamsAndProperties() {
+  Real FN_NI, Nmax_NI, a0, b0, psi, D_GB, E_GB, G_GB, eta_sliding, sigma_0,
+      thickness, beta_exponent, n_exponent;
+  if (_GBCavitationBoundaryPropertyUO == nullptr)
+    getInitPropertyValuesFromParams(FN_NI, Nmax_NI, a0, b0, psi, D_GB, E_GB,
+                                    G_GB, eta_sliding, sigma_0, thickness,
+                                    beta_exponent, n_exponent);
+  else
+    getInitPropertyValuesFromUO(FN_NI, Nmax_NI, a0, b0, psi, D_GB, E_GB, G_GB,
+                                eta_sliding, sigma_0, thickness, beta_exponent,
+                                n_exponent);
+
+  psi *= M_PI / 180.;
+
+  _a0[_qp] = a0;
+  _a[_qp] = a0;
+  _b[_qp] = b0;
+  _NI[_qp] = (1. / (M_PI * b0 * b0));
+  _FN[_qp] = FN_NI * _NI[_qp];
+  _D_GB[_qp] = D_GB;
+  _h[_qp] = ShamNeedlemann::h_psi(psi);
+  _b_sat[_qp] = (1. / std::sqrt(M_PI * Nmax_NI * _NI[_qp]));
+  _E_GB[_qp] = E_GB;
+  _G_GB[_qp] = G_GB;
+  _eta_sliding[_qp] = eta_sliding;
+  _sigma_0[_qp] = sigma_0;
+  _thickness[_qp] = thickness;
+  _beta_exponent[_qp] = beta_exponent;
+  _n_exponent[_qp] = n_exponent;
+}
+
+void GBCavitation::getInitPropertyValuesFromParams(
+    Real &FN_NI, Real &Nmax_NI, Real &a0, Real &b0, Real &psi, Real &D_GB,
+    Real &E_GB, Real &G_GB, Real &eta_sliding, Real &sigma_0, Real &thickness,
+    Real &beta_exponent, Real &n_exponent) const {
+  FN_NI = getParam<Real>("FN_NI");
+  Nmax_NI = getParam<Real>("Nmax_NI");
+  a0 = getParam<Real>("a0");
+  b0 = getParam<Real>("b0");
+  psi = getParam<Real>("psi_degree");
+  D_GB = getParam<Real>("D_GB");
+  E_GB = getParam<Real>("E_GB");
+  G_GB = getParam<Real>("G_GB");
+  eta_sliding = getParam<Real>("eta_sliding");
+  sigma_0 = getParam<Real>("sigma_0");
+  thickness = getParam<Real>("interface_thickness");
+  beta_exponent = getParam<Real>("beta_exponent");
+  n_exponent = getParam<Real>("n_exponent");
+}
+
+void GBCavitation::getInitPropertyValuesFromUO(
+    Real &FN_NI, Real &Nmax_NI, Real &a0, Real &b0, Real &psi, Real &D_GB,
+    Real &E_GB, Real &G_GB, Real &eta_sliding, Real &sigma_0, Real &thickness,
+    Real &beta_exponent, Real &n_exponent) const {
+  const std::map<std::string, Real> prop_map =
+      _GBCavitationBoundaryPropertyUO->getPropertyMap(_current_elem->id(),
+                                                      _current_side);
+
+  auto ptr = prop_map.find("FN_NI");
+  if (ptr != prop_map.end())
+    FN_NI = ptr->second;
+  else
+    mooseError("can't find FN_NI ");
+
+  ptr = prop_map.find("Nmax_NI");
+  if (ptr != prop_map.end())
+    Nmax_NI = ptr->second;
+  else
+    mooseError("can't find Nmax_NI ");
+
+  ptr = prop_map.find("a0");
+  if (ptr != prop_map.end())
+    a0 = ptr->second;
+  else
+    mooseError("can't find a0 ");
+
+  ptr = prop_map.find("b0");
+  if (ptr != prop_map.end())
+    b0 = ptr->second;
+  else
+    mooseError("can't find b0 ");
+
+  ptr = prop_map.find("psi_degree");
+  if (ptr != prop_map.end())
+    psi = ptr->second;
+  else
+    mooseError("can't find psi_degree ");
+
+  ptr = prop_map.find("D_GB");
+  if (ptr != prop_map.end())
+    D_GB = ptr->second;
+  else
+    mooseError("can't find D_GB ");
+
+  ptr = prop_map.find("E_GB");
+  if (ptr != prop_map.end())
+    E_GB = ptr->second;
+  else
+    mooseError("can't find E_GB ");
+
+  ptr = prop_map.find("G_GB");
+  if (ptr != prop_map.end())
+    G_GB = ptr->second;
+  else
+    mooseError("can't find G_GB ");
+
+  ptr = prop_map.find("eta_sliding");
+  if (ptr != prop_map.end())
+    eta_sliding = ptr->second;
+  else
+    mooseError("can't find eta_sliding ");
+
+  ptr = prop_map.find("sigma_0");
+  if (ptr != prop_map.end())
+    sigma_0 = ptr->second;
+  else
+    mooseError("can't find sigma_0 ");
+
+  ptr = prop_map.find("thickness");
+  if (ptr != prop_map.end())
+    thickness = ptr->second;
+  else
+    mooseError("can't find thickness ");
+
+  ptr = prop_map.find("n_exponent");
+  if (ptr != prop_map.end())
+    n_exponent = ptr->second;
+  else
+    mooseError("can't find n_exponent ");
+
+  ptr = prop_map.find("beta_exponent");
+  if (ptr != prop_map.end())
+    beta_exponent = ptr->second;
+  else
+    mooseError("can't find beta_exponent ");
 }

@@ -118,7 +118,7 @@ vecD V_dot::dfaLFundX(const bool implicit) {
 }
 
 double V_dot::qFun(const bool implicit) {
-  const double p = 30;
+  // const double p = 30;
   const double faL = faLFun(implicit);
   const double fab = fabFun(implicit);
   // const double f = std::pow(
