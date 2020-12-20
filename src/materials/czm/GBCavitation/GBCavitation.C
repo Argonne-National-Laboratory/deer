@@ -76,6 +76,12 @@ InputParameters GBCavitation::validParams() {
   params.addParam<UserObjectName>(
       "GBCavitationBoundaryPropertyUO",
       "the user object containing material GB dependent material properties");
+  params.addParam<Real>(
+      "JxW_ref", 1.9e-5,
+      "The reference qp area used to normalize the interface stiffness");
+  params.addParam<bool>(
+      "scale_stiffness", false,
+      "If true (default) scale the interface stiffness according to hmin");
   return params;
 }
 
@@ -181,7 +187,9 @@ GBCavitation::GBCavitation(const InputParameters &parameters)
           parameters.isParamSetByUser("GBCavitationBoundaryPropertyUO")
               ? &getUserObjectByName<GBCavitationBoundaryPropertyUO>(
                     getParam<UserObjectName>("GBCavitationBoundaryPropertyUO"))
-              : nullptr) {
+              : nullptr),
+      _JxW_ref(getParam<Real>("JxW_ref")),
+      _scale_stiffness(getParam<bool>("scale_stiffness")) {
   // sanity checks
   if (_E_penalty_after_failure_minus_thickenss <= 1)
     mooseError("E_penalty_after_failure_minus_thickenss must be greater or "
@@ -194,6 +202,8 @@ GBCavitation::GBCavitation(const InputParameters &parameters)
     if (getParam<Real>("psi_degree") < 0 || getParam<Real>("psi_degree") > 90.)
       mooseError("psi_degree must be between 0 and 90 degrees");
   }
+  if (_JxW_ref <= 0)
+    mooseError("the paremter h_ref must be positive");
 }
 
 void GBCavitation::computeTractionIncrementAndDerivatives() {
@@ -559,6 +569,8 @@ void GBCavitation::InitGBCavitationParamsAndProperties() {
   _eta_sliding[_qp] = eta_sliding;
   _sigma_0[_qp] = sigma_0;
   _thickness[_qp] = thickness;
+  if (_scale_stiffness)
+    _thickness[_qp] *= _JxW_ref / _JxW[_qp];
   _beta_exponent[_qp] = beta_exponent;
   _n_exponent[_qp] = n_exponent;
 }

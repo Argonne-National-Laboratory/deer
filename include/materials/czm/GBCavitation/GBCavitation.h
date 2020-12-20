@@ -168,4 +168,7 @@ protected:
                                    Real &G_GB, Real &eta_sliding, Real &sigma_0,
                                    Real &thickness, Real &beta_exponent,
                                    Real &n_exponent) const;
+
+  const Real _JxW_ref;
+  const bool _scale_stiffness;
 };
