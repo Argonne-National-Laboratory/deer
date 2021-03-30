@@ -47,15 +47,15 @@
 [Functions]
   [./pullx]
     type = ParsedFunction
-    value ='0.5 * t'
+    value ='0.4 * t'
   [../]
   [./pully]
     type = ParsedFunction
-    value ='-0.3 * t'
+    value ='-0.2 * t'
   [../]
   [./pullz]
     type = ParsedFunction
-    value ='0.4 * t'
+    value ='0.3 * t'
   [../]
 []
 
@@ -86,18 +86,21 @@
     boundary = right
     variable = disp_x
     function = pullx
+    preset = true
   [../]
   [./pull_y]
     type = FunctionDirichletBC
     boundary = top
     variable = disp_y
     function = pully
+    preset = true
   [../]
   [./pull_z]
     type = FunctionDirichletBC
     boundary = right
     variable = disp_z
     function = pullz
+    preset = true
   [../]
 []
 

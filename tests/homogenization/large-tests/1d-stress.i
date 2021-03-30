@@ -9,21 +9,16 @@
 []
 
 [Mesh]
-  type = FileMesh
-  file = '1d.exo'
-[]
-
-[MeshModifiers]
-  [./left]
-    type = SideSetsFromPoints
-    new_boundary = 'left'
-    points = '-1 0 0'
+  [./base]
+    type = FileMeshGenerator
+    file = '1d.exo'
   [../]
-
-  [./right]
-    type = SideSetsFromPoints
-    new_boundary = 'right'
-    points = '7 0 0'
+  [./sets]
+    input = base
+    type = SideSetsFromPointsGenerator
+    new_boundary = 'left right'
+    points = '-1 0 0
+               7 0 0'
   [../]
 []
 

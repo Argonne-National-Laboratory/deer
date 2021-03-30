@@ -1,40 +1,18 @@
 [Mesh]
-  type = FileMesh
-  file = 'patch.xda'
-[]
-
-[MeshModifiers]
-  [./left]
-    type = SideSetsFromPoints
-    new_boundary = 'left'
-    points = '0 0.5 0.5'
+  [./base]
+    type = FileMeshGenerator
+    file = 'patch.xda'
   [../]
-  [./right]
-    type = SideSetsFromPoints
-    new_boundary = 'right'
-    points = '1 0.5 0.5'
-  [../]
-
-  [./bottom]
-    type = SideSetsFromPoints
-    new_boundary = 'bottom'
-    points = '0.5 0.0 0.5'
-  [../]
-  [./top]
-    type = SideSetsFromPoints
-    new_boundary = 'top'
-    points = '0.5 1.0 0.5'
-  [../]
-
-  [./back]
-    type = SideSetsFromPoints
-    new_boundary = 'back'
-    points = '0.5 0.5 0.0'
-  [../]
-  [./front]
-    type = SideSetsFromPoints
-    new_boundary = 'front'
-    points = '0.5 0.5 1.0'
+  [./sets]
+    input = base
+    type = SideSetsFromPointsGenerator
+    new_boundary = 'left right bottom top back front'
+    points = '    0 0.5 0.5
+                  1 0.5 0.5
+                  0.5 0.0 0.5
+                  0.5 1.0 0.5
+                  0.5 0.5 0.0
+                  0.5 0.5 1.0'
   [../]
 []
 

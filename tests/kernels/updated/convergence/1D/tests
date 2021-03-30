@@ -1,10 +1,4 @@
 [Tests]
-  [./preset]
-    type = CSVDiff
-    input = 'oned_preset.i'
-    csvdiff = 'oned_preset_out.csv'
-    requirement = "Quadratic convergence in 1D for PresetBCs, SMP does better than FDP for this problem."
-  [../]
   [./dirichlet]
     type = CSVDiff
     input = 'oned_dirichlet.i'
