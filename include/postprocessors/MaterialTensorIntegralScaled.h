@@ -22,7 +22,7 @@ public:
   static InputParameters validParams();
 
   MaterialTensorIntegralScaledTempl(const InputParameters &parameters);
-  virtual Real getValue() override;
+  virtual void finalize() override;
 
 protected:
   const PostprocessorValue &_scaling_factor_PP;

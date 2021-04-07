@@ -31,6 +31,10 @@ CZMVolumetricStrain::CZMVolumetricStrain(const InputParameters &parameters)
           declareProperty<RankTwoTensor>("czm_normal_strain_rate")),
       _czm_sliding_strain_rate(
           declareProperty<RankTwoTensor>("czm_sliding_strain_rate")),
+      _czm_total_strain(declareProperty<RankTwoTensor>("czm_total_strain")),
+      _czm_normal_strain(declareProperty<RankTwoTensor>("czm_normal_strain")),
+      _czm_sliding_strain(declareProperty<RankTwoTensor>("czm_sliding_strain")),
+      _czm_area_mp(declareProperty<Real>("czm_area_mp")),
       _ld(_ndisp == 1 ? false : getParam<bool>("large_kinematics")) {
 
   // Enforce consistency
@@ -93,6 +97,7 @@ void CZMVolumetricStrain::computeQpProperties() {
   }
   computeJumpInterface();
   computeInterfaceStrainRates();
+  _czm_area_mp[_qp] = _JxW[_qp] * _dadA;
 }
 
 void CZMVolumetricStrain::computeJumpInterface() {
@@ -134,6 +139,10 @@ void CZMVolumetricStrain::computeInterfaceStrainRates() {
   /// normal
   _czm_sliding_strain_rate[_qp] =
       _czm_total_strain_rate[_qp] - _czm_normal_strain_rate[_qp];
+
+  _czm_total_strain[_qp] = 0.5 * (u_outer_n + u_outer_n.transpose());
+  _czm_normal_strain[_qp] = _jump * _n_average * n_outer_n;
+  _czm_sliding_strain[_qp] = _czm_total_strain[_qp] - _czm_normal_strain[_qp];
 }
 
 void CZMVolumetricStrain::computeFInterface() {

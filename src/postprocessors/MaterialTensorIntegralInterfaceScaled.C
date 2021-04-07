@@ -33,6 +33,10 @@ MaterialTensorIntegralInterfaceScaledTempl<is_ad>::validParams() {
   params.addParam<PostprocessorName>(
       "scaling_factor_PP",
       "A postprocessor used as scaling factor for the integral");
+  params.addParam<bool>("normalize_integral_by_area", false,
+                        "if true normalize the integral by the interface area. "
+                        "This is done in addition to the scaling_factor_PP.");
+  params.set<ExecFlagEnum>("execute_on") = EXEC_TIMESTEP_END;
   return params;
 }
 
@@ -49,7 +53,9 @@ MaterialTensorIntegralInterfaceScaledTempl<
           isParamValid("scaling_factor_PP")
               ? &getPostprocessorValueByName(
                     getParam<PostprocessorName>("scaling_factor_PP"))
-              : nullptr) {}
+              : nullptr),
+      _normalize_integral_by_area(
+          getParam<bool>("normalize_integral_by_area")) {}
 
 template <bool is_ad>
 Real MaterialTensorIntegralInterfaceScaledTempl<is_ad>::computeQpIntegral() {
@@ -58,12 +64,12 @@ Real MaterialTensorIntegralInterfaceScaledTempl<is_ad>::computeQpIntegral() {
 }
 
 template <bool is_ad>
-Real MaterialTensorIntegralInterfaceScaledTempl<is_ad>::getValue() {
-  _integral_value = InterfaceIntegralPostprocessor::getValue();
+void MaterialTensorIntegralInterfaceScaledTempl<is_ad>::finalize() {
+  InterfaceIntegralPostprocessor::finalize();
   if (_scaling_factor_PP)
     _integral_value /= *_scaling_factor_PP;
-
-  return _integral_value;
+  if (_normalize_integral_by_area)
+    _integral_value /= _interface_primary_area;
 }
 
 template class MaterialTensorIntegralInterfaceScaledTempl<false>;

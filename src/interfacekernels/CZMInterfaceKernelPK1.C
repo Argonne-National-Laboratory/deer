@@ -65,6 +65,8 @@ Real CZMInterfaceKernelPK1::computeQpResidual(Moose::DGResidualType type) {
     r *= _test_neighbor[_i][_qp];
     break;
   }
+
+  mooseAssert(std::isfinite(r), "CZMInterfaceKernelPK1 r is not finite");
   return r;
 }
 
@@ -94,6 +96,8 @@ Real CZMInterfaceKernelPK1::computeQpJacobian(Moose::DGJacobianType type) {
     jac += _test_neighbor[_i][_qp] * JacLD(_component, /*neighbor=*/true);
     break;
   }
+  mooseAssert(std::isfinite(jac),
+              "CZMInterfaceKernelPK1 diag jacobian is not finite");
   return jac;
 }
 
@@ -138,6 +142,8 @@ Real CZMInterfaceKernelPK1::computeQpOffDiagJacobian(Moose::DGJacobianType type,
         _test_neighbor[_i][_qp] * JacLD(off_diag_component, /*neighbor=*/true);
     break;
   }
+  mooseAssert(std::isfinite(jac),
+              "CZMInterfaceKernelPK1 off diag jacobian is not finite");
   return jac;
 }
 
@@ -152,5 +158,8 @@ Real CZMInterfaceKernelPK1::JacLD(const unsigned int cc,
 
   for (unsigned int j = 0; j < 3; j++)
     jacld += _dPK1traction_dF[_qp](_component, cc, j) * phi(j);
+
+  mooseAssert(std::isfinite(jacld),
+              "CZMInterfaceKernelPK1 JacLD is not finite");
   return jacld;
 }

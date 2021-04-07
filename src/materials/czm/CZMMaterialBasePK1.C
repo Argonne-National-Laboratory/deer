@@ -130,6 +130,33 @@ void CZMMaterialBasePK1::computeQpProperties() {
     _dPK1traction_dF[_qp].zero();
   else
     computedTPK1dF();
+
+// check for nans in traction and traction derivatives, compile in dbg or
+// devel model to activate the checks
+#ifndef NDEBUG
+  for (uint i = 0; i < 3; i++)
+    mooseAssert(std::isfinite(_PK1traction[_qp](i)),
+                "CZMMaterialBasePK1 _PK1traction[_qp] " + std::to_string(i) +
+                    " is not finite: " + std::to_string(_PK1traction[_qp](i)));
+
+  for (uint i = 0; i < 3; i++)
+    for (uint j = 0; j < 3; j++)
+      for (uint k = 0; k < 3; k++)
+        mooseAssert(std::isfinite(_dPK1traction_dF[_qp](i, j, k)),
+                    "CZMMaterialBasePK1 _dPK1traction_dF[_qp](" +
+                        std::to_string(i) + "," + std::to_string(j) + "," +
+                        std::to_string(k) + ") is not finite: " +
+                        std::to_string(_dPK1traction_dF[_qp](i, j, k)));
+
+  for (uint i = 0; i < 3; i++)
+    for (uint j = 0; j < 3; j++)
+      if (!std::isfinite(_dPK1traction_djumpglobal[_qp](i, j)))
+        mooseAssert(std::isfinite(_dPK1traction_djumpglobal[_qp](i, j)),
+                    "CZMMaterialBasePK1 _dPK1traction_djumpglobal[_qp](" +
+                        std::to_string(i) + "," + std::to_string(j) +
+                        ") is not finite: " +
+                        std::to_string(_dPK1traction_djumpglobal[_qp](i, j)));
+#endif
 }
 
 void CZMMaterialBasePK1::computeF() {
@@ -142,6 +169,16 @@ void CZMMaterialBasePK1::computeF() {
                                             (*_grad_disp_neighbor[2])[_qp]));
 
   _F_avg[_qp] = 0.5 * (F + F_neighbor);
+  // According to Cody mooseError are always fatal, so nothing we can do about
+  // them. The norm of the tensor might work, but there is the risk of an
+  // unwanted overflow (I tried and it happens). So checking component by
+  // component remains the only reasonable strategy. If someone finds a  better
+  // way this could be changed in the future
+  for (uint i = 0; i < 3; i++)
+    for (uint j = 0; j < 3; j++)
+      if (!std::isfinite(_F_avg[_qp](i, j)))
+        throw MooseException(
+            "CZMMaterialBasePK1 F_avg is not finite, reducing time step");
   _F_avg_inv = _F_avg[_qp].inverse();
 }
 
@@ -155,6 +192,7 @@ void CZMMaterialBasePK1::computeRU() {
 void CZMMaterialBasePK1::computeLJ() {
   _DL_avg[_qp] = RankTwoTensor::Identity() - _F_avg_old[_qp] * _F_avg_inv;
   _J = _F_avg[_qp].det();
+  mooseAssert(std::isfinite(_J), "interface jacobian is not finite");
 }
 
 void CZMMaterialBasePK1::computeJumpGlobal() {
@@ -199,6 +237,10 @@ void CZMMaterialBasePK1::initKinematicsVariale() {
   _C = _DR_avg[_qp] * _Q0.transpose();
   _D = _R_avg[_qp] * _Q0.transpose();
   _B = _dadot_da_avg[_qp] * _D;
+
+  mooseAssert(std::isfinite(_a), "CZMMaterialBasePK1 _da_dA_avg is not finite");
+  mooseAssert(std::isfinite(_dadot_da_avg[_qp]),
+              "CZMMaterialBasePK1 _dadot_da_avg is not finite");
 }
 
 void CZMMaterialBasePK1::computeJumpInterface() {
@@ -211,6 +253,11 @@ void CZMMaterialBasePK1::computeJumpInterface() {
 }
 
 void CZMMaterialBasePK1::updateTraction() {
+#ifndef NDEBUG
+  for (uint i = 0; i < 3; i++)
+    mooseAssert(std::isfinite(_traction_inc[_qp](i)),
+                "CZMMaterialBasePK1 _traction_inc is not finite");
+#endif
 
   _traction[_qp] = _traction_old[_qp] + _traction_inc[_qp];
   _traction_deformed[_qp] = _D * _traction[_qp];
@@ -223,9 +270,22 @@ void CZMMaterialBasePK1::updateTraction() {
   }
   _PK1traction[_qp] = _PK1traction_old[_qp] + _PK1traction_inc[_qp];
   _PK1traction_natural[_qp] = _D.transpose() * _PK1traction[_qp];
+
+#ifndef NDEBUG
+  for (uint i = 0; i < 3; i++)
+    mooseAssert(std::isfinite(_PK1traction[_qp](i)),
+                "CZMMaterialBasePK1 _PK1traction is not finite");
+#endif
 }
 
 void CZMMaterialBasePK1::computedTPK1dJumpGlobal() {
+#ifndef NDEBUG
+  for (uint i = 0; i < 3; i++)
+    for (uint j = 0; j < 3; j++)
+      mooseAssert(std::isfinite(_dtraction_djump[_qp](i, j)),
+                  "CZMMaterialBasePK1 _dtraction_djump is not finite");
+#endif
+
   // compute the PK1 traction derivatives w.r.t the displacment jump in global
   // coordinates
   const RankTwoTensor djump_djumpglobal = (_C + _D).transpose();
@@ -233,6 +293,13 @@ void CZMMaterialBasePK1::computedTPK1dJumpGlobal() {
       _dtraction_djump[_qp] * djump_djumpglobal;
   _dPK1traction_djumpglobal[_qp] =
       _a * ((_B + _C + _D) * dtraction_djumpglobal);
+
+#ifndef NDEBUG
+  for (uint i = 0; i < 3; i++)
+    for (uint j = 0; j < 3; j++)
+      mooseAssert(std::isfinite(_dPK1traction_djumpglobal[_qp](i, j)),
+                  "CZMMaterialBasePK1 _dPK1traction_djumpglobal is not finite");
+#endif
 }
 
 void CZMMaterialBasePK1::computedTPK1dF() {

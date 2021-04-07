@@ -14,8 +14,12 @@ registerMooseAction("DeerApp", NEMLMechanicsAction, "add_aux_kernel");
 registerMooseAction("DeerApp", NEMLMechanicsAction, "add_scalar_kernel");
 registerMooseAction("DeerApp", NEMLMechanicsAction, "add_user_object");
 
-const std::vector<std::string> all_tensors = {
-    "mechanical_strain", "stress", "elastic_strain", "inelastic_strain"};
+const std::vector<std::string> all_tensors = {"mechanical_strain",
+                                              "stress",
+                                              "elastic_strain",
+                                              "inelastic_strain",
+                                              "mechanical_strain_rotated",
+                                              "inelastic_strain_rotated"};
 const std::vector<std::string> all_scalars = {"energy", "dissipation"};
 
 const std::map<std::pair<int, int>, std::string> tensor_map = {

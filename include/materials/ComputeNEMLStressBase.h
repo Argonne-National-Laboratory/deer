@@ -29,6 +29,7 @@ protected:
 
 private:
   void updateStrain();
+  void computeRotatedMehcanicalStrain();
 
 protected:
   FileName _fname;
@@ -37,6 +38,7 @@ protected:
 
   const MaterialProperty<RankTwoTensor> &_mechanical_strain_inc;
   const MaterialProperty<RankTwoTensor> &_vorticity_inc;
+  const MaterialProperty<RankTwoTensor> &_strain_inc;
 
   const VariableValue &_temperature; // Will default to zero
   const VariableValue &_temperature_old;
@@ -62,10 +64,14 @@ protected:
 
   MaterialProperty<RankTwoTensor> &_elastic_strain;
   MaterialProperty<RankTwoTensor> &_inelastic_strain;
- 
+
   const bool _ld;
-  
-  const MaterialProperty<RankTwoTensor> & _F_inv;
-  const MaterialProperty<Real> & _J;
-  MaterialProperty<RankTwoTensor> & _PK;
+
+  const MaterialProperty<RankTwoTensor> &_F_inv;
+  const MaterialProperty<Real> &_J;
+  MaterialProperty<RankTwoTensor> &_PK;
+  MaterialProperty<RankTwoTensor> &_mechanical_strain_rotated;
+  const MaterialProperty<RankTwoTensor> &_mechanical_strain_rotated_old;
+  MaterialProperty<RankTwoTensor> &_inelastic_strain_rotated;
+  const MaterialProperty<RankTwoTensor> &_inelastic_strain_rotated_old;
 };

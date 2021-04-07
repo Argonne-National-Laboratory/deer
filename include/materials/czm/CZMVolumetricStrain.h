@@ -56,7 +56,12 @@ protected:
   MaterialProperty<RankTwoTensor> &_czm_total_strain_rate;
   MaterialProperty<RankTwoTensor> &_czm_normal_strain_rate;
   MaterialProperty<RankTwoTensor> &_czm_sliding_strain_rate;
+  MaterialProperty<RankTwoTensor> &_czm_total_strain;
+  MaterialProperty<RankTwoTensor> &_czm_normal_strain;
+  MaterialProperty<RankTwoTensor> &_czm_sliding_strain;
   ///@}
+
+  MaterialProperty<Real> &_czm_area_mp;
 
   /// flag for enabling large kinematics
   const bool _ld;

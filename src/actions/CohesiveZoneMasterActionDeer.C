@@ -66,3 +66,14 @@ void CohesiveZoneMasterActionDeer::act() {
     }
   }
 }
+
+void CohesiveZoneMasterActionDeer::addRelationshipManagers(
+    Moose::RelationshipManagerType input_rm_type) {
+
+  std::string kernel_name = getParam<bool>("large_kinematics")
+                                ? "CZMInterfaceKernelPK1"
+                                : "CZMInterfaceKernel";
+
+  InputParameters ips = _factory.getValidParams(kernel_name);
+  addRelationshipManagers(input_rm_type, ips);
+}

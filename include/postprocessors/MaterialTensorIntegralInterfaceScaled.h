@@ -24,7 +24,7 @@ public:
   static InputParameters validParams();
 
   MaterialTensorIntegralInterfaceScaledTempl(const InputParameters &parameters);
-  virtual Real getValue() override;
+  virtual void finalize() override;
 
 protected:
   virtual Real computeQpIntegral();
@@ -34,6 +34,7 @@ private:
   const unsigned int _i;
   const unsigned int _j;
   const PostprocessorValue *_scaling_factor_PP;
+  const bool _normalize_integral_by_area;
 };
 
 typedef MaterialTensorIntegralInterfaceScaledTempl<false>

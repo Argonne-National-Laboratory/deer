@@ -16,6 +16,8 @@ protected:
   const std::vector<BoundaryName> _boundary;
   const bool _scaled;
   const PostprocessorName _scaling_factor_PP;
+  const bool _czm;
   const std::string _PP_type;
   const std::vector<PostprocessorName> _base_out_name;
+  const bool _normalize_integral_by_area;
 };

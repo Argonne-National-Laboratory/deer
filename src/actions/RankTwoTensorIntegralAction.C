@@ -29,6 +29,13 @@ InputParameters RankTwoTensorIntegralAction::validParams() {
   params.addRequiredParam<std::vector<PostprocessorName>>(
       "base_out_names", "A vector containing base names of the output "
                         "variables, one for each provided rank_two_tensor.");
+  params.addParam<bool>("normalize_integral_by_area", false,
+                        "If true normalize the integral by the interface area. "
+                        "This is done in addition to the scaling_factor_PP.");
+  params.addParam<bool>("czm", false,
+                        "If true use integration and area normalization are "
+                        "performed over the true cohesive zone area. Should be "
+                        "true when using cohesive zone wiuth alrge kinematics");
   return params;
 }
 
@@ -43,11 +50,16 @@ RankTwoTensorIntegralAction::RankTwoTensorIntegralAction(
       _scaled(isParamValid("scaling_factor_PP")),
       _scaling_factor_PP(
           _scaled ? getParam<PostprocessorName>("scaling_factor_PP") : ""),
-      _PP_type(_boundary.size() == 0 ? (_scaled ? "MaterialTensorIntegralScaled"
-                                                : "MaterialTensorIntegral")
-                                     : "MaterialTensorIntegralInterfaceScaled"),
+      _czm(getParam<bool>("czm")),
+      _PP_type(_boundary.size() == 0
+                   ? (_scaled ? "MaterialTensorIntegralScaled"
+                              : "MaterialTensorIntegral")
+                   : _czm ? "MaterialTensorIntegralCZMScaled"
+                          : "MaterialTensorIntegralInterfaceScaled"),
       _base_out_name(
-          getParam<std::vector<PostprocessorName>>("base_out_names")) {
+          getParam<std::vector<PostprocessorName>>("base_out_names")),
+      _normalize_integral_by_area(
+          getParam<bool>("normalize_integral_by_area")) {
 
   /// sanity check
   if (params.isParamValid("block") && params.isParamValid("boundary"))
@@ -58,6 +70,10 @@ RankTwoTensorIntegralAction::RankTwoTensorIntegralAction(
     mooseError("RankTwoTensorIntegralAction: The length of rank_two_tensor and "
                "base_out_names input "
                "parameters must be the same! Please check your input file");
+
+  if (!params.isParamValid("boundary") && _czm)
+    mooseError(
+        "If czm paramter is true than the paramter boundary cannot be empty");
 }
 
 void RankTwoTensorIntegralAction::act() {
@@ -73,8 +89,11 @@ void RankTwoTensorIntegralAction::act() {
 
         if (_block.size() > 0)
           params_pp.set<std::vector<SubdomainName>>("block") = _block;
-        if (_boundary.size() > 0)
+        if (_boundary.size() > 0) {
           params_pp.set<std::vector<BoundaryName>>("boundary") = _boundary;
+          params_pp.set<bool>("normalize_integral_by_area") =
+              _normalize_integral_by_area;
+        }
         if (_scaled)
           params_pp.set<PostprocessorName>("scaling_factor_PP") =
               _scaling_factor_PP;

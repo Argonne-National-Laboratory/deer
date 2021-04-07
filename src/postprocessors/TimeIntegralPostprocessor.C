@@ -15,6 +15,7 @@ InputParameters TimeIntegralPostprocessor::validParams() {
   InputParameters params = CumulativeValuePostprocessor::validParams();
   params.addClassDescription("Compute the time integral of a postprocessor "
                              "representing a rate.");
+  params.set<ExecFlagEnum>("execute_on") = EXEC_TIMESTEP_END;
   return params;
 }
 
