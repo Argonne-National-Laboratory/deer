@@ -11,9 +11,9 @@
 
 [Mesh]
   [./msh]
-  type = GeneratedMeshGenerator
-  dim = 1
-  nx = 10
+    type = GeneratedMeshGenerator
+    dim = 1
+    nx = 10
   []
 []
 
@@ -46,6 +46,7 @@
     boundary = left
     variable = disp_x
     function = pull
+    preset = true
   [../]
 []
 
