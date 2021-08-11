@@ -37,7 +37,7 @@ protected:
    * RankTwoScalarTools namespace, e.g., vonMisesStress L2norm, MaxPrincipal
    * eigenvalue, etc.
    */
-  RankTwoScalarTools::INVARIANT_TYPE _invariant_type;
+  RankTwoScalarTools::InvariantType _invariant_type;
 
   /// The postprocessor values that toghether represent a rank two tensor
   std::vector<std::vector<const PostprocessorValue *>> _pps_values;
