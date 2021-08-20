@@ -99,7 +99,7 @@
 
 [CZMStrain]
    boundary = interface
-   large_kinematics = false
+   strain = SMALL
    block = '0 1'
 []
 

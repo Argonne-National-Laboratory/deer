@@ -12,17 +12,26 @@ public:
 protected:
   void addInterfaceStrainMaterial();
   void computeScalingVolume();
-  void addInterfaceStrainRateAction();
-  void addIntegrateInterfaceStrainRateAction();
+  void addInterfaceStrain();
+  void addInterfaceStrainRate();
   void addEquivalentStrain(const PostprocessorName &rank_two_base_name);
 
-  const std::vector<VariableName> _displacements;
   const std::vector<SubdomainName> _block;
   const std::vector<BoundaryName> _boundary;
   const bool _scaled;
   const PostprocessorName _bulk_volume_PP;
+  const PostprocessorName _area_ratio_PP;
+  const PostprocessorName _czm_strain_scale_PP;
   const PostprocessorName _czm_strain_base_name;
-  const bool _compute_cumulative_strain;
+  const bool _compute_czm_strain_rate;
   const bool _compute_equivalent_strain;
-  const bool _ld;
+
+  // map between tensor components and names
+  const std::map<std::pair<int, int>, std::string> _tensor_map = {
+      {std::make_pair(0, 0), "x-x"}, {std::make_pair(1, 1), "y-y"},
+      {std::make_pair(2, 2), "z-z"}, {std::make_pair(0, 1), "x-y"},
+      {std::make_pair(0, 2), "x-z"}, {std::make_pair(1, 2), "y-z"}};
+
+  std::vector<MaterialPropertyName> _czm_mp_strain_names = {
+      "czm_total_strain", "czm_normal_strain", "czm_sliding_strain"};
 };

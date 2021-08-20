@@ -23,34 +23,28 @@ InputParameters CZMStrainAction::validParams() {
   params.addParam<PostprocessorName>(
       "czm_strain_base_name", "czm_strain",
       "A string containing the base name for interface strain");
-  params.addParam<bool>(
-      "compute_cumulative_strain", true,
-      "If true (default) also add all integrated interface strains");
+  params.addParam<bool>("compute_czm_strain_rate", true,
+                        "If true (default) also compute strain rates");
   params.addParam<bool>("compute_equivalent_strain", true,
                         "If true (default) also add all the equivalnet strain");
-  params.addRequiredParam<std::vector<VariableName>>(
-      "displacements", "The displacement variables");
-  params.addParam<bool>("large_kinematics", false,
-                        "If true uses large kinematics to "
-                        "properly reorient and scale resulting strains");
+  MooseEnum strainType("SMALL FINITE", "SMALL");
+  params.addParam<MooseEnum>("strain", strainType, "Strain formulation");
   return params;
 }
 
 CZMStrainAction::CZMStrainAction(const InputParameters &params)
-    : Action(params),
-      _displacements(getParam<std::vector<VariableName>>("displacements")),
-      _block(getParam<std::vector<SubdomainName>>("block")),
+    : Action(params), _block(getParam<std::vector<SubdomainName>>("block")),
       _boundary(getParam<std::vector<BoundaryName>>("boundary")),
 
       _scaled(!getParam<PostprocessorName>("bulk_volume_PP").empty()),
       _bulk_volume_PP(_scaled ? getParam<PostprocessorName>("bulk_volume_PP")
                               : "czm_strain_V0"),
-
+      _area_ratio_PP("czm_area_ratio"),
+      _czm_strain_scale_PP("czm_strain_scale_PP"),
       _czm_strain_base_name(
           getParam<PostprocessorName>("czm_strain_base_name")),
-      _compute_cumulative_strain(getParam<bool>("compute_cumulative_strain")),
-      _compute_equivalent_strain(getParam<bool>("compute_equivalent_strain")),
-      _ld(getParam<bool>("large_kinematics")) {
+      _compute_czm_strain_rate(getParam<bool>("compute_czm_strain_rate")),
+      _compute_equivalent_strain(getParam<bool>("compute_equivalent_strain")) {
 
   // sanity checks
   if (!_scaled && (_block.size() == 0))
@@ -66,68 +60,62 @@ void CZMStrainAction::act() {
   if (_current_task == "add_postprocessor") {
     if (_block.size() > 0)
       computeScalingVolume();
+    addInterfaceStrain();
+    if (_compute_czm_strain_rate)
+      addInterfaceStrainRate();
     if (_compute_equivalent_strain) {
-      addEquivalentStrain(_czm_strain_base_name + "_total_rate");
-      addEquivalentStrain(_czm_strain_base_name + "_normal_rate");
-      addEquivalentStrain(_czm_strain_base_name + "_sliding_rate");
-      if (_compute_cumulative_strain) {
-        addEquivalentStrain(_czm_strain_base_name + "_total");
-        addEquivalentStrain(_czm_strain_base_name + "_normal");
-        addEquivalentStrain(_czm_strain_base_name + "_sliding");
+      for (unsigned int mp = 0; mp < _czm_mp_strain_names.size(); mp++)
+        addEquivalentStrain(_czm_mp_strain_names[mp]);
+      if (_compute_czm_strain_rate) {
+        for (unsigned int mp = 0; mp < _czm_mp_strain_names.size(); mp++) {
+          auto params_pp =
+              _factory.getValidParams("TimeDerivativePostprocessor");
+          params_pp.set<PostprocessorName>("postprocessor") =
+              _czm_mp_strain_names[mp] + "_eq";
+          params_pp.set<ExecFlagEnum>("execute_on") = {EXEC_TIMESTEP_END};
+          _problem->addPostprocessor("TimeDerivativePostprocessor",
+                                     _czm_mp_strain_names[mp] + "_eq_rate",
+                                     params_pp);
+        }
       }
     }
   }
 
   if (_current_task == "add_material")
     addInterfaceStrainMaterial();
-
-  if (_current_task == "meta_action") {
-    addInterfaceStrainRateAction();
-    if (_compute_cumulative_strain)
-      addIntegrateInterfaceStrainRateAction();
-  }
 }
 
-void CZMStrainAction::addInterfaceStrainRateAction() {
-  auto params_ma =
-      _action_factory.getValidParams("RankTwoTensorIntegralAction");
-  params_ma.set<ActionWarehouse *>("awh") = &_awh;
+void CZMStrainAction::addInterfaceStrain() {
 
-  params_ma.set<std::vector<BoundaryName>>("boundary") = _boundary;
-  params_ma.set<bool>("use_displaced_mesh") = false;
-  params_ma.set<std::vector<MaterialPropertyName>>("rank_two_tensor") = {
-      "czm_total_strain_rate", "czm_normal_strain_rate",
-      "czm_sliding_strain_rate"};
-  params_ma.set<std::vector<PostprocessorName>>("base_out_names") = {
-      _czm_strain_base_name + "_total_rate",
-      _czm_strain_base_name + "_normal_rate",
-      _czm_strain_base_name + "_sliding_rate"};
-  params_ma.set<PostprocessorName>("scaling_factor_PP") = _bulk_volume_PP;
-
-  auto action = _action_factory.create("RankTwoTensorIntegralAction",
-                                       "RankTwoTensorIntegralAction/czm_strain",
-                                       params_ma);
-
-  _awh.addActionBlock(action);
+  for (unsigned int mp = 0; mp < _czm_mp_strain_names.size(); mp++)
+    for (auto entry : _tensor_map) {
+      auto params_pp = _factory.getValidParams("CZMStrainComponent");
+      params_pp.set<MaterialPropertyName>("rank_two_tensor") =
+          _czm_mp_strain_names[mp];
+      params_pp.set<unsigned int>("index_i") = entry.first.first;
+      params_pp.set<unsigned int>("index_j") = entry.first.second;
+      params_pp.set<std::vector<BoundaryName>>("boundary") = _boundary;
+      params_pp.set<PostprocessorName>("initial_bulk_volume_pp") =
+          _bulk_volume_PP;
+      params_pp.set<ExecFlagEnum>("execute_on") = {EXEC_TIMESTEP_END};
+      params_pp.set<MooseEnum>("strain") = getParam<MooseEnum>("strain");
+      _problem->addPostprocessor("CZMStrainComponent",
+                                 _czm_mp_strain_names[mp] + "_" + entry.second,
+                                 params_pp);
+    }
 }
 
-void CZMStrainAction::addIntegrateInterfaceStrainRateAction() {
-  auto params_ti = _action_factory.getValidParams(
-      "RankTwoTensorPostprocessorTimeIntegralAction");
-  params_ti.set<ActionWarehouse *>("awh") = &_awh;
-  params_ti.set<std::vector<PostprocessorName>>("pp_base_names") = {
-      _czm_strain_base_name + "_total_rate",
-      _czm_strain_base_name + "_normal_rate",
-      _czm_strain_base_name + "_sliding_rate"};
-  params_ti.set<std::vector<PostprocessorName>>("base_out_names") = {
-      _czm_strain_base_name + "_total", _czm_strain_base_name + "_normal",
-      _czm_strain_base_name + "_sliding"};
-
-  auto action_ti = _action_factory.create(
-      "RankTwoTensorPostprocessorTimeIntegralAction",
-      "RankTwoTensorPostprocessorTimeIntegralAction/czm_strain", params_ti);
-
-  _awh.addActionBlock(action_ti);
+void CZMStrainAction::addInterfaceStrainRate() {
+  for (unsigned int mp = 0; mp < _czm_mp_strain_names.size(); mp++)
+    for (auto entry : _tensor_map) {
+      auto params_pp = _factory.getValidParams("TimeDerivativePostprocessor");
+      params_pp.set<PostprocessorName>("postprocessor") =
+          _czm_mp_strain_names[mp] + "_" + entry.second;
+      params_pp.set<ExecFlagEnum>("execute_on") = {EXEC_TIMESTEP_END};
+      _problem->addPostprocessor(
+          "TimeDerivativePostprocessor",
+          _czm_mp_strain_names[mp] + "_rate_" + entry.second, params_pp);
+    }
 }
 
 void CZMStrainAction::addEquivalentStrain(
@@ -145,16 +133,16 @@ void CZMStrainAction::addEquivalentStrain(
 
 void CZMStrainAction::addInterfaceStrainMaterial() {
   auto params_mat = _factory.getValidParams("CZMVolumetricStrain");
-  params_mat.set<std::vector<VariableName>>("displacements") = _displacements;
   params_mat.set<std::vector<BoundaryName>>("boundary") = _boundary;
-  params_mat.set<bool>("large_kinematics") = _ld;
+  params_mat.set<MooseEnum>("strain") = getParam<MooseEnum>("strain");
   _problem->addMaterial("CZMVolumetricStrain", "czm_strains", params_mat);
 }
 
 void CZMStrainAction::computeScalingVolume() {
-  auto params_pp = _factory.getValidParams("VolumePostprocessor");
-  params_pp.set<bool>("use_displaced_mesh") = false;
-  params_pp.set<std::vector<SubdomainName>>("block") = _block;
-  params_pp.set<ExecFlagEnum>("execute_on") = EXEC_INITIAL;
-  _problem->addPostprocessor("VolumePostprocessor", _bulk_volume_PP, params_pp);
+  auto params_pp1 = _factory.getValidParams("VolumePostprocessor");
+  params_pp1.set<bool>("use_displaced_mesh") = false;
+  params_pp1.set<std::vector<SubdomainName>>("block") = _block;
+  params_pp1.set<ExecFlagEnum>("execute_on") = EXEC_INITIAL;
+  _problem->addPostprocessor("VolumePostprocessor", _bulk_volume_PP,
+                             params_pp1);
 }

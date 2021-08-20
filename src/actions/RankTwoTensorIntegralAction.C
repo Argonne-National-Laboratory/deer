@@ -64,7 +64,7 @@ void RankTwoTensorIntegralAction::act() {
   if (_current_task == "add_postprocessor") {
 
     for (unsigned int mp = 0; mp < _mp_names.size(); mp++)
-      for (auto entry : tensor_map) {
+      for (auto entry : _tensor_map) {
         auto params_pp = _factory.getValidParams(_PP_type);
         params_pp.set<bool>("use_displaced_mesh") = _use_displaced_mesh;
         params_pp.set<MaterialPropertyName>("rank_two_tensor") = _mp_names[mp];

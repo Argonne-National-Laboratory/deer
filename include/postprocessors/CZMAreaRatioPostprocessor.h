@@ -9,12 +9,19 @@
 
 #pragma once
 
-#include "Action.h"
+// MOOSE includes
+#include "CZMAreaPostprocessor.h"
 
-class CohesiveZoneMasterActionDeer : public Action {
+/**
+ * This postprocessor computes teh cohesive zon area ratio, i.e. A/A0
+ */
+
+class CZMAreaRatioPostprocessor : public CZMAreaPostprocessor {
 public:
   static InputParameters validParams();
-  CohesiveZoneMasterActionDeer(const InputParameters &params);
 
-  void act() override;
+  CZMAreaRatioPostprocessor(const InputParameters &parameters);
+
+protected:
+  virtual Real getValue() override;
 };

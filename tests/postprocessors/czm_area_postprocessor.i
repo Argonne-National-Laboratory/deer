@@ -103,7 +103,7 @@
 
 [NEMLMechanics]
   kinematics = small
-  add_all_output = true
+  add_all_output = false
   add_displacements = true
 []
 
@@ -117,7 +117,7 @@
 [Materials]
   [./stress]
     type = ComputeNEMLStressUpdate
-    database = "../../neml_test_material.xml"
+    database = "../neml_test_material.xml"
     model = "elastic_model"
     large_kinematics = false
   [../]
@@ -128,12 +128,6 @@
     G = 1e0
     interface_thickness = 1
   [../]
-  [./czm_strain]
-
-    type = CZMVolumetricStrain
-    boundary = 'interface'
-    strain = FINITE
-  []
 []
 
 [Preconditioning]
@@ -203,39 +197,40 @@
     boundary = x1
     variable = disp_x
   [../]
+
   [./rotate_x]
-    type = DisplacementAboutAxis
-    boundary = 'y0 y1 x0 x1 z0 z1'
-    function = '90.'
-    angle_units = degrees
-    axis_origin = '0. 0. 0.'
-    axis_direction = '0. 1. 0.'
-    component = 0
-    variable = disp_x
-    angular_velocity = true
-  [../]
-  [./rotate_y]
-    type = DisplacementAboutAxis
-    boundary = 'y0 y1 x0 x1 z0 z1'
-    function = '90.'
-    angle_units = degrees
-    axis_origin = '0. 0. 0.'
-    axis_direction = '0. 1. 0.'
-    component = 1
-    variable = disp_y
-    angular_velocity = true
-  [../]
-  [./rotate_z]
-    type = DisplacementAboutAxis
-    boundary = 'y0 y1 x0 x1 z0 z1'
-    function = '90.'
-    angle_units = degrees
-    axis_origin = '0. 0. 0.'
-    axis_direction = '0. 1. 0.'
-    component = 2
-    variable = disp_z
-    angular_velocity = true
-  [../]
+  type = DisplacementAboutAxis
+  boundary = 'y0 y1 x0 x1 z0 z1'
+  function = '90.'
+  angle_units = degrees
+  axis_origin = '0. 0. 0.'
+  axis_direction = '0. 1. 0.'
+  component = 0
+  variable = disp_x
+  angular_velocity = true
+[../]
+[./rotate_y]
+  type = DisplacementAboutAxis
+  boundary = 'y0 y1 x0 x1 z0 z1'
+  function = '90.'
+  angle_units = degrees
+  axis_origin = '0. 0. 0.'
+  axis_direction = '0. 1. 0.'
+  component = 1
+  variable = disp_y
+  angular_velocity = true
+[../]
+[./rotate_z]
+  type = DisplacementAboutAxis
+  boundary = 'y0 y1 x0 x1 z0 z1'
+  function = '90.'
+  angle_units = degrees
+  axis_origin = '0. 0. 0.'
+  axis_direction = '0. 1. 0.'
+  component = 2
+  variable = disp_z
+  angular_velocity = true
+[../]
 []
 
 [Controls]
@@ -249,20 +244,27 @@
 []
 
 [Postprocessors]
-  [./V0]
-    type = VolumePostprocessor
-    use_displaced_mesh = false
+  [./czm_A]
+    type = CZMAreaPostprocessor
+    strain = FINITE
+    execute_on = 'INITIAL TIMESTEP_END'
+    boundary = 'interface'
+  []
+  [./czm_daDA]
+    type = CZMAreaRatioPostprocessor
+    strain = FINITE
+    execute_on = 'INITIAL TIMESTEP_END'
+    boundary = 'interface'
+  []
+  [parsed]
+    type = ParsedPostprocessor
+    function = 'czm_A / czm_daDA'
+    pp_names = 'czm_A czm_daDA'
     execute_on = 'INITIAL TIMESTEP_END'
   []
 []
 
-[CZMStrain]
-   boundary = interface
-   strain = FINITE
-   # block = '0 1'
-[]
 
 [Outputs]
   csv = true
-  exodus = true
 []

@@ -12,7 +12,7 @@
 registerMooseObject("DeerApp", PureElasticCZM);
 
 InputParameters PureElasticCZM::validParams() {
-  InputParameters params = CZMMaterialBase::validParams();
+  InputParameters params = CZMComputeLocalTractionTotalBase::validParams();
   params.addClassDescription(
       "Cohesive model with linear elastic opening and shearing");
   params.addRequiredParam<Real>("E", "Interface normal elastic modulus");
@@ -26,10 +26,15 @@ InputParameters PureElasticCZM::validParams() {
 }
 
 PureElasticCZM::PureElasticCZM(const InputParameters &parameters)
-    : CZMMaterialBase(parameters), _E(getParam<Real>("E")),
+    : CZMComputeLocalTractionTotalBase(parameters), _E(getParam<Real>("E")),
       _G(getParam<Real>("G")),
       _interface_thickness(getParam<Real>("interface_thickness")),
       _penetration_penalty(getParam<Real>("penetration_penalty")) {}
+
+void PureElasticCZM::computeInterfaceTractionAndDerivatives() {
+  _interface_traction[_qp] = computeTraction();
+  _dinterface_traction_djump[_qp] = computeTractionDerivatives();
+}
 
 RealVectorValue PureElasticCZM::computeTraction() {
 
@@ -56,7 +61,7 @@ void PureElasticCZM::ComputeShearTraction(RealVectorValue &traction) {
   // The rotation takes care of the rest
   Real C = ComputeShearStiffness();
   for (unsigned int i = 1; i < 3; i++)
-    traction(i) = C * _displacement_jump[_qp](i);
+    traction(i) = C * _interface_displacement_jump[_qp](i);
 }
 
 void PureElasticCZM::ComputeShearTractionDerivatives(
@@ -68,15 +73,15 @@ void PureElasticCZM::ComputeShearTractionDerivatives(
     traction_derivatives(i, i) = C;
     for (unsigned int j = 0; i < 3; i++)
       traction_derivatives(i, j) +=
-          _displacement_jump[_qp](i) * dstiffness_du(i, j);
+          _interface_displacement_jump[_qp](i) * dstiffness_du(i, j);
   }
 }
 
 void PureElasticCZM::ComputeNormalTraction(RealVectorValue &traction) {
   Real C = ComputeNormalStiffness();
-  traction(0) = C * _displacement_jump[_qp](0);
+  traction(0) = C * _interface_displacement_jump[_qp](0);
 
-  if (_displacement_jump[_qp](0) < -_interface_thickness)
+  if (_interface_displacement_jump[_qp](0) < -_interface_thickness)
     traction(0) *= _penetration_penalty;
 }
 
@@ -88,9 +93,10 @@ void PureElasticCZM::ComputeNormalTractionDerivatives(
 
   traction_derivatives(0, 0) = C;
   for (unsigned int i = 0; i < 3; i++)
-    traction_derivatives(0, i) += _displacement_jump[_qp](0) * dstiffness_du(i);
+    traction_derivatives(0, i) +=
+        _interface_displacement_jump[_qp](0) * dstiffness_du(i);
 
-  if (_displacement_jump[_qp](0) < -_interface_thickness)
+  if (_interface_displacement_jump[_qp](0) < -_interface_thickness)
     traction_derivatives(0, 0) *= _penetration_penalty;
 }
 

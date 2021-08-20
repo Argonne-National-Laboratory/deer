@@ -27,8 +27,11 @@
   []
 []
 
+[GlobalParams]
+  displacements = 'disp_x disp_y disp_z'
+[]
+
 [NEMLMechanics]
-  displacements = "disp_x disp_y disp_z"
   kinematics = small
   add_all_output = true
   block = '0 1' #NEMLMechanics shoudl not be used on subdomain 10
@@ -46,7 +49,6 @@
 [Modules/TensorMechanics/CohesiveZoneMaster]
   [./czm1]
     boundary = 'interface'
-    displacements = 'disp_x disp_y disp_z'
   [../]
 []
 
@@ -90,7 +92,6 @@
     tangential_gap_at_maximum_shear_traction = 0.5
     maximum_normal_traction = 100
     maximum_shear_traction = 70
-    displacements = 'disp_x disp_y disp_z'
   [../]
 []
 

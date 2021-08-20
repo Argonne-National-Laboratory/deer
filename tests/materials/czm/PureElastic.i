@@ -20,51 +20,9 @@
   []
 []
 
-[AuxVariables]
-  [./T_N]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-  [./T_S1]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-  [./T_S2]
-    family = MONOMIAL
-    order = CONSTANT
-  []
+[GlobalParams]
+  displacements = 'disp_x disp_y disp_z'
 []
-
-
-
-
-[AuxKernels]
-  [./aux_TN]
-    type = MaterialRealVectorValueAux
-    boundary = 'interface'
-    property = traction
-    component = 0
-    execute_on = 'TIMESTEP_END'
-    variable = T_N
-  [../]
-  [./aux_TS1]
-    type = MaterialRealVectorValueAux
-    boundary = 'interface'
-    property = traction
-    component = 1
-    execute_on = 'TIMESTEP_END'
-    variable = T_S1
-  [../]
-  [./aux_TS2]
-    type = MaterialRealVectorValueAux
-    boundary = 'interface'
-    property = traction
-    component = 2
-    execute_on = 'TIMESTEP_END'
-    variable = T_S2
-  [../]
-[]
-
 
 [NEMLMechanics]
   displacements = 'disp_x disp_y disp_z'
@@ -76,10 +34,9 @@
 [Modules/TensorMechanics/CohesiveZoneMaster]
   [./czm]
     boundary = 'interface'
-    displacements = 'disp_x disp_y disp_z'
+    generate_output = 'traction_x traction_y traction_z normal_traction tangent_traction jump_x jump_y jump_z normal_jump tangent_jump'
   [../]
 []
-
 [Materials]
   [./stress]
     type = ComputeNEMLStressUpdate
