@@ -10,7 +10,7 @@ jobs:
             - name: Setup build system
               run: | 
                   sudo apt update 
-                  sudo apt install build-essential cmake libboost-dev libblas-dev liblapack-dev mpich libmpich-dev python3-dev
+                  sudo apt install build-essential cmake libblas-dev liblapack-dev mpich libmpich-dev python3-dev
             - name: Compile neml
               run: |
                   cd neml
@@ -18,7 +18,7 @@ jobs:
                   make -j 2
             - name: Compile extra MOOSE packages
               env:
-                    MOOSE_DIR: $GITHUB_WORKSPACE/moose
+                    MOOSE_DIR: ${{github.workspace}}/moose
               run:  |
                   git clone https://github.com/idaholab/moose.git $MOOSE_DIR
                   cd $MOOSE_DIR/scripts
@@ -28,12 +28,12 @@ jobs:
                   ./update_and_rebuild_hit.sh
             - name: Compile code
               env:
-                    MOOSE_DIR: $GITHUB_WORKSPACE/moose
+                    MOOSE_DIR: ${{github.workspace}}/moose
               run: |
                     export MOOSE_DIR=$PWD/moose
                     make -j 2 METHOD=opt
             - name: Test code
               env:
-                    MOOSE_DIR: $GITHUB_WORKSPACE/moose
-                    LD_LIBRARY_PATH: $LD_LIBRARY_PATH:$GITHUB_WORKSPACE/neml/lib
+                    MOOSE_DIR: ${{github.workspace}}/moose
+                    LD_LIBRARY_PATH: $LD_LIBRARY_PATH:${{github.workspace}}/neml/lib
               run: ./run_tests
