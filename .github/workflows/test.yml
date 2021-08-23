@@ -1,0 +1,26 @@
+name: tests
+on: [push, pull_request]
+jobs:
+      test-bindings-linux:
+            runs-on: ubuntu-latest
+            steps:
+            - uses: actions/checkout@v2
+              with:
+                    submodules: recursive
+            - run: sudo apt update
+            - run: sudo apt install build-essential cmake libboost-dev libblas-dev liblapack-dev mpich libmpich-dev python3-dev
+            - run: cd neml
+            - run: cmake -DCMAKE_BUILD_TYPE=Release .
+            - run: make -j 2
+            - run: cd ..
+            - run: export MOOSE_DIR=$PWD/moose
+            - run: git clone https://github.com/idaholab/moose.git $MOOSE_DIR
+            - run: cd $MOOSE_DIR/scripts
+            - run: export MOOSE_JOBS=2
+            - run: ./update_and_rebuild_petsc.sh
+            - run: ./update_and_rebuild_libmesh.sh
+            - run: ./update_and_rebuild_hit.sh
+            - run: cd ../..
+            - run: make -j 2 METHOD=opt
+            - run: export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD/neml/lib
+            - run: ./run_tests
