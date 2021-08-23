@@ -36,4 +36,4 @@ jobs:
               env:
                     MOOSE_DIR: $GITHUB_WORKSPACE/moose
                     LD_LIBRARY_PATH: $LD_LIBRARY_PATH:$GITHUB_WORKSPACE/neml/lib
-            - run: ./run_tests
+              run: ./run_tests
