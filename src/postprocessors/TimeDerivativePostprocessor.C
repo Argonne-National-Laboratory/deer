@@ -15,8 +15,7 @@ defineLegacyParams(TimeDerivativePostprocessor);
 
 InputParameters TimeDerivativePostprocessor::validParams() {
   InputParameters params = GeneralPostprocessor::validParams();
-  params.addClassDescription(
-      "Computest the time deribative of a postprocessor");
+  params.addClassDescription("Compute the time derivative of a postprocessor");
   params.addRequiredParam<PostprocessorName>("postprocessor",
                                              "The name of the postprocessor");
   return params;

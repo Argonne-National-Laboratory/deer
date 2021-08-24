@@ -35,18 +35,6 @@ CZMVolumetricStrain::CZMVolumetricStrain(const InputParameters &parameters)
       _czm_sliding_strain(declarePropertyByName<RankTwoTensor>(
           _base_name + "czm_sliding_strain")),
       _dadA_mp(declarePropertyByName<Real>(_base_name + "czm_area_ratio")),
-      // _czm_total_strain_old(getMaterialPropertyOldByName<RankTwoTensor>(
-      //     _base_name + "czm_total_strain")),
-      // _czm_normal_strain_old(getMaterialPropertyOldByName<RankTwoTensor>(
-      //     _base_name + "czm_normal_strain")),
-      // _czm_sliding_strain_old(getMaterialPropertyOldByName<RankTwoTensor>(
-      //     _base_name + "czm_sliding_strain")),
-      // _czm_total_strain_rate(declarePropertyByName<RankTwoTensor>(
-      //     _base_name + "czm_total_strain_rate")),
-      // _czm_normal_strain_rate(declarePropertyByName<RankTwoTensor>(
-      //     _base_name + "czm_normal_strain_rate")),
-      // _czm_sliding_strain_rate(declarePropertyByName<RankTwoTensor>(
-      //     _base_name + "czm_sliding_strain_rate")),
       _strain(getParam<MooseEnum>("strain").getEnum<Strain>()),
       _F_czm(
           _strain == Strain::Finite
@@ -84,11 +72,4 @@ void CZMVolumetricStrain::computeInterfaceStrain() {
                             (n_outer_n + n_outer_n.transpose()) / 2. *
                             _dadA_mp[_qp];
   _czm_sliding_strain[_qp] = _czm_total_strain[_qp] - _czm_normal_strain[_qp];
-
-  // _czm_total_strain_rate[_qp] =
-  //     (_czm_total_strain[_qp] - _czm_total_strain_old[_qp]) / _dt;
-  // _czm_normal_strain_rate[_qp] =
-  //     (_czm_normal_strain[_qp] - _czm_normal_strain_old[_qp]) / _dt;
-  // _czm_sliding_strain_rate[_qp] =
-  //     (_czm_sliding_strain[_qp] - _czm_sliding_strain_old[_qp]) / _dt;
 }

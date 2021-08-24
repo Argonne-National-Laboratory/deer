@@ -16,11 +16,9 @@ class TimeDerivativePostprocessor;
 template <> InputParameters validParams<TimeDerivativePostprocessor>();
 
 /**
- * Creates a cumulative sum of a post-processor value over a transient.
- *
- * This is useful, for example, for counting the total number of linear or
- * nonlinear iterations during a transient.
+ * Computes the time derivative of Postprocessor, i.e. (v-v_old)/dt
  */
+
 class TimeDerivativePostprocessor : public GeneralPostprocessor {
 public:
   static InputParameters validParams();

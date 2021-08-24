@@ -13,4 +13,18 @@
     requirement = "check the viscous sliding czm material works properly"
     abs_zero = 1e-6
   [../]
+  [./PureElasticLargeDeformation]
+    type = Exodiff
+    input = 'PureElasticLargeDeformation.i'
+    exodiff = 'PureElasticLargeDeformation_out.e'
+    requirement = "check the pure elastic czm material works properly"
+    abs_zero = 1e-6
+  [../]
+  [./ViscousSlidingLargeDeformation]
+    type = Exodiff
+    input = 'ViscousSlidingLargeDeformation.i'
+    exodiff = 'ViscousSlidingLargeDeformation_out.e'
+    requirement = "check the viscous sliding czm material works properly"
+    abs_zero = 1e-6
+  [../]
 []

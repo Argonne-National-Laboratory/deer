@@ -16,7 +16,7 @@ class MultiplyPostprocessor;
 template <> InputParameters validParams<MultiplyPostprocessor>();
 
 /**
- * Computes the difference between two postprocessors
+ * Computes the product of two postprocessors
  *
  * result = value1 - value2
  */
