@@ -88,6 +88,7 @@ InputParameters GBCavitationNewCZM::validParams() {
 
 GBCavitationNewCZM::GBCavitationNewCZM(const InputParameters &parameters)
     : CZMComputeLocalTractionIncrementalBase(parameters),
+      _ndisp(_mesh.dimension()),
       _use_old_bulk_property(getParam<bool>("use_old_bulk_property")),
       _stress_master(getMaterialPropertyByName<RankTwoTensor>("stress")),
       _stress_slave(getNeighborMaterialPropertyByName<RankTwoTensor>("stress")),
@@ -205,9 +206,13 @@ GBCavitationNewCZM::GBCavitationNewCZM(const InputParameters &parameters)
   }
   if (_JxW_ref <= 0)
     mooseError("the paremter h_ref must be positive");
+
+  if (_ndisp == 1)
+    mooseError("not implemented for 1D problems");
 }
 
 void GBCavitationNewCZM::computeInterfaceTractionIncrementAndDerivatives() {
+
   // copy qp dependent properties
   _a0[_qp] = _a0_old[_qp];
   _NI[_qp] = _NI_old[_qp];
@@ -336,48 +341,54 @@ void GBCavitationNewCZM::computeInterfaceTractionIncrementAndDerivatives() {
 
         _traction_at_failure[_qp](0) = TN_var.getValue();
         _traction_at_failure[_qp](1) = TS1_var.getValue();
-        _traction_at_failure[_qp](2) = TS2_var.getValue();
-
-        for (uint i = 0; i < 3; i++)
-          if (!std::isfinite(_traction_at_failure[_qp](i)))
-            mooseError("GBCavitationNewCZM failed while substepping but "
-                       "_traction_at_failure is "
-                       "not finite");
-
-        if (!std::isfinite(_a[_qp]))
-          mooseError(
-              "GBCavitationNewCZM failed while substepping but  _a[_qp] is "
-              "not finite: " +
-              std::to_string(_a[_qp]));
-        if (!std::isfinite(_b[_qp]))
-          mooseError(
-              "GBCavitationNewCZM failed while substepping but _b[_qp]  is "
-              "not finite: " +
-              std::to_string(_b[_qp]));
+        if (_ndisp == 3)
+          _traction_at_failure[_qp](2) = TS2_var.getValue();
 
         _jump_at_failure[_qp] =
             _interface_displacement_jump_old[_qp] +
             _interface_displacement_jump_inc[_qp] / _dt * dt_effective;
 
+        // some checks, only performed in debug or devel mode
+        for (uint i = 0; i < 3; i++) {
+          mooseAssert(std::isfinite(_traction_at_failure[_qp](i)),
+                      "GBCavitationNewCZM failed while substepping and "
+                      "_traction_at_failure is "
+                      "not finite");
+        }
+
+        mooseAssert(
+            std::isfinite(_a[_qp]),
+            "GBCavitationNewCZM failed while substepping and _a[_qp] is "
+            "not finite: " +
+                std::to_string(_a[_qp]));
+
+        mooseAssert(
+            std::isfinite(_b[_qp]),
+            "GBCavitationNewCZM failed while substepping and _b[_qp]  is "
+            "not finite: " +
+                std::to_string(_b[_qp]));
+
         tractionDecay();
       } else {
         _interface_traction[_qp](0) = TN_var.getValue();
         _interface_traction[_qp](1) = TS1_var.getValue();
-        _interface_traction[_qp](2) = TS2_var.getValue();
+        if (_ndisp == 3)
+          _interface_traction[_qp](2) = TS2_var.getValue();
 
-        for (uint i = 0; i < 3; i++)
-          if (!std::isfinite(_interface_traction[_qp](i)))
-            mooseError(
-                "GBCavitationNewCZM converged but traction is not finite");
+        // some checks, only performed in debug or devel mode
+        for (uint i = 0; i < 3; i++) {
+          mooseAssert(
+              std::isfinite(_interface_traction[_qp](i)),
+              "GBCavitationNewCZM converged but traction is not finite");
+        }
 
-        if (!std::isfinite(_a[_qp]))
-          mooseError(
-              "GBCavitationNewCZM converged but _a[_qp] is not finite: " +
-              std::to_string(_a[_qp]));
-        if (!std::isfinite(_b[_qp]))
-          mooseError(
-              "GBCavitationNewCZM converged but _b[_qp] is not finite: " +
-              std::to_string(_b[_qp]));
+        mooseAssert(std::isfinite(_a[_qp]),
+                    "GBCavitationNewCZM converged but _a[_qp] is not finite: " +
+                        std::to_string(_a[_qp]));
+
+        mooseAssert(std::isfinite(_b[_qp]),
+                    "GBCavitationNewCZM converged but _b[_qp] is not finite: " +
+                        std::to_string(_b[_qp]));
 
         // update related history variables
         if (_nucleation_is_active_old[_qp])
@@ -400,7 +411,8 @@ void GBCavitationNewCZM::computeInterfaceTractionIncrementAndDerivatives() {
       }
     }
 
-    /// check for nans in traction and traction derivatives
+    /// check for nans in traction and traction derivatives, only performed in
+    /// debug or devel mode
     for (uint i = 0; i < 3; i++)
       mooseAssert(
           std::isfinite(_interface_traction[_qp](i)),
@@ -415,8 +427,8 @@ void GBCavitationNewCZM::computeInterfaceTractionIncrementAndDerivatives() {
                 "GBCavitationNewCZM _b[_qp] is not finite: " +
                     std::to_string(_b[_qp]));
 
-    for (uint i = 0; i < 3; i++)
-      for (uint j = 0; j < 3; j++)
+    for (uint i = 0; i < 3; i++) {
+      for (uint j = 0; j < 3; j++) {
         mooseAssert(
             std::isfinite(_dinterface_traction_djump[_qp](i, j)),
             "GBCavitationNewCZM _dinterface_traction_djump[_qp](" +
@@ -425,6 +437,8 @@ void GBCavitationNewCZM::computeInterfaceTractionIncrementAndDerivatives() {
                 std::to_string(_dinterface_traction_djump[_qp](i, j)) +
                 " increment i = " +
                 std::to_string(_interface_displacement_jump_inc[_qp](i)));
+      }
+    }
     mooseAssert(std::isfinite(_dinterface_traction_djump[_qp].det()),
                 "determinatn of _dinterface_traction_djump is not finite");
     mooseAssert(_dinterface_traction_djump[_qp].det() > 0.,
@@ -448,7 +462,7 @@ void GBCavitationNewCZM::tractionDecay() {
 
   const Real decay_factor =
       std::exp((_time_at_failure[_qp] - _t) / (_residual_life[_qp] / 5.));
-  for (int i = 0; i < 3; i++) {
+  for (int i = 0; i < _ndisp; i++) {
     Real C = std::max(
         std::abs(_traction_at_failure[_qp](i) / _jump_at_failure[_qp](i)) *
             decay_factor,
@@ -460,7 +474,7 @@ void GBCavitationNewCZM::tractionDecay() {
                                       C +
                                   _traction_at_failure[_qp](i) * decay_factor;
 
-    for (int j = 0; j < 3; j++) {
+    for (int j = 0; j < _ndisp; j++) {
       if (i == j) {
         _dinterface_traction_djump[_qp](i, j) = C;
         if (i == 0) {
@@ -550,11 +564,11 @@ void GBCavitationNewCZM::initNLSystemParamter(
             _interface_displacement_jump_old[_qp](0)};
 
   rate_pname = {"udot_N", "udot_S1", "udot_S2", "edot"};
-  rate_pvalue = {_interface_displacement_jump_inc[_qp](0) / _dt,
-                 _interface_displacement_jump_inc[_qp](1) / _dt,
-                 _interface_displacement_jump_inc[_qp](2) / _dt,
-                 _use_old_bulk_property ? _strain_rate_eq_old[_qp]
-                                        : _strain_rate_eq[_qp]};
+  rate_pvalue = {
+      _interface_displacement_jump_inc[_qp](0) / _dt,
+      _interface_displacement_jump_inc[_qp](1) / _dt,
+      _ndisp == 3 ? _interface_displacement_jump_inc[_qp](2) / _dt : 0.,
+      _use_old_bulk_property ? _strain_rate_eq_old[_qp] : _strain_rate_eq[_qp]};
 }
 
 void GBCavitationNewCZM::InitGBCavitationParamsAndProperties() {

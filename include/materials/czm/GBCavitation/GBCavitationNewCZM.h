@@ -30,6 +30,8 @@ protected:
 
   /// method to kill the traction
   void tractionDecay();
+  /// number of displacement components
+  const unsigned int _ndisp;
 
   const bool _use_old_bulk_property;
   /// reference to bulk properties
