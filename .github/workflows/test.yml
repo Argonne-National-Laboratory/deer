@@ -3,6 +3,9 @@ on: [push, pull_request]
 jobs:
       test-bindings-linux:
             runs-on: ubuntu-latest
+            strategy:
+                  matrix:
+                        btype: [opt, dbg]
             steps:
             - uses: actions/checkout@v2
               with:
@@ -14,7 +17,8 @@ jobs:
             - name: Compile neml
               run: |
                   cd neml
-                  cmake -DCMAKE_BUILD_TYPE=Release .
+                  if [[ "${{ matrix.btype }}" == "opt" ]]; then type="Release"; elif [[ "${{ matrix.btype }}" == "dbg" ]]; then type="Debug"; fi
+                  cmake -DCMAKE_BUILD_TYPE=$type .
                   make -j 2
             - name: Compile extra MOOSE packages
               env:
@@ -31,9 +35,9 @@ jobs:
                     MOOSE_DIR: ${{github.workspace}}/moose
               run: |
                     export MOOSE_DIR=$PWD/moose
-                    make -j 2 METHOD=opt
+                    make -j 2 METHOD=${{ matrix.btype }}
             - name: Test code
               env:
                     MOOSE_DIR: ${{github.workspace}}/moose
                     LD_LIBRARY_PATH: $LD_LIBRARY_PATH:${{github.workspace}}/neml/lib
-              run: ./run_tests
+              run: if [[ "${{ matrix.btype }}" == "opt" ]]; then ./run_tests --opt; elif [[ "${{ matrix.btype }}" == "dbg" ]]; then ./run_tests --dbg; fi
