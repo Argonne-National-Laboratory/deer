@@ -1,7 +1,7 @@
 name: tests
 on: [push, pull_request]
 jobs:
-      test-bindings-linux:
+      tests-linux:
             runs-on: ubuntu-latest
             strategy:
                   matrix:
