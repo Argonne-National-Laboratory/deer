@@ -9,22 +9,24 @@
 
 #pragma once
 
-#include "CZMMaterialBase.h"
+#include "CZMComputeLocalTractionTotalBase.h"
 
 class PureElasticCZM;
 /**
  * Implementation of the non-stateful exponential traction separation law
  * proposed by Salehani, Mohsen Khajeh and Irani, Nilgoon 2018
  **/
-class PureElasticCZM : public CZMMaterialBase {
+class PureElasticCZM : public CZMComputeLocalTractionTotalBase {
 public:
   static InputParameters validParams();
   PureElasticCZM(const InputParameters &parameters);
 
 protected:
-  virtual RealVectorValue computeTraction() override;
+  virtual void computeInterfaceTractionAndDerivatives() override;
 
-  virtual RankTwoTensor computeTractionDerivatives() override;
+  virtual RealVectorValue computeTraction();
+
+  virtual RankTwoTensor computeTractionDerivatives();
 
   virtual void ComputeNormalTraction(RealVectorValue &traction);
   virtual void

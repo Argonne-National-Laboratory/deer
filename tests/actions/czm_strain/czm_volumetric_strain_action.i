@@ -1,76 +1,105 @@
 [Mesh]
   [./msh]
-  type = GeneratedMeshGenerator
-  dim = 3
-  nx = 1
-  ny = 1
-  nz = 2
-  xmax = 3
-  ymax = 2
-  zmax = 2
+    type = GeneratedMeshGenerator
+    dim = 3
+    nx = 1
+    ny = 1
+    nz = 2
+    xmin = -1
+    xmax = 1
+    ymin = -1.5
+    ymax = 1.5
+    zmin = -1
+    zmax = 1
   []
   [./new_block]
     type = SubdomainBoundingBoxGenerator
     input = msh
     block_id = 1
-    bottom_left = '0 0 1'
-    top_right = '3 2 2'
+    bottom_left = '-1 -1.5 0'
+    top_right = '1 1.5 1'
   []
   [./split]
     type = BreakMeshByBlockGenerator
     input = new_block
+  []
+  [add_side_sets]
+    input = split
+    type = SideSetsFromNormalsGenerator
+    normals = '0 -1  0
+               0  1  0
+               -1 0  0
+               1  0  0
+               0  0 -1
+               0  0  1'
+    fixed_normal = true
+    new_boundary = 'y0 y1 x0 x1 z0 z1'
+  []
+  [./x0_bottom]
+    type = ExtraNodesetGenerator
+    input = add_side_sets
+    new_boundary = 'x0_bottom'
+    nodes = '0 3 4 7'
+  []
+  [./x1_bottom]
+    type = ExtraNodesetGenerator
+    input = x0_bottom
+    new_boundary = 'x1_bottom'
+    nodes = '1 2 5 6'
+  []
+  [./y0_bottom]
+    type = ExtraNodesetGenerator
+    input = x1_bottom
+    new_boundary = 'y0_bottom'
+    nodes = '0 1 4 5'
+  []
+  [./y1_bottom]
+    type = ExtraNodesetGenerator
+    input = y0_bottom
+    new_boundary = 'y1_bottom'
+    nodes = '2 3 6 7'
+  []
+  [./z1_bottom]
+    type = ExtraNodesetGenerator
+    input = y1_bottom
+    new_boundary = 'z1_bottom'
+    nodes = '4 5 6 7'
+  []
+  [./x0_top]
+    type = ExtraNodesetGenerator
+    input = z1_bottom
+    new_boundary = 'x0_top'
+    nodes = '8 11 12 15'
+  []
+  [./x1_top]
+    type = ExtraNodesetGenerator
+    input = x0_top
+    new_boundary = 'x1_top'
+    nodes = '9 10 13 14'
+  []
+  [./y0_top]
+    type = ExtraNodesetGenerator
+    input = x1_top
+    new_boundary = 'y0_top'
+    nodes = '8 9 12 13'
+  []
+  [./y1_top]
+    type = ExtraNodesetGenerator
+    input = y0_top
+    new_boundary = 'y1_top'
+    nodes = '10 11 14 15'
+  []
+  [./z0_top]
+    type = ExtraNodesetGenerator
+    input = y1_top
+    new_boundary = 'z0_top'
+    nodes = ' 12 13 14 15'
   []
 []
 
 [GlobalParams]
   displacements = 'disp_x disp_y disp_z'
 []
-
-[AuxVariables]
-  [./T_N]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-  [./T_S1]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-  [./T_S2]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-[]
-
-
-
-
-[AuxKernels]
-  [./aux_TN]
-    type = MaterialRealVectorValueAux
-    boundary = 'interface'
-    property = traction
-    component = 0
-    execute_on = 'TIMESTEP_END'
-    variable = T_N
-  [../]
-  [./aux_TS1]
-    type = MaterialRealVectorValueAux
-    boundary = 'interface'
-    property = traction
-    component = 1
-    execute_on = 'TIMESTEP_END'
-    variable = T_S1
-  [../]
-  [./aux_TS2]
-    type = MaterialRealVectorValueAux
-    boundary = 'interface'
-    property = traction
-    component = 2
-    execute_on = 'TIMESTEP_END'
-    variable = T_S2
-  [../]
-[]
-
 
 [NEMLMechanics]
   kinematics = small
@@ -81,6 +110,7 @@
 [Modules/TensorMechanics/CohesiveZoneMaster]
   [./czm]
     boundary = 'interface'
+    strain = FINITE
   [../]
 []
 
@@ -98,6 +128,12 @@
     G = 1e0
     interface_thickness = 1
   [../]
+  [./czm_strain]
+
+    type = CZMVolumetricStrain
+    boundary = 'interface'
+    strain = FINITE
+  []
 []
 
 [Preconditioning]
@@ -120,111 +156,113 @@
   nl_max_its = 15
   nl_rel_tol = 1e-8
   nl_abs_tol = 1e-6
-  [./TimeStepper]
-    type = FunctionDT
-    function = dt_fun
-  [../]
+  dt = 0.25
   end_time = 2
-  # num_steps = 2
 []
 
 [BCs]
   [./fix_x]
     type = DirichletBC
-    boundary = left
-    variable = disp_x
+    preset = true
     value = 0.0
+    boundary = x0
+    variable = disp_x
   [../]
   [./fix_y]
     type = DirichletBC
-    boundary = bottom
-    variable = disp_y
+    preset = true
     value = 0.0
+    boundary = y0
+    variable = disp_y
   [../]
   [./fix_z]
     type = DirichletBC
-    boundary = back
-    variable = disp_z
+    preset = true
     value = 0.0
-  [../]
-  [./move_top]
-    type = FunctionDirichletBC
-    boundary = front
+    boundary = 'z0 z1_bottom'
     variable = disp_z
-    function = disp_fun
   [../]
-
+  [./z_stretch_top]
+    type = FunctionDirichletBC
+    preset = true
+    function = t
+    boundary = 'z1 z0_top'
+    variable = disp_z
+  [../]
+  [./y_stretch]
+    type = FunctionDirichletBC
+    preset = true
+    function = -1.5*t
+    boundary = y1
+    variable = disp_y
+  [../]
+  [./x_stretch]
+    type = FunctionDirichletBC
+    preset = true
+    function = -1.*t
+    boundary = x1
+    variable = disp_x
+  [../]
   [./rotate_x]
-  type = DisplacementAboutAxis
-  boundary = 'front back left right top bottom'
-  function = '90.'
-  angle_units = degrees
-  axis_origin = '0. 0. 0.'
-  axis_direction = '0. 1. 0.'
-  component = 0
-  variable = disp_x
-  angular_velocity = true
-[../]
-[./rotate_y]
-  type = DisplacementAboutAxis
-  boundary = 'front back left right top bottom'
-  function = '90.'
-  angle_units = degrees
-  axis_origin = '0. 0. 0.'
-  axis_direction = '0. 1. 0.'
-  component = 1
-  variable = disp_y
-  angular_velocity = true
-[../]
-[./rotate_z]
-  type = DisplacementAboutAxis
-  boundary = 'front back left right top bottom'
-  function = '90.'
-  angle_units = degrees
-  axis_origin = '0. 0. 0.'
-  axis_direction = '0. 1. 0.'
-  component = 2
-  variable = disp_z
-  angular_velocity = true
-[../]
+    type = DisplacementAboutAxis
+    boundary = 'y0 y1 x0 x1 z0 z1'
+    function = '90.'
+    angle_units = degrees
+    axis_origin = '0. 0. 0.'
+    axis_direction = '0. 1. 0.'
+    component = 0
+    variable = disp_x
+    angular_velocity = true
+  [../]
+  [./rotate_y]
+    type = DisplacementAboutAxis
+    boundary = 'y0 y1 x0 x1 z0 z1'
+    function = '90.'
+    angle_units = degrees
+    axis_origin = '0. 0. 0.'
+    axis_direction = '0. 1. 0.'
+    component = 1
+    variable = disp_y
+    angular_velocity = true
+  [../]
+  [./rotate_z]
+    type = DisplacementAboutAxis
+    boundary = 'y0 y1 x0 x1 z0 z1'
+    function = '90.'
+    angle_units = degrees
+    axis_origin = '0. 0. 0.'
+    axis_direction = '0. 1. 0.'
+    component = 2
+    variable = disp_z
+    angular_velocity = true
+  [../]
 []
 
 [Controls]
   [./c1]
     type = TimePeriod
-    enable_objects = 'BCs::fix_x BCs::fix_y BCs::fix_z BCs::move_top'
+    enable_objects = 'BCs::fix_x BCs::fix_y BCs::fix_z BCs::z_stretch_top BCs::y_stretch BCs::x_stretch'
     disable_objects = 'BCs::rotate_x BCs::rotate_y BCs::rotate_z'
     start_time = '0'
     end_time = '1'
   [../]
 []
 
-[Functions]
-  [./disp_fun]
-    type = PiecewiseLinear
-    x = '0 1'
-    y = '0 0.1'
-  [../]
-  [./dt_fun]
-    type = PiecewiseConstant
-    x = '0 0.99 2'
-    y = '0.01 0.001 0.001'
-  []
-[]
-
 [Postprocessors]
   [./V0]
     type = VolumePostprocessor
     use_displaced_mesh = false
-    execute_on = 'INITIAL'
+    execute_on = 'INITIAL TIMESTEP_END'
   []
 []
 
 [CZMStrain]
    boundary = interface
-   large_kinematics = true
+   strain = FINITE
+   # block = '0 1'
 []
 
 [Outputs]
   csv = true
+  exodus = true
 []

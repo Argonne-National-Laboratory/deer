@@ -1,0 +1,8 @@
+[Tests]
+  [./rank_two_tensor_postprocessor_time_integral_action]
+    type = CSVDiff
+    input = 'rank_two_tensor_time_derivative_action.i'
+    csvdiff = 'rank_two_tensor_time_derivative_action_out.csv'
+    requirement = "The RankTwoTensorPostprocessorTimeDerivative action shall add all the required postprocessor and perform the proper time derivative."
+  [../]
+[]

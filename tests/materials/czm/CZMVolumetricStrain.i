@@ -26,52 +26,6 @@
   displacements = 'disp_x disp_y disp_z'
 []
 
-[AuxVariables]
-  [./T_N]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-  [./T_S1]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-  [./T_S2]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-[]
-
-
-
-
-[AuxKernels]
-  [./aux_TN]
-    type = MaterialRealVectorValueAux
-    boundary = 'interface'
-    property = traction
-    component = 0
-    execute_on = 'TIMESTEP_END'
-    variable = T_N
-  [../]
-  [./aux_TS1]
-    type = MaterialRealVectorValueAux
-    boundary = 'interface'
-    property = traction
-    component = 1
-    execute_on = 'TIMESTEP_END'
-    variable = T_S1
-  [../]
-  [./aux_TS2]
-    type = MaterialRealVectorValueAux
-    boundary = 'interface'
-    property = traction
-    component = 2
-    execute_on = 'TIMESTEP_END'
-    variable = T_S2
-  [../]
-[]
-
-
 [NEMLMechanics]
   displacements = 'disp_x disp_y disp_z'
   kinematics = small
@@ -82,7 +36,8 @@
 [Modules/TensorMechanics/CohesiveZoneMaster]
   [./czm]
     boundary = 'interface'
-    displacements = 'disp_x disp_y disp_z'
+    generate_output = 'traction_x traction_y traction_z normal_traction tangent_traction jump_x jump_y jump_z normal_jump tangent_jump'
+    strain = FINITE
   [../]
 []
 
@@ -91,21 +46,19 @@
     type = ComputeNEMLStressUpdate
     database = "../../neml_test_material.xml"
     model = "elastic_model"
-    large_kinematics = false
+    large_kinematics = true
   [../]
   [./czm]
     type = PureElasticCZM
-    displacements = 'disp_x disp_y disp_z'
     boundary = 'interface'
     E = 1e0
     G = 1e0
     interface_thickness = 1
   [../]
-  [./czm_voluemtric_strain]
+  [./czm_volumetric_strain]
     type = CZMVolumetricStrain
-    displacements = 'disp_x disp_y disp_z'
     boundary = 'interface'
-    large_kinematics = true
+    strain = FINITE
   []
 []
 
@@ -215,8 +168,8 @@
   [../]
   [./dt_fun]
     type = PiecewiseConstant
-    x = '0 0.99 2'
-    y = '0.01 0.001 0.001'
+    x = '0 2'
+    y = '0.1'
   []
 []
 
@@ -231,17 +184,13 @@
 [RankTwoTensorIntegralOnDomain]
  [czm]
    boundary = interface
-   rank_two_tensor = 'czm_total_strain_rate czm_normal_strain_rate czm_sliding_strain_rate'
+   rank_two_tensor = 'czm_total_strain_rate czm_normal_strain_rate czm_sliding_strain_rate czm_total_strain czm_normal_strain czm_sliding_strain'
    use_displaced_mesh = false
-   base_out_names = 'czm_strain_total_rate czm_strain_normal_rate czm_strain_sliding_rate'
+   base_out_names = 'czm_strain_total_rate czm_strain_normal_rate czm_strain_sliding_rate czm_total_strain czm_normal_strain czm_sliding_strain'
    scaling_factor_PP =V0
  []
 []
 
-[RankTwoTensorPostprocessorTimeIntegral]
-  pp_base_names = 'czm_strain_total_rate czm_strain_normal_rate czm_strain_sliding_rate'
-  base_out_names = 'czm_strain_total czm_strain_normal czm_strain_sliding'
-[]
 
 [Outputs]
   exodus = true

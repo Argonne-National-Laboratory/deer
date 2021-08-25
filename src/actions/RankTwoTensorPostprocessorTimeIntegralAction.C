@@ -39,7 +39,7 @@ void RankTwoTensorPostprocessorTimeIntegralAction::act() {
   if (_current_task == "add_postprocessor") {
 
     for (unsigned int pp = 0; pp < _pp_base_names.size(); pp++)
-      for (auto entry : tensor_map) {
+      for (auto entry : _tensor_map) {
         auto params_pp = _factory.getValidParams("TimeIntegralPostprocessor");
         params_pp.set<PostprocessorName>("postprocessor") =
             _pp_base_names[pp] + "_" + entry.second;

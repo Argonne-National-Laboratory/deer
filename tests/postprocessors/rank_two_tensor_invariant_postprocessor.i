@@ -6,33 +6,18 @@
     ny = 2
     nz = 2
   []
-  [./new_block]
-    type = SubdomainBoundingBoxGenerator
+  [./subdomain_id]
+    type = ElementSubdomainIDGenerator
     input = generated_mesh
-    block_id = 1
-    bottom_left = '0 0 0.5'
-    top_right = '1 1 1'
+    subdomain_ids = '0 0 0 0
+                     1 1 1 1'
   []
   [./boundary]
     type = SideSetsBetweenSubdomainsGenerator
-    input = new_block
-    master_block = '0 1'
-    paired_block = 1
+    input = subdomain_id
+    primary_block = 1
+    paired_block = 2
     new_boundary = 'interface'
-  []
-[]
-
-[AuxVariables]
-  [s_vm]
-  []
-[]
-
-[AuxKernels]
-  [s_vm_aux]
-    type = RankTwoScalarAux
-    rank_two_tensor = stress
-    scalar_type =  'VonMisesStress'
-    variable = s_vm
   []
 []
 
@@ -53,6 +38,12 @@
   [./tensor_rate]
     type = TensorRateMaterial
     rank_two_tensor = stress
+  []
+  [s_vm_aux]
+    type = RankTwoInvariant
+    rank_two_tensor = stress
+    invariant =  'VonMisesStress'
+    property_name = s_vm
   []
 []
 
@@ -126,10 +117,11 @@
     type = RankTwoTensorInvariantPostprocessor
     invariant = 'VonMisesStress'
     rank_two_tensor_base_name = 'stress'
+    use_displaced_mesh = true
   []
   [sdef_old]
-    type = ElementIntegralVariablePostprocessor
-    variable = s_vm
+    type = ElementIntegralMaterialProperty
+    mat_prop = s_vm
     use_displaced_mesh = true
   []
 []

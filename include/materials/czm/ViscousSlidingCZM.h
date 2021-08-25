@@ -37,17 +37,11 @@ protected:
   const Real _shear_viscosity;
 
   /// the value of the old traction in local coordinates
-  const MaterialProperty<RealVectorValue> &_traction_old;
+  const MaterialProperty<RealVectorValue> &_interface_traction_old;
 
   /// the coupled displacement and neighbor displacement values
   ///@{
-  MaterialProperty<RealVectorValue> &_displacement_jump_dot;
-  MaterialProperty<RealVectorValue> &_displacement_jump_global_dot;
-  ///@}
-
-  /// the coupled displacement and neighbor displacement rates
-  ///@{
-  std::vector<const VariableValue *> _disp_dot;
-  std::vector<const VariableValue *> _disp_neighbor_dot;
+  const MaterialProperty<RealVectorValue> &_interface_displacement_jump_old;
+  MaterialProperty<RealVectorValue> &_interface_displacement_jump_dot;
   ///@}
 };
