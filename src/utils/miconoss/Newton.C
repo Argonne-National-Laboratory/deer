@@ -19,7 +19,7 @@ int Newton::customSubstepInterruption(NLSystemParameters *const sysparams,
                                       bool &custom_interruption_flag) {
   custom_interruption_flag = false;
   return 0;
-};
+}
 
 int Newton::solve(vecD &lm, matrixD &J, bool &converged,
                   const bool auto_scale_equation) {

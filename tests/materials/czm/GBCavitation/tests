@@ -31,14 +31,6 @@
     requirement = "The GB cavitation model should work properly under compression: b should not vary, and a shoud decrease until a0"
     mesh_mode = 'REPLICATED'
     recover = false
-    abs_zero = 1e-6
-  [../]
-  [./czm_GBcavitationSoftContact]
-    type = Exodiff
-    input = 'czm_GBcavitation_innerpenetration_after_failure.i'
-    exodiff = 'czm_GBcavitation_innerpenetration_after_failure_out.e'
-    requirement = "The GB cavitation model should exibit a soft contact behaviuor when the two surfaces pf a broken interfaces come in contacet"
-    mesh_mode = 'REPLICATED'
-    recover = false
+    abs_zero = 1e-5
   [../]
 []

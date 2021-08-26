@@ -10,21 +10,22 @@ NLParameter::NLParameter(const std::string &param_name, const double value,
 double NLParameter::getValue() const { return _value; }
 std::string NLParameter::getName() const { return _name; }
 void NLParameter::setValue(const double value) { _value = value; }
-bool NLParameter::isRateParam() const { return _rate_parameter; };
+bool NLParameter::isRateParam() const { return _rate_parameter; }
 double NLParameter::getIncrement(const double dt) const {
   if (_rate_parameter)
     return getValue() * dt;
   else
     throw std::runtime_error(
         _name + " is not a rate parameter, you can't use getIncrement ");
-};
+}
+
 double NLParameter::getDRateDIncrement(const double dt) const {
   if (_rate_parameter)
     return 1. / dt;
   else
     throw std::runtime_error(
         _name + " is not a rate parameter, you can't use getDRateDIncrement ");
-};
+}
 
 NLSystemParameters::NLSystemParameters(std::vector<NLParameter *> params)
     : _params(params), _n_params(_params.size()) {
@@ -91,17 +92,19 @@ double NLSystemParameters::getValue(const std::string &pname) const {
 
 double NLSystemParameters::getIncrement(const uint index) const {
   return _params[index]->getIncrement(getValue("dt"));
-};
+}
+
 double NLSystemParameters::getIncrement(const std::string &pname) const {
   return _params[getParamIndex(pname)]->getIncrement(getValue("dt"));
-};
+}
 
 double NLSystemParameters::getDRateDIncrement(const uint index) const {
   return _params[index]->getIncrement(getDRateDIncrement("dt"));
-};
+}
+
 double NLSystemParameters::getDRateDIncrement(const std::string &pname) const {
   return _params[getParamIndex(pname)]->getDRateDIncrement(getValue("dt"));
-};
+}
 
 void NLSystemParameters::setValue(const uint index, const double &p) const {
   _params[index]->setValue(p);
