@@ -145,7 +145,7 @@
 
   [./strain_xx]
     type = RankTwoAux
-    rank_two_tensor = mechanical_strain
+    rank_two_tensor = mechanical_strain_internal
     variable = strain_xx
     index_i = 0
     index_j = 0
@@ -153,7 +153,7 @@
   [../]
   [./strain_yy]
     type = RankTwoAux
-    rank_two_tensor = mechanical_strain
+    rank_two_tensor = mechanical_strain_internal
     variable = strain_yy
     index_i = 1
     index_j = 1
@@ -161,7 +161,7 @@
   [../]
   [./strain_zz]
     type = RankTwoAux
-    rank_two_tensor = mechanical_strain
+    rank_two_tensor = mechanical_strain_internal
     variable = strain_zz
     index_i = 2
     index_j = 2
@@ -169,7 +169,7 @@
   [../]
   [./strain_xy]
     type = RankTwoAux
-    rank_two_tensor = mechanical_strain
+    rank_two_tensor = mechanical_strain_internal
     variable = strain_xy
     index_i = 0
     index_j = 1
@@ -177,7 +177,7 @@
   [../]
   [./strain_xz]
     type = RankTwoAux
-    rank_two_tensor = mechanical_strain
+    rank_two_tensor = mechanical_strain_internal
     variable = strain_xz
     index_i = 0
     index_j = 2
@@ -185,7 +185,7 @@
   [../]
   [./strain_yz]
     type = RankTwoAux
-    rank_two_tensor = mechanical_strain
+    rank_two_tensor = mechanical_strain_internal
     variable = strain_yz
     index_i = 1
     index_j = 2

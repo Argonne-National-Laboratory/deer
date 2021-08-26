@@ -89,21 +89,21 @@
   [./exx]
     type = RankTwoAux
     variable = exx
-    rank_two_tensor = mechanical_strain
+    rank_two_tensor = mechanical_strain_internal
     index_i = 0
     index_j = 0
   [../]
   [./eyy]
     type = RankTwoAux
     variable = eyy
-    rank_two_tensor = mechanical_strain
+    rank_two_tensor = mechanical_strain_internal
     index_i = 1
     index_j = 1
   [../]
   [./exy]
     type = RankTwoAux
     variable = exy
-    rank_two_tensor = mechanical_strain
+    rank_two_tensor = mechanical_strain_internal
     index_i = 0
     index_j = 1
   [../]
@@ -134,7 +134,7 @@
   [./enforce]
     type = HomogenizationConstraintScalarKernel
     variable = hvar
-    integrator = integrator        
+    integrator = integrator
   [../]
 []
 
@@ -253,7 +253,7 @@
 
 [Executioner]
   type = Transient
- 
+
   solve_type = 'newton'
   line_search = none
 

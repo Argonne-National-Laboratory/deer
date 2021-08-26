@@ -14,16 +14,16 @@ ComputeNEMLStress::ComputeNEMLStress(const InputParameters &parameters)
     : DerivativeMaterialInterface<Material>(parameters),
       _stress(declareProperty<RankTwoTensor>("stress")),
       _elastic_strain(declareProperty<RankTwoTensor>("elastic_strain")),
-      _mechanical_strain(
-          getMaterialPropertyByName<RankTwoTensor>("mechanical_strain")),
+      _mechanical_strain_internal(
+          getMaterialPropertyByName<RankTwoTensor>("mechanical_strain_internal")),
       _extra_stress(getDefaultMaterialProperty<RankTwoTensor>("extra_stress")),
       _Jacobian_mult(declareProperty<RankFourTensor>("Jacobian_mult")),
       _fname(getParam<FileName>("database")),
       _mname(getParam<std::string>("model")),
       _hist(declareProperty<std::vector<Real>>("hist")),
       _hist_old(getMaterialPropertyOld<std::vector<Real>>("hist")),
-      _mechanical_strain_old(
-          getMaterialPropertyOldByName<RankTwoTensor>("mechanical_strain")),
+      _mechanical_strain_internal_old(
+          getMaterialPropertyOldByName<RankTwoTensor>("mechanical_strain_internal")),
       _stress_old(getMaterialPropertyOld<RankTwoTensor>("stress")),
       _energy(declareProperty<Real>("energy")),
       _energy_old(getMaterialPropertyOld<Real>("energy")),
@@ -31,7 +31,7 @@ ComputeNEMLStress::ComputeNEMLStress(const InputParameters &parameters)
       _dissipation_old(getMaterialPropertyOld<Real>("dissipation")),
       _temperature(coupledValue("temperature")),
       _temperature_old(coupledValueOld("temperature")),
-      _inelastic_strain(declareProperty<RankTwoTensor>("inelastic_strain")) {
+      _inelastic_strain_internal(declareProperty<RankTwoTensor>("inelastic_strain_internal")) {
   // I strongly hesitate to put this here, may change later
   _model = neml::parse_xml_unique(_fname, _mname);
 }
@@ -49,9 +49,9 @@ void ComputeNEMLStress::computeQpProperties() {
   tensor_neml(_stress_old[_qp], s_n);
 
   double e_np1[6];
-  tensor_neml(_mechanical_strain[_qp], e_np1);
+  tensor_neml(_mechanical_strain_internal[_qp], e_np1);
   double e_n[6];
-  tensor_neml(_mechanical_strain_old[_qp], e_n);
+  tensor_neml(_mechanical_strain_internal_old[_qp], e_n);
 
   double t_np1 = _t;
   double t_n = _t - _dt;
@@ -102,7 +102,7 @@ void ComputeNEMLStress::computeQpProperties() {
   for (int i = 0; i < 6; i++) {
     pstrain[i] = e_np1[i] - estrain[i];
   }
-  neml_tensor(pstrain, _inelastic_strain[_qp]);
+  neml_tensor(pstrain, _inelastic_strain_internal[_qp]);
 
   // Store dissipation
   _energy[_qp] = u_np1;

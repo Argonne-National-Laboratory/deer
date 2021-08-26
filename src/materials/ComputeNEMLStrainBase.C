@@ -22,8 +22,8 @@ ComputeNEMLStrainBase::ComputeNEMLStrainBase(const InputParameters &parameters)
     : DerivativeMaterialInterface<Material>(parameters),
       _ndisp(coupledComponents("displacements")), _disp(3), _grad_disp(3),
       _strain_inc(declareProperty<RankTwoTensor>("strain_inc")),
-      _mechanical_strain_inc(
-          declareProperty<RankTwoTensor>("mechanical_strain_inc")),
+      _mechanical_strain_internal_inc(
+          declareProperty<RankTwoTensor>("mechanical_strain_internal_inc")),
       _vorticity_inc(declareProperty<RankTwoTensor>("vorticity_inc")),
       _def_grad(declareProperty<RankTwoTensor>("def_grad")),
       _def_grad_old(getMaterialPropertyOld<RankTwoTensor>("def_grad")),
@@ -68,7 +68,7 @@ void ComputeNEMLStrainBase::initialSetup() {
 
 void ComputeNEMLStrainBase::initQpStatefulProperties() {
   _strain_inc[_qp].zero();
-  _mechanical_strain_inc[_qp].zero();
+  _mechanical_strain_internal_inc[_qp].zero();
   _vorticity_inc[_qp].zero();
   _def_grad[_qp] = RankTwoTensor::Identity();
   _df[_qp] = RankTwoTensor::Identity();

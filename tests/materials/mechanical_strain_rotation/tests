@@ -1,0 +1,8 @@
+[Tests]
+  [./preset]
+    type = Exodiff
+    input = 'mechanical_strain_rotation.i'
+    exodiff = 'mechanical_strain_rotation_out.e'
+    requirement = "The mechcanicl strain shoul rotate from step 10 to the final step"
+  [../]
+[]
