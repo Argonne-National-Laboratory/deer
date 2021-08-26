@@ -109,10 +109,10 @@ GBCavitation::GBCavitation(const InputParameters &parameters)
           getMaterialPropertyOldByName<Real>("strain_rate_eq_interface")),
       _strain_eq(declareProperty<Real>("strain_eq_interface")),
       _strain_eq_old(getMaterialPropertyOldByName<Real>("strain_eq_interface")),
-      _a(declareProperty<Real>("average_cavity_radii")),
-      _a_old(getMaterialPropertyOldByName<Real>("average_cavity_radii")),
-      _b(declareProperty<Real>("average_cavity_spacing")),
-      _b_old(getMaterialPropertyOldByName<Real>("average_cavity_spacing")),
+      _a(declareProperty<Real>("a")),
+      _a_old(getMaterialPropertyOldByName<Real>("a")),
+      _b(declareProperty<Real>("b")),
+      _b_old(getMaterialPropertyOldByName<Real>("b")),
       _nucleation_is_active(declareProperty<int>("nucleation_is_active")),
       _nucleation_is_active_old(
           getMaterialPropertyOldByName<int>("nucleation_is_active")),
@@ -139,19 +139,19 @@ GBCavitation::GBCavitation(const InputParameters &parameters)
       _n_exponent_old(getMaterialPropertyOldByName<Real>("n_exponent")),
       _beta_exponent(declareProperty<Real>("beta_exponent")),
       _beta_exponent_old(getMaterialPropertyOldByName<Real>("beta_exponent")),
-      _a0(declareProperty<Real>("intial_cavity_radius")),
-      _a0_old(getMaterialPropertyOldByName<Real>("intial_cavity_radius")),
-      _NI(declareProperty<Real>("intial_cavity_density")),
-      _NI_old(getMaterialPropertyOldByName<Real>("intial_cavity_density")),
-      _FN(declareProperty<Real>("cavity_nucleation_rate")),
-      _FN_old(getMaterialPropertyOldByName<Real>("cavity_nucleation_rate")),
+      _a0(declareProperty<Real>("a0")),
+      _a0_old(getMaterialPropertyOldByName<Real>("a0")),
+      _NI(declareProperty<Real>("NI")),
+      _NI_old(getMaterialPropertyOldByName<Real>("NI")),
+      _FN(declareProperty<Real>("FN")),
+      _FN_old(getMaterialPropertyOldByName<Real>("FN")),
       _D_GB(declareProperty<Real>("GB_diffusivity")),
       _D_GB_old(getMaterialPropertyOldByName<Real>("GB_diffusivity")),
       _eta_sliding(declareProperty<Real>("GB_sliding_viscosity")),
       _eta_sliding_old(
           getMaterialPropertyOldByName<Real>("GB_sliding_viscosity")),
-      _h(declareProperty<Real>("cavity_half_tip_function")),
-      _h_old(getMaterialPropertyOldByName<Real>("cavity_half_tip_function")),
+      _h(declareProperty<Real>("h")),
+      _h_old(getMaterialPropertyOldByName<Real>("h")),
       _b_sat(declareProperty<Real>("saturation_cavity_spacing")),
       _b_sat_old(
           getMaterialPropertyOldByName<Real>("saturation_cavity_spacing")),
@@ -161,16 +161,14 @@ GBCavitation::GBCavitation(const InputParameters &parameters)
       _G_GB_old(getMaterialPropertyOldByName<Real>("GB_shear_modulus")),
       _thickness(declareProperty<Real>("GB_thickness")),
       _thickness_old(getMaterialPropertyOldByName<Real>("GB_thickness")),
-      _sigma_0(declareProperty<Real>("traction_normalization_constant")),
-      _sigma_0_old(getMaterialPropertyOldByName<Real>(
-          "traction_normalization_constant")),
+      _sigma_0(declareProperty<Real>("sigma_0")),
+      _sigma_0_old(getMaterialPropertyOldByName<Real>("sigma_0")),
       _E_penalty_minus_thickenss(getParam<Real>("E_penalty_minus_thickenss")),
       _E_penalty_after_failure_minus_thickenss(
           getParam<Real>("E_penalty_after_failure_minus_thickenss")),
       _thickness_after_failure(
           getParam<Real>("interface_thickness_after_failure")),
       _theta(getParam<Real>("theta")),
-      // _psi_degree(getParam<Real>("psi_degree")),
       _nucleation_on(getParam<bool>("nucleation_on")),
       _growth_on(getParam<bool>("growth_on")),
       _use_triaxial_growth(getParam<bool>("use_triaxial_growth")),
@@ -212,6 +210,8 @@ GBCavitation::GBCavitation(const InputParameters &parameters)
 }
 
 void GBCavitation::computeInterfaceTractionIncrementAndDerivatives() {
+  if (_t == 0.)
+    return;
 
   // copy qp dependent properties
   _a0[_qp] = _a0_old[_qp];
@@ -436,8 +436,6 @@ void GBCavitation::computeInterfaceTractionIncrementAndDerivatives() {
     }
     mooseAssert(std::isfinite(_dinterface_traction_djump[_qp].det()),
                 "determinatn of _dinterface_traction_djump is not finite");
-    mooseAssert(_dinterface_traction_djump[_qp].det() > 0.,
-                "determinatn of _dinterface_traction_djump is <= 0");
   }
 }
 

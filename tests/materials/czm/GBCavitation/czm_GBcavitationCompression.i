@@ -91,120 +91,6 @@
     [../]
 []
 
-[AuxVariables]
-  [./a]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-  [./b]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-  [./e]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-  [./edot]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-  [./SH_interface]
-  family = MONOMIAL
-  order = CONSTANT
-  []
-  [./SVM_interface]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-  [./VLdot]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-  [./VL1dot]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-  [./VL2dot]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-[]
-
-[AuxKernels]
-  [./a]
-    type = MaterialRealAux
-    boundary = 'interface'
-    property = average_cavity_radii
-    execute_on = 'TIMESTEP_END'
-    variable = a
-    check_boundary_restricted = false
-  []
-  [./b]
-    type = MaterialRealAux
-    boundary = 'interface'
-    property = average_cavity_spacing
-    execute_on = 'TIMESTEP_END'
-    variable = b
-    check_boundary_restricted = false
-  []
-  [./e]
-    type = MaterialRealAux
-    boundary = 'interface'
-    property = strain_eq_interface
-    execute_on = 'TIMESTEP_END'
-    variable = e
-    check_boundary_restricted = false
-  []
-  [./edot]
-    type = MaterialRealAux
-    boundary = 'interface'
-    property = strain_rate_eq_interface
-    execute_on = 'TIMESTEP_END'
-    variable = edot
-    check_boundary_restricted = false
-  []
-  [./SH_interface]
-    type = MaterialRealAux
-    boundary = 'interface'
-    property = stress_H_interface
-    execute_on = 'TIMESTEP_END'
-    variable = SH_interface
-    check_boundary_restricted = false
-  []
-  [./SVM_interface]
-    type = MaterialRealAux
-    boundary = 'interface'
-    property = stress_vm_interface
-    execute_on = 'TIMESTEP_END'
-    variable = SVM_interface
-    check_boundary_restricted = false
-  []
-  [./VLdot]
-    type = MaterialRealAux
-    boundary = 'interface'
-    property = VLdot
-    execute_on = 'TIMESTEP_END'
-    variable = VLdot
-    check_boundary_restricted = false
-  []
-  [./VL1dot]
-    type = MaterialRealAux
-    boundary = 'interface'
-    property = VL1dot
-    execute_on = 'TIMESTEP_END'
-    variable = VL1dot
-    check_boundary_restricted = false
-  []
-  [./VL2dot]
-    type = MaterialRealAux
-    boundary = 'interface'
-    property = VL2dot
-    execute_on = 'TIMESTEP_END'
-    variable = VL2dot
-    check_boundary_restricted = false
-  []
-[]
-
 [NEMLMechanics]
   displacements = 'disp_x disp_y disp_z'
   kinematics = large
@@ -241,6 +127,8 @@
     growth_on = true
     nl_residual_abs_tol = 1e-12
     vdot_method = 2
+    output_properties = 'a b'
+    outputs = exodus
   [../]
 []
 

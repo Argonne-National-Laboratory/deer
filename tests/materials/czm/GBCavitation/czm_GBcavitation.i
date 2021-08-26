@@ -93,36 +93,6 @@
     [../]
 []
 
-[AuxVariables]
-  [./a]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-  [./b]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-[]
-
-[AuxKernels]
-  [./a]
-    type = MaterialRealAux
-    boundary = 'interface'
-    property = average_cavity_radii
-    execute_on = 'TIMESTEP_END'
-    variable = a
-    check_boundary_restricted = false
-  []
-  [./b]
-    type = MaterialRealAux
-    boundary = 'interface'
-    property = average_cavity_spacing
-    execute_on = 'TIMESTEP_END'
-    variable = b
-    check_boundary_restricted = false
-  []
-[]
-
 [NEMLMechanics]
   displacements = 'disp_x disp_y disp_z'
   kinematics = large
@@ -158,6 +128,8 @@
     nucleation_on = true
     growth_on = true
     vdot_method = 2
+    output_properties = 'a b'
+    outputs = exodus
   [../]
 []
 

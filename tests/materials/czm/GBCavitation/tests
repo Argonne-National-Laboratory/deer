@@ -22,6 +22,7 @@
     requirement = "The GB cavitation model should be able to use the material properties provided by GBCavitationBoundaryPropertyUO"
     mesh_mode = 'REPLICATED'
     recover = false
+    abs_zero = 1e-6
   [../]
   [./czm_GBcavitationCompression]
     type = Exodiff
@@ -30,6 +31,7 @@
     requirement = "The GB cavitation model should work properly under compression: b should not vary, and a shoud decrease until a0"
     mesh_mode = 'REPLICATED'
     recover = false
+    abs_zero = 1e-6
   [../]
   [./czm_GBcavitationSoftContact]
     type = Exodiff

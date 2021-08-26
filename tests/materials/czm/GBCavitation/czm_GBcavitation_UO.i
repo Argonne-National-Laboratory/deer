@@ -58,7 +58,7 @@
   [./applied_load_z]
     type = PiecewiseLinear
     x = '0 0.1 300'
-    y = '0 100 100'
+    y = '0 1 1'
   [../]
 []
 [BCs]
@@ -100,16 +100,16 @@
     [../]
 []
 
-[AuxVariables]
-  [./a]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-  [./b]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-[]
+# [AuxVariables]
+#   [./a]
+#     family = MONOMIAL
+#     order = CONSTANT
+#   []
+#   [./b]
+#     family = MONOMIAL
+#     order = CONSTANT
+#   []
+# []
 
 [UserObjects]
   [cavitation_properties]
@@ -119,29 +119,28 @@
     boundary = 'interface'
   []
 []
-[AuxKernels]
-  [./a]
-    type = MaterialRealAux
-    boundary = 'interface'
-    property = average_cavity_radii
-    execute_on = 'TIMESTEP_END'
-    variable = a
-    check_boundary_restricted = false
-  []
-  [./b]
-    type = MaterialRealAux
-    boundary = 'interface'
-    property = average_cavity_spacing
-    execute_on = 'TIMESTEP_END'
-    variable = b
-    check_boundary_restricted = false
-  []
-[]
+# [AuxKernels]
+#   [./a]
+#     type = MaterialRealAux
+#     boundary = 'interface'
+#     property = average_cavity_radii
+#     execute_on = 'TIMESTEP_END'
+#     variable = a
+#     check_boundary_restricted = false
+#   []
+#   [./b]
+#     type = MaterialRealAux
+#     boundary = 'interface'
+#     property = average_cavity_spacing
+#     execute_on = 'TIMESTEP_END'
+#     variable = b
+#     check_boundary_restricted = false
+#   []
+# []
 
 [NEMLMechanics]
   displacements = 'disp_x disp_y disp_z'
   kinematics = large
-  add_all_output = true
   add_displacements = true
   formulation = total
 []
@@ -151,7 +150,6 @@
   [czm]
     strain = FINITE
     boundary = 'interface'
-    generate_output = 'traction_x traction_y traction_z normal_traction tangent_traction jump_x jump_y jump_z normal_jump tangent_jump'
   []
 []
 
@@ -170,10 +168,12 @@
     max_nonlinear_iter = 20
     minimum_allowed_stiffness = 1
     minimum_allowed_residual_life = 10
-    nucleation_on = true
-    growth_on = true
+    nucleation_on = false
+    growth_on = false
     vdot_method = 2
     GBCavitationBoundaryPropertyUO = 'cavitation_properties'
+    output_properties = 'a0 a b n_exponent beta_exponent GB_diffusivity GB_sliding_viscosity NI FN GB_young_modulus GB_shear_modulus GB_thickness sigma_0 h'
+    outputs = exodus
   [../]
 []
 
@@ -197,17 +197,13 @@
   l_max_its = 2
   nl_max_its = 10
   start_time = 0.0
-  [./TimeStepper]
-   type =IterationAdaptiveDT
-    optimal_iterations = 10
-    dt =  0.1
-  []
-  dtmin = 1e-4
-  end_time = 410.1
+  dt = 0.1
+  dtmin = 0.1
+  end_time = 0.1
   dtmax = 50
 []
 
 [Outputs]
   exodus = true
-  sync_times = '0 0.1 150 300'
+  sync_times = '0 0.1'
 []
