@@ -16,21 +16,24 @@ InputParameters GBCavitation::validParams() {
       CZMComputeLocalTractionIncrementalBase::validParams();
   params.addClassDescription("Sham Needleman grain boundary cavitation model. "
                              "Default parameters are for Grade91 at 600C.");
-  params.addParam<Real>("a0", 5e-5, "Initial cavity radius");
-  params.addParam<Real>("b0", 6e-2, "Initial cavity half spacing");
+  params.addParam<Real>("a0", 5e-5, "Initial cavity radius, a0");
+  params.addParam<Real>("b0", 6e-2, "Initial cavity half spacing, b0");
   params.addParam<Real>("FN_NI", 2e4, "Normalized nucleation rate constant");
-  params.addParam<Real>("Nmax_NI", 1e3, "Normalized maximum cavity density");
+  params.addParam<Real>("Nmax_NI", 1e3,
+                        "Normalized maximum cavity density constant");
   params.addParam<Real>(
       "sigma_0", 200.,
-      "Traction normalization parameter for cavity nculeation");
+      "Traction normalization parameter for cavity nucleation");
   params.addParam<Real>("psi_degree", 75., "Cavity half-tip angle");
   params.addParam<Real>("beta_exponent", 2., "Cavity nucleation exponent");
-  params.addParam<Real>("E_GB", 150e3, "Grain boundary opening stiffness");
+  params.addParam<Real>("E_GB", 150e3,
+                        "Grain boundary opening modulus (stress)");
+  params.addParam<Real>("G_GB", 58.3657588e3,
+                        "Grain boundary sliding modulus (stress)");
   params.addParam<Real>("E_penalty_minus_thickenss", 10,
                         "Element co-penetration penatly at jump = -thickness");
   params.addParam<Real>("E_penalty_after_failure_minus_thickenss", 1e6,
                         "Element co-penetration penatly at jump = -thickness");
-  params.addParam<Real>("G_GB", 58.3657588e3, "Grain boundary shear stiffness");
   params.addParam<Real>("D_GB", 1e-15, "Grain boundary diffusivity");
   params.addParam<Real>("eta_sliding", 1e6,
                         "Grain boundary sliding viscosisty");
@@ -61,7 +64,7 @@ InputParameters GBCavitation::validParams() {
       "nl_residual_abs_tol", 1e-12,
       "The solver uses the max(abs(Residual)) as stopping criteria. 1e-12 is "
       "the default value.");
-  params.addParam<Real>("D_failure", 0.95, "Damage at failure");
+  params.addParam<Real>("D_failure", 0.95, "Damage at failure, a/b");
   params.addParam<Real>(
       "minimum_allowed_residual_life", 1e2,
       "When the interface residual life is below this value the element is "

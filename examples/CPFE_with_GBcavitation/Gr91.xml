@@ -1,0 +1,317 @@
+<materials>
+  <Gr91 type="SingleCrystalModel">
+    <kinematics type="StandardKinematicModel">
+      <emodel type="IsotropicLinearElasticModel">
+        <m1_type>youngs</m1_type>
+        <m1>150000</m1>
+        <m2_type>poissons</m2_type>
+        <m2>0.285</m2>
+      </emodel>
+      <imodel type="CombinedInelasticity">
+        <models>
+          <imodel type="AsaroInelasticity">
+            <rule type="PowerLawSlipRule">
+              <resistance type="VoceSlipHardening">
+                <tau_sat>12</tau_sat>
+                <b>66.6666666667</b>
+                <tau_0>40</tau_0>
+              </resistance>
+              <gamma0>9.55470706737e-08</gamma0>
+              <n>12</n>
+            </rule>
+          </imodel>
+          <imodel type="PowerLawInelasticity">
+            <A>1.2e-09</A>
+            <n>1</n>
+          </imodel>
+        </models>
+      </imodel>
+    </kinematics>
+    <lattice type="CubicLattice">
+      <a>1.0</a>
+      <slip_systems>
+        1 1 1 ; 1 1 0
+      </slip_systems>
+    </lattice>
+  </Gr91>
+  <Gr91_E type="SingleCrystalModel">
+    <kinematics type="StandardKinematicModel">
+      <emodel type="IsotropicLinearElasticModel">
+        <m1_type>youngs</m1_type>
+        <m1>1.50000150E+05</m1>
+        <m2_type>poissons</m2_type>
+        <m2>0.285</m2>
+      </emodel>
+      <imodel type="CombinedInelasticity">
+        <models>
+          <imodel type="AsaroInelasticity">
+            <rule type="PowerLawSlipRule">
+              <resistance type="VoceSlipHardening">
+                <tau_sat>12</tau_sat>
+                <b>66.6666666667</b>
+                <tau_0>40</tau_0>
+              </resistance>
+              <gamma0>9.55470706737e-08</gamma0>
+              <n>12</n>
+            </rule>
+          </imodel>
+          <imodel type="PowerLawInelasticity">
+            <A>1.2e-09</A>
+            <n>1</n>
+          </imodel>
+        </models>
+      </imodel>
+    </kinematics>
+    <lattice type="CubicLattice">
+      <a>1.0</a>
+      <slip_systems>
+        1 1 1 ; 1 1 0
+      </slip_systems>
+    </lattice>
+  </Gr91_E>
+  <Gr91_nu type="SingleCrystalModel">
+    <kinematics type="StandardKinematicModel">
+      <emodel type="IsotropicLinearElasticModel">
+        <m1_type>youngs</m1_type>
+        <m1>150000</m1>
+        <m2_type>poissons</m2_type>
+        <m2>2.85000285E-01</m2>
+      </emodel>
+      <imodel type="CombinedInelasticity">
+        <models>
+          <imodel type="AsaroInelasticity">
+            <rule type="PowerLawSlipRule">
+              <resistance type="VoceSlipHardening">
+                <tau_sat>12</tau_sat>
+                <b>66.6666666667</b>
+                <tau_0>40</tau_0>
+              </resistance>
+              <gamma0>9.55470706737e-08</gamma0>
+              <n>12</n>
+            </rule>
+          </imodel>
+          <imodel type="PowerLawInelasticity">
+            <A>1.2e-09</A>
+            <n>1</n>
+          </imodel>
+        </models>
+      </imodel>
+    </kinematics>
+    <lattice type="CubicLattice">
+      <a>1.0</a>
+      <slip_systems>
+        1 1 1 ; 1 1 0
+      </slip_systems>
+    </lattice>
+  </Gr91_nu>
+  <Gr91_tau0 type="SingleCrystalModel">
+    <kinematics type="StandardKinematicModel">
+      <emodel type="IsotropicLinearElasticModel">
+        <m1_type>youngs</m1_type>
+        <m1>150000</m1>
+        <m2_type>poissons</m2_type>
+        <m2>0.285</m2>
+      </emodel>
+      <imodel type="CombinedInelasticity">
+        <models>
+          <imodel type="AsaroInelasticity">
+            <rule type="PowerLawSlipRule">
+              <resistance type="VoceSlipHardening">
+                <tau_sat>12</tau_sat>
+                <b>66.6666666667</b>
+                <tau_0>4.00000400E+01</tau_0>
+              </resistance>
+              <gamma0>9.55470706737e-08</gamma0>
+              <n>12</n>
+            </rule>
+          </imodel>
+          <imodel type="PowerLawInelasticity">
+            <A>1.2e-09</A>
+            <n>1</n>
+          </imodel>
+        </models>
+      </imodel>
+    </kinematics>
+    <lattice type="CubicLattice">
+      <a>1.0</a>
+      <slip_systems>
+        1 1 1 ; 1 1 0
+      </slip_systems>
+    </lattice>
+  </Gr91_tau0>
+  <Gr91_tausat type="SingleCrystalModel">
+    <kinematics type="StandardKinematicModel">
+      <emodel type="IsotropicLinearElasticModel">
+        <m1_type>youngs</m1_type>
+        <m1>150000</m1>
+        <m2_type>poissons</m2_type>
+        <m2>0.285</m2>
+      </emodel>
+      <imodel type="CombinedInelasticity">
+        <models>
+          <imodel type="AsaroInelasticity">
+            <rule type="PowerLawSlipRule">
+              <resistance type="VoceSlipHardening">
+                <tau_sat>1.20000120E+01</tau_sat>
+                <b>66.6666666667</b>
+                <tau_0>40</tau_0>
+              </resistance>
+              <gamma0>9.55470706737e-08</gamma0>
+              <n>12</n>
+            </rule>
+          </imodel>
+          <imodel type="PowerLawInelasticity">
+            <A>1.2e-09</A>
+            <n>1</n>
+          </imodel>
+        </models>
+      </imodel>
+    </kinematics>
+    <lattice type="CubicLattice">
+      <a>1.0</a>
+      <slip_systems>
+        1 1 1 ; 1 1 0
+      </slip_systems>
+    </lattice>
+  </Gr91_tausat>
+  <Gr91_b type="SingleCrystalModel">
+    <kinematics type="StandardKinematicModel">
+      <emodel type="IsotropicLinearElasticModel">
+        <m1_type>youngs</m1_type>
+        <m1>150000</m1>
+        <m2_type>poissons</m2_type>
+        <m2>0.285</m2>
+      </emodel>
+      <imodel type="CombinedInelasticity">
+        <models>
+          <imodel type="AsaroInelasticity">
+            <rule type="PowerLawSlipRule">
+              <resistance type="VoceSlipHardening">
+                <tau_sat>12</tau_sat>
+                <b>6.66667333E+01</b>
+                <tau_0>40</tau_0>
+              </resistance>
+              <gamma0>9.55470706737e-08</gamma0>
+              <n>12</n>
+            </rule>
+          </imodel>
+          <imodel type="PowerLawInelasticity">
+            <A>1.2e-09</A>
+            <n>1</n>
+          </imodel>
+        </models>
+      </imodel>
+    </kinematics>
+    <lattice type="CubicLattice">
+      <a>1.0</a>
+      <slip_systems>
+        1 1 1 ; 1 1 0
+      </slip_systems>
+    </lattice>
+  </Gr91_b>
+  <Gr91_gamma type="SingleCrystalModel">
+    <kinematics type="StandardKinematicModel">
+      <emodel type="IsotropicLinearElasticModel">
+        <m1_type>youngs</m1_type>
+        <m1>150000</m1>
+        <m2_type>poissons</m2_type>
+        <m2>0.285</m2>
+      </emodel>
+      <imodel type="CombinedInelasticity">
+        <models>
+          <imodel type="AsaroInelasticity">
+            <rule type="PowerLawSlipRule">
+              <resistance type="VoceSlipHardening">
+                <tau_sat>12</tau_sat>
+                <b>66.6666666667</b>
+                <tau_0>40</tau_0>
+              </resistance>
+              <gamma0>9.55471662E-08</gamma0>
+              <n>12</n>
+            </rule>
+          </imodel>
+          <imodel type="PowerLawInelasticity">
+            <A>1.2e-09</A>
+            <n>1</n>
+          </imodel>
+        </models>
+      </imodel>
+    </kinematics>
+    <lattice type="CubicLattice">
+      <a>1.0</a>
+      <slip_systems>
+        1 1 1 ; 1 1 0
+      </slip_systems>
+    </lattice>
+  </Gr91_gamma>
+  <Gr91_n type="SingleCrystalModel">
+    <kinematics type="StandardKinematicModel">
+      <emodel type="IsotropicLinearElasticModel">
+        <m1_type>youngs</m1_type>
+        <m1>150000</m1>
+        <m2_type>poissons</m2_type>
+        <m2>0.285</m2>
+      </emodel>
+      <imodel type="CombinedInelasticity">
+        <models>
+          <imodel type="AsaroInelasticity">
+            <rule type="PowerLawSlipRule">
+              <resistance type="VoceSlipHardening">
+                <tau_sat>12</tau_sat>
+                <b>66.6666666667</b>
+                <tau_0>40</tau_0>
+              </resistance>
+              <gamma0>9.55470706737e-08</gamma0>
+              <n>1.20000120E+01</n>
+            </rule>
+          </imodel>
+          <imodel type="PowerLawInelasticity">
+            <A>1.2e-09</A>
+            <n>1</n>
+          </imodel>
+        </models>
+      </imodel>
+    </kinematics>
+    <lattice type="CubicLattice">
+      <a>1.0</a>
+      <slip_systems>
+        1 1 1 ; 1 1 0
+      </slip_systems>
+    </lattice>
+  </Gr91_n>
+  <Gr91_A type="SingleCrystalModel">
+    <kinematics type="StandardKinematicModel">
+      <emodel type="IsotropicLinearElasticModel">
+        <m1_type>youngs</m1_type>
+        <m1>150000</m1>
+        <m2_type>poissons</m2_type>
+        <m2>0.285</m2>
+      </emodel>
+      <imodel type="CombinedInelasticity">
+        <models>
+          <imodel type="AsaroInelasticity">
+            <rule type="PowerLawSlipRule">
+              <resistance type="VoceSlipHardening">
+                <tau_sat>12</tau_sat>
+                <b>66.6666666667</b>
+                <tau_0>40</tau_0>
+              </resistance>
+              <gamma0>9.55470706737e-08</gamma0>
+              <n>12</n>
+            </rule>
+          </imodel>
+          <imodel type="PowerLawInelasticity">
+            <A>1.20000120E-09</A>
+            <n>1</n>
+          </imodel>
+        </models>
+      </imodel>
+    </kinematics>
+    <lattice type="CubicLattice">
+      <a>1.0</a>
+      <slip_systems>
+        1 1 1 ; 1 1 0
+      </slip_systems>
+    </lattice>
+  </Gr91_A>
+</materials>
