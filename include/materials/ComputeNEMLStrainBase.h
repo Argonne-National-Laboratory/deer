@@ -32,7 +32,7 @@ protected:
   std::vector<const VariableGradient *> _grad_disp_old;
 
   MaterialProperty<RankTwoTensor> &_strain_inc;
-  MaterialProperty<RankTwoTensor> &_mechanical_strain_internal_inc;
+  MaterialProperty<RankTwoTensor> &_mechanical_strain_unrotated_inc;
   MaterialProperty<RankTwoTensor> &_vorticity_inc;
 
   MaterialProperty<RankTwoTensor> &_def_grad;

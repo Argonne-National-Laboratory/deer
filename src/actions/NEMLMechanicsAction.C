@@ -19,7 +19,7 @@ const std::vector<std::string> all_tensors = {
 const std::vector<std::string> all_scalars = {"energy", "dissipation"};
 
 const std::vector<std::string> internal_strain_tensors = {
-    "mechanical_strain_internal", "inelastic_strain_internal"};
+    "mechanical_strain_unrotated", "inelastic_strain_unrotated"};
 
 const std::map<std::pair<int, int>, std::string> tensor_map = {
     {std::make_pair(0, 0), "x-x"}, {std::make_pair(1, 1), "y-y"},

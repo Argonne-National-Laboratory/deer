@@ -1,5 +1,5 @@
 [Tests]
-  [./preset]
+  [./mechanical_strain_rotation]
     type = Exodiff
     input = 'mechanical_strain_rotation.i'
     exodiff = 'mechanical_strain_rotation_out.e'

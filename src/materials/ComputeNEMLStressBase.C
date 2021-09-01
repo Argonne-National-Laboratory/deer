@@ -16,15 +16,15 @@ ComputeNEMLStressBase::ComputeNEMLStressBase(const InputParameters &parameters)
     : DerivativeMaterialInterface<Material>(parameters),
       _fname(getParam<FileName>("database")),
       _mname(getParam<std::string>("model")),
-      _mechanical_strain_internal_inc(getMaterialPropertyByName<RankTwoTensor>(
-          "mechanical_strain_internal_inc")),
+      _mechanical_strain_unrotated_inc(getMaterialPropertyByName<RankTwoTensor>(
+          "mechanical_strain_unrotated_inc")),
       _vorticity_inc(getMaterialPropertyByName<RankTwoTensor>("vorticity_inc")),
       _temperature(coupledValue("temperature")),
       _temperature_old(coupledValueOld("temperature")),
-      _mechanical_strain_internal(
-          declareProperty<RankTwoTensor>("mechanical_strain_internal")),
-      _mechanical_strain_internal_old(
-          getMaterialPropertyOld<RankTwoTensor>("mechanical_strain_internal")),
+      _mechanical_strain_unrotated(
+          declareProperty<RankTwoTensor>("mechanical_strain_unrotated")),
+      _mechanical_strain_unrotated_old(
+          getMaterialPropertyOld<RankTwoTensor>("mechanical_strain_unrotated")),
       _linear_rot(declareProperty<RankTwoTensor>("linear_rot")),
       _linear_rot_old(getMaterialPropertyOld<RankTwoTensor>("linear_rot")),
       _stress(declareProperty<RankTwoTensor>("stress")),
@@ -37,8 +37,8 @@ ComputeNEMLStressBase::ComputeNEMLStressBase(const InputParameters &parameters)
       _dissipation(declareProperty<Real>("dissipation")),
       _dissipation_old(getMaterialPropertyOld<Real>("dissipation")),
       _elastic_strain(declareProperty<RankTwoTensor>("elastic_strain")),
-      _inelastic_strain_internal(
-          declareProperty<RankTwoTensor>("inelastic_strain_internal")),
+      _inelastic_strain_unrotated(
+          declareProperty<RankTwoTensor>("inelastic_strain_unrotated")),
       _ld(getParam<bool>("large_kinematics")),
       _F_inv(getMaterialPropertyByName<RankTwoTensor>("inv_def_grad")),
       _J(getMaterialPropertyByName<Real>("detJ")),
@@ -63,9 +63,9 @@ void ComputeNEMLStressBase::computeQpProperties() {
   tensor_neml(_stress_old[_qp], s_n);
 
   double e_np1[6];
-  tensor_neml(_mechanical_strain_internal[_qp], e_np1);
+  tensor_neml(_mechanical_strain_unrotated[_qp], e_np1);
   double e_n[6];
-  tensor_neml(_mechanical_strain_internal_old[_qp], e_n);
+  tensor_neml(_mechanical_strain_unrotated_old[_qp], e_n);
 
   // vorticity
   double w_np1[3];
@@ -122,7 +122,7 @@ void ComputeNEMLStressBase::computeQpProperties() {
   for (int i = 0; i < 6; i++) {
     pstrain[i] = e_np1[i] - estrain[i];
   }
-  neml_tensor(pstrain, _inelastic_strain_internal[_qp]);
+  neml_tensor(pstrain, _inelastic_strain_unrotated[_qp]);
 
   // Store dissipation
   _energy[_qp] = u_np1;
@@ -138,7 +138,7 @@ void ComputeNEMLStressBase::computeQpProperties() {
 
 void ComputeNEMLStressBase::initQpStatefulProperties() {
   // Basic variables maintained here
-  _mechanical_strain_internal[_qp].zero();
+  _mechanical_strain_unrotated[_qp].zero();
   _linear_rot[_qp].zero();
   _stress[_qp].zero();
   _mechanical_strain[_qp].zero();
@@ -163,8 +163,8 @@ void ComputeNEMLStressBase::initQpStatefulProperties() {
 }
 
 void ComputeNEMLStressBase::updateStrain() {
-  _mechanical_strain_internal[_qp] = _mechanical_strain_internal_old[_qp] +
-                                     _mechanical_strain_internal_inc[_qp];
+  _mechanical_strain_unrotated[_qp] = _mechanical_strain_unrotated_old[_qp] +
+                                     _mechanical_strain_unrotated_inc[_qp];
   _linear_rot[_qp] = _linear_rot_old[_qp] + _vorticity_inc[_qp];
   rotateInternalStrains();
 }
@@ -175,7 +175,7 @@ void ComputeNEMLStressBase::rotateInternalStrains() {
   double e_n[6];
   tensor_neml(_mechanical_strain_old[_qp], e_n);
   double de[6];
-  tensor_neml(_mechanical_strain_internal_inc[_qp], de);
+  tensor_neml(_mechanical_strain_unrotated_inc[_qp], de);
   double D[6];
   for (int i = 0; i < 6; i++)
     D[i] = 0;

@@ -36,14 +36,14 @@ protected:
   std::string _mname;
   std::unique_ptr<neml::NEMLModel> _model;
 
-  const MaterialProperty<RankTwoTensor> &_mechanical_strain_internal_inc;
+  const MaterialProperty<RankTwoTensor> &_mechanical_strain_unrotated_inc;
   const MaterialProperty<RankTwoTensor> &_vorticity_inc;
 
   const VariableValue &_temperature; // Will default to zero
   const VariableValue &_temperature_old;
 
-  MaterialProperty<RankTwoTensor> &_mechanical_strain_internal;
-  const MaterialProperty<RankTwoTensor> &_mechanical_strain_internal_old;
+  MaterialProperty<RankTwoTensor> &_mechanical_strain_unrotated;
+  const MaterialProperty<RankTwoTensor> &_mechanical_strain_unrotated_old;
 
   MaterialProperty<RankTwoTensor> &_linear_rot;
   const MaterialProperty<RankTwoTensor> &_linear_rot_old;
@@ -62,7 +62,7 @@ protected:
   const MaterialProperty<Real> &_dissipation_old;
 
   MaterialProperty<RankTwoTensor> &_elastic_strain;
-  MaterialProperty<RankTwoTensor> &_inelastic_strain_internal;
+  MaterialProperty<RankTwoTensor> &_inelastic_strain_unrotated;
 
   const bool _ld;
 

@@ -140,21 +140,21 @@
   [./exx]
     type = RankTwoAux
     variable = exx
-    rank_two_tensor = mechanical_strain_internal
+    rank_two_tensor = mechanical_strain_unrotated
     index_i = 0
     index_j = 0
   [../]
   [./eyy]
     type = RankTwoAux
     variable = eyy
-    rank_two_tensor = mechanical_strain_internal
+    rank_two_tensor = mechanical_strain_unrotated
     index_i = 1
     index_j = 1
   [../]
   [./exy]
     type = RankTwoAux
     variable = exy
-    rank_two_tensor = mechanical_strain_internal
+    rank_two_tensor = mechanical_strain_unrotated
     index_i = 0
     index_j = 1
   [../]
@@ -162,21 +162,21 @@
   [./ezz]
     type = RankTwoAux
     variable = ezz
-    rank_two_tensor = mechanical_strain_internal
+    rank_two_tensor = mechanical_strain_unrotated
     index_i = 2
     index_j = 2
   [../]
   [./eyz]
     type = RankTwoAux
     variable = eyz
-    rank_two_tensor = mechanical_strain_internal
+    rank_two_tensor = mechanical_strain_unrotated
     index_i = 1
     index_j = 2
   [../]
   [./exz]
     type = RankTwoAux
     variable = exz
-    rank_two_tensor = mechanical_strain_internal
+    rank_two_tensor = mechanical_strain_unrotated
     index_i = 0
     index_j = 2
   [../]

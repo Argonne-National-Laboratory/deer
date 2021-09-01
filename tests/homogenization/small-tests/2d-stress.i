@@ -89,21 +89,21 @@
   [./exx]
     type = RankTwoAux
     variable = exx
-    rank_two_tensor = mechanical_strain_internal
+    rank_two_tensor = mechanical_strain_unrotated
     index_i = 0
     index_j = 0
   [../]
   [./eyy]
     type = RankTwoAux
     variable = eyy
-    rank_two_tensor = mechanical_strain_internal
+    rank_two_tensor = mechanical_strain_unrotated
     index_i = 1
     index_j = 1
   [../]
   [./exy]
     type = RankTwoAux
     variable = exy
-    rank_two_tensor = mechanical_strain_internal
+    rank_two_tensor = mechanical_strain_unrotated
     index_i = 0
     index_j = 1
   [../]
