@@ -20,7 +20,7 @@ protected:
   MaterialProperty<RankTwoTensor> &_stress;
   MaterialProperty<RankTwoTensor> &_elastic_strain;
 
-  const MaterialProperty<RankTwoTensor> &_mechanical_strain;
+  const MaterialProperty<RankTwoTensor> &_mechanical_strain_unrotated;
   const MaterialProperty<RankTwoTensor> &_extra_stress;
 
   MaterialProperty<RankFourTensor> &_Jacobian_mult;
@@ -30,7 +30,7 @@ protected:
   std::unique_ptr<neml::NEMLModel> _model;
   MaterialProperty<std::vector<Real>> &_hist;
   const MaterialProperty<std::vector<Real>> &_hist_old;
-  const MaterialProperty<RankTwoTensor> &_mechanical_strain_old;
+  const MaterialProperty<RankTwoTensor> &_mechanical_strain_unrotated_old;
   const MaterialProperty<RankTwoTensor> &_stress_old;
   MaterialProperty<Real> &_energy;
   const MaterialProperty<Real> &_energy_old;
@@ -38,7 +38,7 @@ protected:
   const MaterialProperty<Real> &_dissipation_old;
   const VariableValue &_temperature; // Will default to zero
   const VariableValue &_temperature_old;
-  MaterialProperty<RankTwoTensor> &_inelastic_strain;
+  MaterialProperty<RankTwoTensor> &_inelastic_strain_unrotated;
 };
 
 /// Tensor -> my notation

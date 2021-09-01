@@ -18,6 +18,9 @@ const std::vector<std::string> all_tensors = {
     "mechanical_strain", "stress", "elastic_strain", "inelastic_strain"};
 const std::vector<std::string> all_scalars = {"energy", "dissipation"};
 
+const std::vector<std::string> internal_strain_tensors = {
+    "mechanical_strain_unrotated", "inelastic_strain_unrotated"};
+
 const std::map<std::pair<int, int>, std::string> tensor_map = {
     {std::make_pair(0, 0), "x-x"}, {std::make_pair(1, 1), "y-y"},
     {std::make_pair(2, 2), "z-z"}, {std::make_pair(0, 1), "x-y"},
@@ -43,28 +46,27 @@ InputParameters NEMLMechanicsAction::validParams() {
   params.addParam<bool>(
       "add_all_output", false,
       "Dump all the usual stress and strain variables to the output");
-  params.addParam<bool>(
-      "add_all_output", false,
-      "Dump all the usual stress and strain variables to the output");
 
   params.addParam<std::vector<MaterialPropertyName>>(
       "eigenstrains", std::vector<MaterialPropertyName>(),
       "Names of the eigenstrains");
 
   params.addParam<std::vector<SubdomainName>>(
-      "block", "The list of subdomain names where neml mehcanisc should be used, "
-               "default all blocks.");
+      "block",
+      "The list of subdomain names where neml mehcanisc should be used, "
+      "default all blocks.");
 
-  params.addParam<bool>(
-      "homogenize", false,
-      "Apply homogenization constraints to the system.");
+  params.addParam<bool>("homogenize", false,
+                        "Apply homogenization constraints to the system.");
   params.addParam<std::vector<std::string>>("constraint_types",
                                             "Type of each constraint: "
                                             "stress or strain.");
   params.addParam<std::vector<FunctionName>>("targets",
                                              "Functions giving the target "
                                              "values of each constraint.");
-
+  params.addParam<bool>(
+      "output_internal_strain", false,
+      "add the internal inelastic and mechanical strain to the output");
   return params;
 }
 
@@ -83,9 +85,7 @@ NEMLMechanicsAction::NEMLMechanicsAction(const InputParameters &params)
                  : std::vector<SubdomainName>(0)),
       _homogenize(getParam<bool>("homogenize")),
       _constraint_types(getParam<std::vector<std::string>>("constraint_types")),
-      _targets(getParam<std::vector<FunctionName>>("targets"))
-{
-}
+      _targets(getParam<std::vector<FunctionName>>("targets")) {}
 
 void NEMLMechanicsAction::act() {
   if (_current_task == "add_variable") {
@@ -103,12 +103,13 @@ void NEMLMechanicsAction::act() {
       auto var_type = AddVariableAction::determineType(fe_type, 1);
       _problem->addVariable(var_type, disp_name, params);
     }
-    
+
     if (_homogenize) {
       InputParameters params = _factory.getValidParams("MooseVariableBase");
       params.set<MooseEnum>("family") = "SCALAR";
-      params.set<MooseEnum>("order") = _order_mapper.at(
-          HomogenizationConstants::required.at(_kin_mapper[_kinematics])[_ndisp-1]);
+      params.set<MooseEnum>("order") =
+          _order_mapper.at(HomogenizationConstants::required.at(
+              _kin_mapper[_kinematics])[_ndisp - 1]);
       auto fe_type = AddVariableAction::feType(params);
       auto var_type = AddVariableAction::determineType(fe_type, 1);
       _problem->addVariable(var_type, _hname, params);
@@ -147,8 +148,7 @@ void NEMLMechanicsAction::act() {
         std::string name = "SD_" + Moose::stringify(i);
 
         _problem->addKernel("StressDivergenceNEML", name, params);
-      }
-      else if (_formulation == Formulation::Total) {
+      } else if (_formulation == Formulation::Total) {
         auto params = _factory.getValidParams("TotalStressDivergenceNEML");
 
         params.set<std::vector<VariableName>>("displacements") = _displacements;
@@ -160,15 +160,14 @@ void NEMLMechanicsAction::act() {
 
         if (_homogenize) {
           params.set<std::vector<VariableName>>("macro_gradient") = {_hname};
-          params.set<std::vector<std::string>>("constraint_types") = 
+          params.set<std::vector<std::string>>("constraint_types") =
               _constraint_types;
         }
 
         std::string name = "SD_" + Moose::stringify(i);
 
         _problem->addKernel("TotalStressDivergenceNEML", name, params);
-      }
-      else {
+      } else {
         mooseError("Unknown formulation type supplied to NEMLMechanics "
                    "action!");
       }
@@ -177,6 +176,9 @@ void NEMLMechanicsAction::act() {
     if (_add_all) {
       for (auto name : all_tensors)
         _add_tensor_variable(name);
+      if (getParam<bool>("output_internal_strain"))
+        for (auto name : internal_strain_tensors)
+          _add_tensor_variable(name);
       for (auto name : all_scalars)
         _add_scalar_variable(name);
     }
@@ -184,6 +186,9 @@ void NEMLMechanicsAction::act() {
     if (_add_all) {
       for (auto name : all_tensors)
         _add_tensor_aux(name);
+      if (getParam<bool>("output_internal_strain"))
+        for (auto name : internal_strain_tensors)
+          _add_tensor_aux(name);
       for (auto name : all_scalars)
         _add_scalar_aux(name);
     }
@@ -205,16 +210,15 @@ void NEMLMechanicsAction::act() {
     if (_homogenize) {
       InputParameters params =
           _factory.getValidParams("HomogenizationConstraintIntegral");
-       params.set<std::vector<VariableName>>("displacements") = _displacements;
-       params.set<std::vector<std::string>>("constraint_types") =
-           _constraint_types;
-       params.set<std::vector<FunctionName>>("targets") = _targets;
-       params.set<bool>("large_kinematics") = _kin_mapper[_kinematics];
-       params.set<ExecFlagEnum>("execute_on") = {EXEC_INITIAL, EXEC_LINEAR};
+      params.set<std::vector<VariableName>>("displacements") = _displacements;
+      params.set<std::vector<std::string>>("constraint_types") =
+          _constraint_types;
+      params.set<std::vector<FunctionName>>("targets") = _targets;
+      params.set<bool>("large_kinematics") = _kin_mapper[_kinematics];
+      params.set<ExecFlagEnum>("execute_on") = {EXEC_INITIAL, EXEC_LINEAR};
 
-       _problem->addUserObject("HomogenizationConstraintIntegral",
-                               _integrator_name,
-                               params);
+      _problem->addUserObject("HomogenizationConstraintIntegral",
+                              _integrator_name, params);
     }
   }
 }

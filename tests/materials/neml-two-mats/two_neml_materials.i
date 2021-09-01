@@ -18,12 +18,9 @@
   displacements = 'disp_x disp_y disp_z'
 []
 
-[Modules/TensorMechanics/Master]
-  [./all]
-    strain = SMALL
-    add_variables = true
-    generate_output = 'stress_xx stress_yy stress_zz stress_yz stress_xz stress_xy'
-  [../]
+[NEMLMechanics]
+  kinematics = small
+  add_all_output = true
 []
 
 [BCs]
@@ -56,13 +53,13 @@
 
 [Materials]
   [./stress_0]
-    type = ComputeNEMLStress
+    type = ComputeNEMLStressUpdate
     database = neml_model.xml
     model = model_1
     block = 0
   [../]
   [./stress_1]
-    type = ComputeNEMLStress
+    type = ComputeNEMLStressUpdate
     database = neml_model.xml
     model = model_2
     block = 1
