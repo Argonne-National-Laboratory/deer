@@ -191,7 +191,7 @@
     # parameter below are optional
     a0 = 4e-5
     b0 = 5.9e-2
-    D_failure = 0.9 # a/b ratio at which teh traction decay model kicks in
+    D_failure = 0.9 # a/b ratio at which the traction decay model kicks in
   []
 []
 [Preconditioning]

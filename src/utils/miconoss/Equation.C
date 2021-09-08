@@ -9,7 +9,7 @@ Equation::Equation(const uint eq_index, NLSystemVars &sysvars,
       _n_vars(_sys_vars.getNVars()), _n_params(_sysparams.getNParams()),
       _pre_eval(pre_eval), _dequation_dparam(_n_params) {}
 
-void Equation::checkGradinet(double tol, double eps) {
+void Equation::checkGradient(const double tol, const double eps) {
   _pre_eval.updateAll(true);
   updateConstants();
   const double R = getR();
@@ -39,7 +39,7 @@ void Equation::autoScaleEquation() const {
   _sys_vars.setScaleFactor(_eq_index, std::abs(equationScalingRule()));
 }
 
-/// method to override to set custom scaling rule, default is old value
+/// method to override to set custom scaling rule, default is 1
 double Equation::equationScalingRule() const { return 1.; }
 
 double Equation::getDEquationDParam(const uint i) const {

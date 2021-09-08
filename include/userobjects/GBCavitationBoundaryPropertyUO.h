@@ -12,14 +12,13 @@
 #include "InterfaceUserObject.h"
 
 /**
- *  An interface userobject reading boundary based materail property nad storing
- * them for alter use
+ *  An interface userobject reading boundary based materail property from a
+ * text file and storing them for later use
  */
 class GBCavitationBoundaryPropertyUO : public InterfaceUserObject {
 public:
   static InputParameters validParams();
   GBCavitationBoundaryPropertyUO(const InputParameters &parameters);
-  virtual ~GBCavitationBoundaryPropertyUO(){};
   virtual void initialSetup() override;
   virtual void initialize() override{};
   virtual void execute() override{};

@@ -212,10 +212,7 @@ GBCavitation::GBCavitation(const InputParameters &parameters)
     mooseError("not implemented for 1D problems");
 }
 
-void GBCavitation::computeInterfaceTractionIncrementAndDerivatives() {
-  if (_t == 0.)
-    return;
-
+void GBCavitation::updateGBDependentProperties() {
   // copy qp dependent properties
   _a0[_qp] = _a0_old[_qp];
   _NI[_qp] = _NI_old[_qp];
@@ -230,41 +227,221 @@ void GBCavitation::computeInterfaceTractionIncrementAndDerivatives() {
   _sigma_0[_qp] = _sigma_0_old[_qp];
   _n_exponent[_qp] = _n_exponent_old[_qp];
   _beta_exponent[_qp] = _beta_exponent_old[_qp];
-  if (_element_failed_old[_qp] != 0) {
-    _element_failed[_qp] = 1;
-    _time_at_failure[_qp] = _time_at_failure_old[_qp];
-    _traction_at_failure[_qp] = _traction_at_failure_old[_qp];
-    _jump_at_failure[_qp] = _jump_at_failure_old[_qp];
-    _residual_life[_qp] = _residual_life_old[_qp];
-    _a[_qp] = _a_old[_qp];
-    _b[_qp] = _b_old[_qp];
-    _D[_qp] = _a[_qp] / _b[_qp];
+}
 
+void GBCavitation::updateFailedElementProperties() {
+  // copy qp dependent properties
+  _element_failed[_qp] = 1;
+  _time_at_failure[_qp] = _time_at_failure_old[_qp];
+  _traction_at_failure[_qp] = _traction_at_failure_old[_qp];
+  _jump_at_failure[_qp] = _jump_at_failure_old[_qp];
+  _residual_life[_qp] = _residual_life_old[_qp];
+  _a[_qp] = _a_old[_qp];
+  _b[_qp] = _b_old[_qp];
+  _D[_qp] = _a[_qp] / _b[_qp];
+}
+
+NLSystemParameters GBCavitation::setupLinearSystemParameters() {
+  /// set system paramters
+  std::vector<string> pname, rate_pname;
+  vecD pvalue, rate_pvalue;
+  initNLSystemParamter(pname, pvalue, rate_pname, rate_pvalue);
+  NLSystemParameters sysparams(pname, pvalue, rate_pname, rate_pvalue);
+  return sysparams;
+}
+
+NLSystemVars GBCavitation::setupLinearSystemVariables() {
+  NLSystemVars sysvars({"a", "b", "Tn", "Ts1", "Ts2"});
+  sysvars.setValueOld("a", _a_old[_qp]);
+  sysvars.setValueOld("b", _b_old[_qp]);
+  sysvars.setValueOld("Tn", _interface_traction_old[_qp](0));
+  sysvars.setValueOld("Ts1", _interface_traction_old[_qp](1));
+  sysvars.setValueOld("Ts2", _interface_traction_old[_qp](2));
+  sysvars.setToOld();
+  return sysvars;
+}
+
+void GBCavitation::setupShamNeedlemanEquations(
+    std::vector<Equation *> &sys_equations, NLSystemVars &sysvars,
+    NLSystemParameters &sysparams, ShamNeedlemann::V_dot &vdotfun) {
+  sys_equations.push_back(new ShamNeedlemann::a_res(
+      0, sysvars, sysparams, vdotfun, _h[_qp], _a0[_qp], _theta, _growth_on));
+  sys_equations.push_back(new ShamNeedlemann::b_res(
+      1, sysvars, sysparams, vdotfun, _FN[_qp], _FN[_qp] / _NI[_qp],
+      _sigma_0[_qp], _beta_exponent[_qp], _b_sat[_qp], _theta, _nucleation_on));
+  sys_equations.push_back(new ShamNeedlemann::TN_res(
+      2, sysvars, sysparams, vdotfun, _thickness[_qp], _E_GB[_qp],
+      _E_penalty_minus_thickenss, _thickness[_qp], _theta));
+  sys_equations.push_back(new ShamNeedlemann::TS_res(
+      3, sysvars, sysparams, vdotfun, 1, _thickness[_qp], _eta_sliding[_qp],
+      _G_GB[_qp], _theta));
+  sys_equations.push_back(new ShamNeedlemann::TS_res(
+      4, sysvars, sysparams, vdotfun, 2, _thickness[_qp], _eta_sliding[_qp],
+      _G_GB[_qp], _theta));
+}
+
+void GBCavitation::setupShamNeedlemanConstraints(
+    std::vector<const InequalityConstraint *> &my_lms, NLSystemVars &sysvars,
+    NLSystemParameters &sysparams) {
+  my_lms.push_back(new ShamNeedlemann::a_lt_b(0, sysvars, sysparams, 8));
+  my_lms.push_back(
+      new ShamNeedlemann::a_gt_a0(1, sysvars, sysparams, 8, _a0[_qp]));
+  my_lms.push_back(new ShamNeedlemann::b_lt_b_old(2, sysvars, sysparams, 8));
+}
+
+NLSystem GBCavitation::setupNonLinearSystem(
+    std::vector<Equation *> &sys_equations, NLSystemVars &sysvars,
+    NLSystemParameters &sysparams, ShamNeedlemann::V_dot &vdotfun,
+    std::vector<const InequalityConstraint *> &my_lms) {
+
+  /// set up the constrained nonlinear system
+  return NLSystem(&sysvars, &sysparams, sys_equations, my_lms, &vdotfun);
+}
+
+ShamNeedlemann::Solver GBCavitation::setupNewtonSolver(NLSystem &mysys,
+                                                       NLSystemVars &sysvars) {
+
+  return ShamNeedlemann::Solver(&mysys, &sysvars, _nl_residual_abs_tol,
+                                _max_nonlinear_iter,
+                                miconossmath::normtype::INF);
+}
+
+void GBCavitation::updateVariablesAfterNonLinearSolution(
+    NLSystemVars &sysvars, NLSystemParameters &sysparams,
+    ShamNeedlemann::V_dot &vdotfun, Real &dt_effective) {
+  _a[_qp] = sysvars.getValue("a");
+  _b[_qp] = sysvars.getValue("b");
+  _D[_qp] = _a[_qp] / _b[_qp];
+  _element_failed[_qp] = sysparams.getValue("element_failed");
+  _residual_life[_qp] = sysparams.getValue("residual_life");
+  _time_at_failure[_qp] = _t - _dt + dt_effective;
+
+  _VLdot[_qp] = vdotfun.getValue("vdot", true);
+  _VL1dot[_qp] = vdotfun.getValue("vL1dot", true);
+  _VL2dot[_qp] = vdotfun.getValue("vL2dot", true);
+  _L[_qp] = vdotfun.getValue("L", true);
+}
+
+void GBCavitation::updateIfElementFailedWhilseSubstepping(NLSystemVars &sysvars,
+                                                          Real &dt_effective) {
+
+  _traction_at_failure[_qp](0) = sysvars.getValue("Tn");
+  _traction_at_failure[_qp](1) = sysvars.getValue("Ts1");
+  if (_ndisp == 3)
+    _traction_at_failure[_qp](2) = sysvars.getValue("Ts2");
+
+  _jump_at_failure[_qp] =
+      _interface_displacement_jump_old[_qp] +
+      _interface_displacement_jump_inc[_qp] / _dt * dt_effective;
+
+  // some checks, only performed in debug or devel mode
+  for (uint i = 0; i < 3; i++) {
+    mooseAssert(std::isfinite(_traction_at_failure[_qp](i)),
+                "GBCavitation failed while substepping and "
+                "_traction_at_failure is "
+                "not finite");
+  }
+
+  mooseAssert(std::isfinite(_a[_qp]),
+              "GBCavitation failed while substepping and _a[_qp] is "
+              "not finite: " +
+                  std::to_string(_a[_qp]));
+
+  mooseAssert(std::isfinite(_b[_qp]),
+              "GBCavitation failed while substepping and _b[_qp]  is "
+              "not finite: " +
+                  std::to_string(_b[_qp]));
+
+  tractionDecay();
+}
+
+void GBCavitation::updateForFullStep(NLSystemVars &sysvars, Real &dt_effective,
+                                     std::vector<Equation *> &sys_equations,
+                                     matrixD &deq_dparam) {
+  _interface_traction[_qp](0) = sysvars.getValue("Tn");
+  _interface_traction[_qp](1) = sysvars.getValue("Ts1");
+  if (_ndisp == 3)
+    _interface_traction[_qp](2) = sysvars.getValue("Ts2");
+
+  // some checks, only performed in debug or devel mode
+  for (uint i = 0; i < 3; i++) {
+    mooseAssert(std::isfinite(_interface_traction[_qp](i)),
+                "GBCavitation converged but traction is not finite");
+  }
+
+  mooseAssert(std::isfinite(_a[_qp]),
+              "GBCavitation converged but _a[_qp] is not finite: " +
+                  std::to_string(_a[_qp]));
+
+  mooseAssert(std::isfinite(_b[_qp]),
+              "GBCavitation converged but _b[_qp] is not finite: " +
+                  std::to_string(_b[_qp]));
+
+  // update related history variables
+  if (_nucleation_is_active_old[_qp])
+    _nucleation_is_active[_qp] = _nucleation_is_active_old[_qp];
+  else
+    _nucleation_is_active[_qp] =
+        dynamic_cast<ShamNeedlemann::b_res *>(sys_equations[1])
+            ->nucleationAboveThreshold(true);
+
+  // record failure state
+  _traction_at_failure[_qp] = _interface_traction[_qp];
+  _jump_at_failure[_qp] = _interface_displacement_jump[_qp];
+
+  // compute the traction increment
+  _interface_traction_inc[_qp] =
+      _interface_traction[_qp] - _interface_traction_old[_qp];
+  // copy derivatives in the proper container
+  for (uint i = 0; i < 3; i++)
+    for (uint j = 0; j < 3; j++)
+      _dinterface_traction_djump[_qp](i, j) = deq_dparam[i][j + 2];
+}
+
+void GBCavitation::postSolutionDebugChecks() {
+  /// check for nans in traction and traction derivatives, only performed in
+  /// debug or devel mode
+  for (uint i = 0; i < 3; i++)
+    mooseAssert(
+        std::isfinite(_interface_traction[_qp](i)),
+        "GBCavitation _interface_traction[_qp] " + std::to_string(i) +
+            " is not finite: " + std::to_string(_interface_traction[_qp](i)));
+
+  mooseAssert(std::isfinite(_a[_qp]),
+              "GBCavitation _a[_qp] is not finite: " + std::to_string(_a[_qp]));
+
+  mooseAssert(std::isfinite(_b[_qp]),
+              "GBCavitation _b[_qp] is not finite: " + std::to_string(_b[_qp]));
+
+  for (uint i = 0; i < 3; i++) {
+    for (uint j = 0; j < 3; j++) {
+      mooseAssert(std::isfinite(_dinterface_traction_djump[_qp](i, j)),
+                  "GBCavitation _dinterface_traction_djump[_qp](" +
+                      std::to_string(i) + "," + std::to_string(j) +
+                      ") is not finite: " +
+                      std::to_string(_dinterface_traction_djump[_qp](i, j)) +
+                      " increment i = " +
+                      std::to_string(_interface_displacement_jump_inc[_qp](i)));
+    }
+  }
+  mooseAssert(std::isfinite(_dinterface_traction_djump[_qp].det()),
+              "determinant of _dinterface_traction_djump is not finite");
+}
+
+void GBCavitation::computeInterfaceTractionIncrementAndDerivatives() {
+  if (_t == 0.)
+    return;
+
+  updateGBDependentProperties();
+
+  if (_element_failed_old[_qp] != 0) {
+    updateFailedElementProperties();
     tractionDecay();
   } else {
-    computeAverageBulkPorperties();
+    computeAverageBulkProperties();
 
-    uint neq = 5;
-    uint nlm = 3;
-    const uint nsys = neq + nlm;
-
-    /// set system paramters
-    std::vector<string> pname, rate_pname;
-    vecD pvalue, rate_pvalue;
-    initNLSystemParamter(pname, pvalue, rate_pname, rate_pvalue);
-    NLSystemParameters sysparams(pname, pvalue, rate_pname, rate_pvalue);
-
-    NLVar a_var(0, "a", _a_old[_qp], _a_old[_qp]);
-    NLVar b_var(1, "b", _b_old[_qp], _b_old[_qp]);
-    NLVar TN_var(2, "Tn", _interface_traction_old[_qp](0),
-                 _interface_traction_old[_qp](0));
-    NLVar TS1_var(3, "Ts1", _interface_traction_old[_qp](1),
-                  _interface_traction_old[_qp](1));
-    NLVar TS2_var(4, "Ts2", _interface_traction_old[_qp](2),
-                  _interface_traction_old[_qp](2));
-
-    std::vector<NLVar *> myvars{&a_var, &b_var, &TN_var, &TS1_var, &TS2_var};
-    NLSystemVars sysvars(myvars);
+    NLSystemParameters sysparams = setupLinearSystemParameters();
+    NLSystemVars sysvars = setupLinearSystemVariables();
 
     /// set up precalculator
     ShamNeedlemann::V_dot vdotfun(
@@ -273,47 +450,23 @@ void GBCavitation::computeInterfaceTractionIncrementAndDerivatives() {
         _h[_qp], _D_GB[_qp], _use_triaxial_growth, _vdot_method,
         _nucleation_on);
 
-    /// set up equations
-    ShamNeedlemann::a_res a_eq(0, sysvars, sysparams, vdotfun, _h[_qp],
-                               _a0[_qp], _theta, _growth_on);
-    ShamNeedlemann::b_res b_eq(1, sysvars, sysparams, vdotfun, _FN[_qp],
-                               _FN[_qp] / _NI[_qp], _sigma_0[_qp],
-                               _beta_exponent[_qp], _b_sat[_qp], _theta,
-                               _nucleation_on);
-    ShamNeedlemann::TN_res Tn_eq(
-        2, sysvars, sysparams, vdotfun, _thickness[_qp], _E_GB[_qp],
-        _E_penalty_minus_thickenss, _thickness[_qp], _theta);
-    ShamNeedlemann::TS_res Ts1_eq(3, sysvars, sysparams, vdotfun, 1,
-                                  _thickness[_qp], _eta_sliding[_qp],
-                                  _G_GB[_qp], _theta);
-    ShamNeedlemann::TS_res Ts2_eq(4, sysvars, sysparams, vdotfun, 2,
-                                  _thickness[_qp], _eta_sliding[_qp],
-                                  _G_GB[_qp], _theta);
-    std::vector<Equation *> my_eqs = {&a_eq, &b_eq, &Tn_eq, &Ts1_eq, &Ts2_eq};
+    std::vector<Equation *> my_eqs;
+    setupShamNeedlemanEquations(my_eqs, sysvars, sysparams, vdotfun);
 
-    /// set up lagrange multiplier equations
-    ShamNeedlemann::a_lt_b c0(0, sysvars, sysparams, nsys);
-    ShamNeedlemann::a_gt_a0 c1(1, sysvars, sysparams, nsys, _a0[_qp]);
-    ShamNeedlemann::b_lt_b_old c2(2, sysvars, sysparams, nsys);
-    std::vector<const InequalityConstraint *> my_lms = {&c0, &c1, &c2};
-    vecD l0(nlm);
+    std::vector<const InequalityConstraint *> my_lms;
+    setupShamNeedlemanConstraints(my_lms, sysvars, sysparams);
 
-    /// set up the constrained nonlinear system
-    NLSystem mysys(&sysvars, &sysparams, my_eqs, my_lms, &vdotfun);
+    NLSystem mysys =
+        setupNonLinearSystem(my_eqs, sysvars, sysparams, vdotfun, my_lms);
+    ShamNeedlemann::Solver newtonSolver = setupNewtonSolver(mysys, sysvars);
 
-    /// reference matrix containg the jacobian o f the nonlinear system
-    matrixD J(mysys.getDim(), vecD(mysys.getDim()));
-
-    /// setup the newton solver
-    ShamNeedlemann::Solver newtonSolver(&mysys, &sysvars, _nl_residual_abs_tol,
-                                        _max_nonlinear_iter,
-                                        miconossmath::normtype::INF);
-
+    /// declare some useful variables and actually solve the problem
     bool converged = false;
     bool custom_interruption = false;
     Real dt_effective = 0;
+    matrixD J(8, vecD(8));
+    vecD l0(3);
 
-    // solve the system
     matrixD deq_dparam;
     int ierr = newtonSolver.solveSubstep(
         l0, J, converged, &sysparams, {"udot_N", "udot_S1", "udot_S2"},
@@ -327,122 +480,16 @@ void GBCavitation::computeInterfaceTractionIncrementAndDerivatives() {
     }
     // if we converged to a solution
     else {
-      // update state var values
-      _a[_qp] = a_var.getValue();
-      _b[_qp] = b_var.getValue();
-      _D[_qp] = _a[_qp] / _b[_qp];
-      _element_failed[_qp] = sysparams.getValue("element_failed");
-      _residual_life[_qp] = sysparams.getValue("residual_life");
-      _time_at_failure[_qp] = _t - _dt + dt_effective;
-
-      _VLdot[_qp] = vdotfun.getValue("vdot", true);
-      _VL1dot[_qp] = vdotfun.getValue("vL1dot", true);
-      _VL2dot[_qp] = vdotfun.getValue("vL2dot", true);
-      _L[_qp] = vdotfun.getValue("L", true);
-
-      if (dt_effective < _dt) {
-
-        _traction_at_failure[_qp](0) = TN_var.getValue();
-        _traction_at_failure[_qp](1) = TS1_var.getValue();
-        if (_ndisp == 3)
-          _traction_at_failure[_qp](2) = TS2_var.getValue();
-
-        _jump_at_failure[_qp] =
-            _interface_displacement_jump_old[_qp] +
-            _interface_displacement_jump_inc[_qp] / _dt * dt_effective;
-
-        // some checks, only performed in debug or devel mode
-        for (uint i = 0; i < 3; i++) {
-          mooseAssert(std::isfinite(_traction_at_failure[_qp](i)),
-                      "GBCavitation failed while substepping and "
-                      "_traction_at_failure is "
-                      "not finite");
-        }
-
-        mooseAssert(std::isfinite(_a[_qp]),
-                    "GBCavitation failed while substepping and _a[_qp] is "
-                    "not finite: " +
-                        std::to_string(_a[_qp]));
-
-        mooseAssert(std::isfinite(_b[_qp]),
-                    "GBCavitation failed while substepping and _b[_qp]  is "
-                    "not finite: " +
-                        std::to_string(_b[_qp]));
-
-        tractionDecay();
-      } else {
-        _interface_traction[_qp](0) = TN_var.getValue();
-        _interface_traction[_qp](1) = TS1_var.getValue();
-        if (_ndisp == 3)
-          _interface_traction[_qp](2) = TS2_var.getValue();
-
-        // some checks, only performed in debug or devel mode
-        for (uint i = 0; i < 3; i++) {
-          mooseAssert(std::isfinite(_interface_traction[_qp](i)),
-                      "GBCavitation converged but traction is not finite");
-        }
-
-        mooseAssert(std::isfinite(_a[_qp]),
-                    "GBCavitation converged but _a[_qp] is not finite: " +
-                        std::to_string(_a[_qp]));
-
-        mooseAssert(std::isfinite(_b[_qp]),
-                    "GBCavitation converged but _b[_qp] is not finite: " +
-                        std::to_string(_b[_qp]));
-
-        // update related history variables
-        if (_nucleation_is_active_old[_qp])
-          _nucleation_is_active[_qp] = _nucleation_is_active_old[_qp];
-        else
-          _nucleation_is_active[_qp] = b_eq.nucleationAboveThreshold(true);
-
-        // record failure state
-
-        _traction_at_failure[_qp] = _interface_traction[_qp];
-        _jump_at_failure[_qp] = _interface_displacement_jump[_qp];
-
-        // compute the traction increment
-        _interface_traction_inc[_qp] =
-            _interface_traction[_qp] - _interface_traction_old[_qp];
-        // copy derivatives in the proper container
-        for (uint i = 0; i < 3; i++)
-          for (uint j = 0; j < 3; j++)
-            _dinterface_traction_djump[_qp](i, j) = deq_dparam[i][j + 2];
-      }
+      updateVariablesAfterNonLinearSolution(sysvars, sysparams, vdotfun,
+                                            dt_effective);
+      if (dt_effective < _dt)
+        updateIfElementFailedWhilseSubstepping(sysvars, dt_effective);
+      else
+        updateForFullStep(sysvars, dt_effective, my_eqs, deq_dparam);
     }
-
-    /// check for nans in traction and traction derivatives, only performed in
-    /// debug or devel mode
-    for (uint i = 0; i < 3; i++)
-      mooseAssert(
-          std::isfinite(_interface_traction[_qp](i)),
-          "GBCavitation _interface_traction[_qp] " + std::to_string(i) +
-              " is not finite: " + std::to_string(_interface_traction[_qp](i)));
-
-    mooseAssert(std::isfinite(_a[_qp]), "GBCavitation _a[_qp] is not finite: " +
-                                            std::to_string(_a[_qp]));
-
-    mooseAssert(std::isfinite(_b[_qp]), "GBCavitation _b[_qp] is not finite: " +
-                                            std::to_string(_b[_qp]));
-
-    for (uint i = 0; i < 3; i++) {
-      for (uint j = 0; j < 3; j++) {
-        mooseAssert(
-            std::isfinite(_dinterface_traction_djump[_qp](i, j)),
-            "GBCavitation _dinterface_traction_djump[_qp](" +
-                std::to_string(i) + "," + std::to_string(j) +
-                ") is not finite: " +
-                std::to_string(_dinterface_traction_djump[_qp](i, j)) +
-                " increment i = " +
-                std::to_string(_interface_displacement_jump_inc[_qp](i)));
-      }
-    }
-    mooseAssert(std::isfinite(_dinterface_traction_djump[_qp].det()),
-                "determinatn of _dinterface_traction_djump is not finite");
+    postSolutionDebugChecks();
   }
 }
-
-/* TODO ADD innerpentration penalty for broken elements to add */
 
 void GBCavitation::tractionDecay() {
   Real P = 1.;
@@ -503,7 +550,7 @@ void GBCavitation::initQpStatefulProperties() {
   InitGBCavitationParamsAndProperties();
 }
 
-void GBCavitation::computeAverageBulkPorperties() {
+void GBCavitation::computeAverageBulkProperties() {
   // compute average Von Mises Stress;
   RankTwoTensor dev_stress = _stress_master[_qp].deviatoric();
   _stress_vm[_qp] = std::sqrt(1.5 * dev_stress.doubleContraction(dev_stress));

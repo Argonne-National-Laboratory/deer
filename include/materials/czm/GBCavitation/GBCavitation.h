@@ -13,8 +13,9 @@
 #include "GBCavitationBoundaryPropertyUO.h"
 #include "ShamNeedlemanEquation.h"
 /**
- * Implementation of teh grain boundary cavitation model proposed by Sham
- * and Needlemena 1983 and expanded by Van der Gieseen 1995 **/
+ * Implementation of the grain boundary cavitation model proposed by Nassif et
+ * al 2020 and extended to viscoelastic by Rovinelli et al 2019 with quadratic
+ * penetration penalty, Rovinelli et al 2020 **/
 class GBCavitation : public CZMComputeLocalTractionIncrementalBase {
 public:
   static InputParameters validParams();
@@ -23,13 +24,61 @@ public:
 protected:
   virtual void initQpStatefulProperties() override;
   virtual void computeInterfaceTractionIncrementAndDerivatives() override;
-  void computeAverageBulkPorperties();
+  void computeAverageBulkProperties();
   void initNLSystemParamter(std::vector<std::string> &pname, vecD &pvalue,
                             std::vector<std::string> &rate_pname,
                             vecD &rate_pvalue);
 
+  /// update gb dependent properties
+  void updateGBDependentProperties();
+
+  /// update failed element properties
+  void updateFailedElementProperties();
+
+  /// update failed element properties
+  NLSystemParameters setupLinearSystemParameters();
+
+  /// update failed element properties
+  NLSystemVars setupLinearSystemVariables();
+
+  void setupShamNeedlemanEquations(std::vector<Equation *> &sys_equations,
+                                   NLSystemVars &sysvars,
+                                   NLSystemParameters &sysparams,
+                                   ShamNeedlemann::V_dot &vdotfun);
+
+  void setupShamNeedlemanConstraints(
+      std::vector<const InequalityConstraint *> &my_lms, NLSystemVars &sysvars,
+      NLSystemParameters &sysparams);
+
+  NLSystem
+  setupNonLinearSystem(std::vector<Equation *> &sys_equations,
+                       NLSystemVars &sysvars, NLSystemParameters &sysparams,
+                       ShamNeedlemann::V_dot &vdotfun,
+                       std::vector<const InequalityConstraint *> &my_lms);
+
+  ShamNeedlemann::Solver setupNewtonSolver(NLSystem &mysys,
+                                           NLSystemVars &sysvars);
+
+  /// common operations after convergence is achieved
+  void updateVariablesAfterNonLinearSolution(NLSystemVars &sysvars,
+                                             NLSystemParameters &sysparams,
+                                             ShamNeedlemann::V_dot &vdotfun,
+                                             Real &dt_effective);
+
+  /// things to do if elemnt failew whilse substepping
+  void updateIfElementFailedWhilseSubstepping(NLSystemVars &sysvars,
+                                              Real &dt_effective);
+
+  void updateForFullStep(NLSystemVars &sysvars, Real &dt_effective,
+                         std::vector<Equation *> &sys_equations,
+                         matrixD &deq_dparam);
+
   /// method to kill the traction
   void tractionDecay();
+
+  /// check for nans in the traction and derivatives
+  void postSolutionDebugChecks();
+
   /// number of displacement components
   const unsigned int _ndisp;
 
@@ -148,15 +197,6 @@ protected:
   ///@}
 
   const GBCavitationBoundaryPropertyUO *_GBCavitationBoundaryPropertyUO;
-  /* INTERFACE PARAMETERS */
-  // const Real _a0;                  /*initial cavity half radius*/
-  // const Real _b0;                  /*initial cavity half spacing*/
-  // const Real _b_saturation;        /*saturation cavity half spacing*/
-  // const Real _NI;                  /*number of intial cavity*/
-  // const Real _FN;                  /*cavitration rate*/
-  // const Real _S_thr;               /*thresould value for cavitation to
-  // occur*/ const Real _thickness; /*interface Young modulus*/ const
-  // Real _E_interface;         /*interface Young modulus*/
 
   void InitGBCavitationParamsAndProperties();
   void getInitPropertyValuesFromParams(Real &FN_NI, Real &Nmax_NI, Real &a0,

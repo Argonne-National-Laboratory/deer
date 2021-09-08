@@ -118,11 +118,8 @@ vecD V_dot::dfaLFundX(const bool implicit) {
 }
 
 double V_dot::qFun(const bool implicit) {
-  // const double p = 30;
   const double faL = faLFun(implicit);
   const double fab = fabFun(implicit);
-  // const double f = std::pow(
-  //     std::pow(fabFun(implicit), p) + std::pow(faLFun(implicit), p), 1. / p);
 
   double f;
   if (faL > fab)
@@ -154,26 +151,8 @@ vecD V_dot::dqFundX(const bool implicit) {
   for (uint i = 0; i < _n_vars; i++)
     dqdx[i] *= dqdf;
 
-  // const double p = 30;
-  // const double fabP = std::pow(fab, p);
-  // const double faLP = std::pow(faL, p);
-  // const double f = std::pow(fabP + faLP, 1. / p);
-  //
-  // const double prefactor = std::pow(fabP + faLP, (1. - p) / p);
-  //
-  // vecD dfabdX = dfabFundX(implicit);
-  // vecD dfaLdX = dfaLFundX(implicit);
-  //
-  // for (uint i = 0; i < _n_vars; i++)
-  //   dqdx[i] = prefactor *
-  //             (fabP / fab * dfabdX[i] + std::pow(faL, p - 1.) * dfaLdX[i]);
-  //
-  // const double dqdf = -2. * f - 2. / f + 4.;
-  // for (uint i = 0; i < _n_vars; i++)
-  //   dqdx[i] *= dqdf;
-
   return dqdx;
-} // namespace ShamNeedlemann
+}
 
 double V_dot::VL1dotFun(const bool implicit) {
   double vL1dot = 8. * M_PI * _D * _sys_vars->getValueImplicit("Tn", implicit) /
@@ -398,16 +377,11 @@ a_res::a_res(const unsigned int eq_index, NLSystemVars &sysvars,
       _a0(a0), _growth_on(growth_on) {}
 
 double a_res::computedRate(const bool implicit) const {
-
-  // a_dot = V_dot/(4*pi*a^2*h)
   double a_dot = 0;
 
   if (_growth_on) {
-    // const double udot = _sysparams.getValue("udot_N");
-    // if (udot > 0 || (udot < 0 && _sys_vars.getValueOld("a") > _a0)) {
     const double a = _sys_vars.getValueImplicit("a", implicit);
     a_dot = _pre_eval.getValue("vdot", implicit) / (4. * M_PI * _h * a * a);
-    // }
   }
   return a_dot;
 }
@@ -415,8 +389,6 @@ double a_res::computedRate(const bool implicit) const {
 vecD a_res::DComputedRatetDx(const bool implicit) const {
   vecD dadot_dx(_n_vars);
   if (_growth_on) {
-    // const double udot = _sysparams.getValue("udot_N");
-    // if (udot > 0 || (udot < 0 && _sys_vars.getValueOld("a") > _a0)) {
     const double a = _sys_vars.getValueImplicit("a", implicit);
     const double vdot = _pre_eval.getValue("vdot", implicit);
     const vecD dvdot_dx = _pre_eval.getDValueDX("vdot", implicit);
@@ -427,7 +399,6 @@ vecD a_res::DComputedRatetDx(const bool implicit) const {
 
     for (uint i = 0; i < _n_vars; i++)
       dadot_dx[i] = dvdot_dx[i] / g - vdot * dg_dx[i] / (g * g);
-    // }
   }
   return dadot_dx;
 }
@@ -435,8 +406,6 @@ vecD a_res::DComputedRatetDx(const bool implicit) const {
 vecD a_res::DComputedRatetDP(const bool implicit) const {
   return vecD(_n_params);
 }
-
-// double a_res::equationScalingRule() const { return 1e-3; }
 
 b_res::b_res(const unsigned int eq_index, NLSystemVars &sysvars,
              NLSystemParameters &sysparams,
@@ -494,8 +463,6 @@ vecD b_res::DComputedRatetDx(const bool implicit) const {
 vecD b_res::DComputedRatetDP(const bool implicit) const {
   return vecD(_n_params);
 }
-
-// double b_res::equationScalingRule() const { return 1e-3; }
 
 TN_res::TN_res(const unsigned int eq_index, NLSystemVars &sysvars,
                NLSystemParameters &sysparams,
@@ -625,8 +592,6 @@ vecD TN_res::DComputedRatetDP(const bool implicit) const {
   return deq_dparam;
 }
 
-// double TN_res::equationScalingRule() const { return 1000.; }
-
 TS_res::TS_res(const uint eq_index, NLSystemVars &sysvars,
                NLSystemParameters &sysparams,
                NLPreEquationEvalautionCalc &pre_eval, const uint shear_index,
@@ -722,8 +687,6 @@ vecD TS_res::DComputedRatetDP(const bool implicit) const {
   return deq_dparam;
 }
 
-// double TS_res::equationScalingRule() const { return 1; }
-
 a_lt_b::a_lt_b(const uint lm_index, const NLSystemVars &sys_vars,
                const NLSystemParameters &sysparams, const uint n_sys)
     : InequalityConstraint(lm_index, sys_vars, sysparams, n_sys) {}
@@ -816,7 +779,7 @@ int Solver::customSubstepInterruption(NLSystemParameters *const sysparams,
     return 0;
   }
 
-  // if we are here element still hasn't failed
+  // if we are here the qp still hasn't failed
   return 0;
 }
 

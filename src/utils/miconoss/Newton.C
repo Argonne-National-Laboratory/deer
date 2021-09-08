@@ -11,7 +11,7 @@ int Newton::computeNewtonStep(const vecD &R, const matrixD &J) {
   int ierr = miconossmath::solveAxb(J, R, _n_total, _dx);
 
   for (uint i = 0; i < _n_total; i++)
-    _dx[i] = -_dx[i];
+    _dx[i] *= -1;
   return ierr;
 }
 
