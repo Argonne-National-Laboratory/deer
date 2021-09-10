@@ -1,0 +1,24 @@
+<materials>
+  <creep_and_hardening type="SmallStrainCreepPlasticity">
+    <elastic type="IsotropicLinearElasticModel">
+      <m1>150000.0</m1>
+      <m1_type>youngs</m1_type>
+      <m2>0.285</m2>
+      <m2_type>poissons</m2_type>
+    </elastic>
+    <plastic type="SmallStrainElasticity">
+      <elastic type="IsotropicLinearElasticModel">
+        <m1>150000.0</m1>
+        <m1_type>youngs</m1_type>
+        <m2>0.285</m2>
+        <m2_type>poissons</m2_type>
+      </elastic>
+    </plastic>
+    <creep type="J2CreepModel">
+      <rule type="PowerLawCreep">
+        <A>2e-11</A>
+        <n>2.5</n>
+      </rule>
+    </creep>
+  </creep_and_hardening>
+</materials>

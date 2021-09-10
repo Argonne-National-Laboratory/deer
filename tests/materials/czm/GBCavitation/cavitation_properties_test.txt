@@ -1,0 +1,6 @@
+this is  text file illustrating how to format a data file containing GB
+#properties for the GBCavitaion model. Properties have hte following order
+gid1, gid2, FN_NI, Nmax_NI, thickness, a_0, b_0, sigma_0, D_gb, beta_exponent, n_exponent, E_interface, G_interface, eta_sliding, psi_angle
+
+0 1 2e4 1e3 0.01 5e-5 6e-2 200 1e-15 1 5 150e3 50  1e6 75
+1 2 4e4 2e3 0.02 7e-5 8e-2 400 1e-20 2 7 300e3 100 2e6 80

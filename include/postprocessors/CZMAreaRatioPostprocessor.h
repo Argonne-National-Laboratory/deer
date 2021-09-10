@@ -13,7 +13,7 @@
 #include "CZMAreaPostprocessor.h"
 
 /**
- * This postprocessor computes teh cohesive zon area ratio, i.e. A/A0
+ * This postprocessor computes the cohesive zon area ratio, i.e. A/A0
  */
 
 class CZMAreaRatioPostprocessor : public CZMAreaPostprocessor {

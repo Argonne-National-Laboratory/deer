@@ -1,0 +1,36 @@
+[Tests]
+  [./czm_GBcavitation]
+    type = Exodiff
+    input = 'czm_GBcavitation.i'
+    exodiff = 'czm_GBcavitation_out.e'
+    requirement = "The GB cavitation model should work under an applied normal stress. Also, traction component should exhibit a smooth behavior if the time step changes drastically."
+    mesh_mode = 'REPLICATED'
+    recover = false
+  [../]
+  [./czm_GBcavitationShear]
+    type = Exodiff
+    input = 'czm_GBcavitation_Shear.i'
+    exodiff = 'czm_GBcavitation_Shear_out.e'
+    requirement = "The GB cavitation model should work under an applied shear stress. Also, traction component should exhibit a smooth behavior if the time step changes drastically."
+    mesh_mode = 'REPLICATED'
+    recover = false
+  [../]
+  [./czm_GBcavitationUO]
+    type = Exodiff
+    input = 'czm_GBcavitation_UO.i'
+    exodiff = 'czm_GBcavitation_UO_out.e'
+    requirement = "The GB cavitation model should be able to use the material properties provided by GBCavitationBoundaryPropertyUO"
+    mesh_mode = 'REPLICATED'
+    recover = false
+    abs_zero = 1e-6
+  [../]
+  [./czm_GBcavitationCompression]
+    type = Exodiff
+    input = 'czm_GBcavitationCompression.i'
+    exodiff = 'czm_GBcavitationCompression_out.e'
+    requirement = "The GB cavitation model should work properly under compression: b should not vary, and a shoud decrease until a0"
+    mesh_mode = 'REPLICATED'
+    recover = false
+    abs_zero = 1e-5
+  [../]
+[]
