@@ -3,6 +3,8 @@
 #include "ComputeNEMLStressUpdate.h"
 #include "EulerAngleProvider.h"
 
+#include "cp/singlecrystal.h"
+
 class ComputeNEMLCPOutput : public ComputeNEMLStressUpdate {
 public:
   static InputParameters validParams();

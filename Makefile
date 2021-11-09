@@ -49,7 +49,7 @@ include $(MOOSE_DIR)/modules/modules.mk
 ifndef NEML_DIR
       NEML_DIR = neml
 endif
-ADDITIONAL_INCLUDES := -I$(NEML_DIR)/src -I$(NEML_DIR)/src/math
+ADDITIONAL_INCLUDES := -I$(NEML_DIR)/include
 ADDITIONAL_LIBS := -L$(NEML_DIR)/lib -lneml
 
 # dep apps
