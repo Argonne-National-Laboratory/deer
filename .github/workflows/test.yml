@@ -29,7 +29,6 @@ jobs:
                   export MOOSE_JOBS=2
                   ./update_and_rebuild_petsc.sh
                   ./update_and_rebuild_libmesh.sh
-                  ./update_and_rebuild_hit.sh
             - name: Compile code
               env:
                     MOOSE_DIR: ${{github.workspace}}/moose
