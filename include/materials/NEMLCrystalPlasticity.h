@@ -2,7 +2,7 @@
 
 #include "CauchyStressFromNEML.h"
 
-#include "EulerAngleProvider.h"
+#include "ElementPropertyReadFile.h"
 
 #include "cp/singlecrystal.h"
 
@@ -22,9 +22,7 @@ class NEMLCrystalPlasticity: public CauchyStressFromNEML
   protected:
    MaterialProperty<std::vector<Real>> & _orientation;
    const bool _using_reader;
-   const EulerAngleProvider * _euler_angles;
-   const bool _set_grain_id;
-   unsigned int _grain_id;
+   const ElementPropertyReadFile * _euler_angles;
    std::string _angle_type;
    std::string _angle_convention;
    neml::SingleCrystalModel * _cpmodel;

@@ -19,8 +19,12 @@
 []
 [UserObjects]
   [./euler_angle_file]
-    type = EulerAngleFileReader
-    file_name = 2gr_Euler.tex
+    type = ElementPropertyReadFile
+    nprop = 3
+    prop_file_name = 2gr_Euler.tex
+    read_type = block
+    nblock = 2
+    blocks_zero_numbered = false
   [../]
 []
 [BCs]

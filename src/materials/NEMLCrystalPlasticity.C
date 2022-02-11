@@ -21,18 +21,12 @@ NEMLCrystalPlasticity::NEMLCrystalPlasticity(const InputParameters & parameters)
     _orientation(declareProperty<std::vector<Real>>("orientation")),
     _using_reader(parameters.isParamSetByUser("euler_angle_reader")),
     _euler_angles(_using_reader ?
-                  &getUserObjectByName<EulerAngleProvider>(
+                  &getUserObjectByName<ElementPropertyReadFile>(
                       getParam<UserObjectName>("euler_angle_reader")) :
                   nullptr),
-    _set_grain_id(parameters.isParamSetByUser("grain_id")),
-    _grain_id(_set_grain_id ? 
-              getParam<unsigned int>("grain_id") : 0),
     _angle_type(getParam<std::string>("angle_type")),
     _angle_convention(getParam<std::string>("angle_convention"))
 {
-  if (! _set_grain_id)
-    mooseWarning("Grain id not provided, using the block id as the grain id");
-
   if (! _using_reader)
     mooseWarning("No Euler angle reader provided, using angles from NEML");
 
@@ -45,17 +39,11 @@ NEMLCrystalPlasticity::initQpStatefulProperties()
   CauchyStressFromNEML::initQpStatefulProperties();
 
   if (_using_reader) {
-    unsigned int use_grain;
-    if (_set_grain_id)
-      use_grain = _grain_id;
-    else 
-      use_grain = std::max(_current_elem->subdomain_id() - 1, 0);
-    EulerAngles angles = _euler_angles->getEulerAngles(use_grain);
-
-    auto q =
-        neml::Orientation::createEulerAngles(angles.phi1, angles.Phi,
-                                             angles.phi2, _angle_type,
-                                             _angle_convention);
+    auto q = neml::Orientation::createEulerAngles(
+        _euler_angles->getData(_current_elem, 0),
+        _euler_angles->getData(_current_elem, 1),
+        _euler_angles->getData(_current_elem, 2),
+        _angle_type, _angle_convention);
     _cpmodel->set_active_orientation(&_history[_qp].front(), q);
   }
 }

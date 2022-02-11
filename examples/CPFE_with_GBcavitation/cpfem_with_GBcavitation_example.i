@@ -180,10 +180,13 @@
 
 [UserObjects]
   [euler_angle_file]
-    # read the euler angles and use them to setup the bulk model
-    type = EulerAngleFileReader
-    file_name = grn_10_rand.tex
-  []
+    type = ElementPropertyReadFile
+    nprop = 3
+    prop_file_name = grn_10_rand.tex
+    read_type = block
+    nblock = 10
+    blocks_zero_numbered = false
+  [../]
 []
 [Materials]
   [stress]
