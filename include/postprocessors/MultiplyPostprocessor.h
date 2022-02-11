@@ -11,14 +11,10 @@
 
 #include "GeneralPostprocessor.h"
 
-class MultiplyPostprocessor;
-
-template <> InputParameters validParams<MultiplyPostprocessor>();
-
 /**
  * Computes the product of two postprocessors
  *
- * result = value1 - value2
+ * result = value1 * value2
  */
 class MultiplyPostprocessor : public GeneralPostprocessor {
 public:

@@ -1,8 +1,0 @@
-[Tests]
-  [./preset]
-    type = CSVDiff
-    input = 'area.i'
-    csvdiff = 'area_out.csv'
-    requirement = "Stresses are being computed on the deformed volume"
-  [../]
-[]

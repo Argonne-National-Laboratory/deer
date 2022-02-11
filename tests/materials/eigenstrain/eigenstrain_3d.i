@@ -8,12 +8,27 @@
   []
 []
 
-[NEMLMechanics]
-  displacements = "disp_x disp_y disp_z"
-  kinematics = small
-  add_all_output = true
-  eigenstrains = 'thermal'
+[GlobalParams]
+  displacements = 'disp_x disp_y disp_z'
 []
+
+[Modules]
+  [TensorMechanics]
+    [Master]
+      [all]
+        strain = SMALL
+        add_variables = true
+        new_system = true
+        formulation = UPDATED
+        volumetric_locking_correction = true
+        generate_output = 'cauchy_stress_xx cauchy_stress_yy cauchy_stress_zz cauchy_stress_xy '
+                          'cauchy_stress_xz cauchy_stress_yz mechanical_strain_xx mechanical_strain_yy mechanical_strain_zz mechanical_strain_xy '
+                          'mechanical_strain_xz mechanical_strain_yz'
+        eigenstrain_names = 'thermal'
+      []
+    []
+  []
+[] 
 
 [BCs]
   [./x]
@@ -69,10 +84,9 @@
 
 [Materials]
   [./stress]
-    type = ComputeNEMLStressUpdate
+    type = CauchyStressFromNEML
     database = "test.xml"
     model = "elastic_model"
-    large_kinematics = false
   [../]
 
   [./thermal_strain]

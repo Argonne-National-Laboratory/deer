@@ -17,7 +17,10 @@ TensorRateMaterial::TensorRateMaterial(const InputParameters &parameters)
       _tensor_old(getMaterialPropertyOld<RankTwoTensor>(
           getParam<MaterialPropertyName>("rank_two_tensor"))),
       _tensor_rate(declareProperty<RankTwoTensor>(
-          getParam<MaterialPropertyName>("rank_two_tensor") + "_rate")) {}
+          getParam<MaterialPropertyName>("rank_two_tensor") + "_rate")) 
+{
+
+}
 
 void TensorRateMaterial::computeQpProperties() {
   _tensor_rate[_qp] = (_tensor[_qp] - _tensor_old[_qp]) / _dt;

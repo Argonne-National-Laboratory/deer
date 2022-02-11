@@ -11,7 +11,7 @@
     input = 'rank_two_tensor_integral_on_domain.i'
     csvdiff = 'rank_two_tensor_integral_two_tensors_out.csv'
     requirement = "The RankTwoTensorIntegralOnDomain action shall add all the required postprocessor for each provided rank two tensor and compute the proper integral."
-    cli_args = "Postprocessors/inactive='area area0 volume volume0'    RankTwoTensorIntegralOnDomain/integral1/rank_two_tensor='stress elastic_strain' RankTwoTensorIntegralOnDomain/integral1/base_out_names='stress elastic_strain' RankTwoTensorIntegralOnDomain/inactive='integral2' Outputs/file_base=rank_two_tensor_integral_two_tensors_out"
+    cli_args = "Postprocessors/inactive='area area0 volume volume0'    RankTwoTensorIntegralOnDomain/integral1/rank_two_tensor='cauchy_stress elastic_strain' RankTwoTensorIntegralOnDomain/integral1/base_out_names='stress elastic_strain' RankTwoTensorIntegralOnDomain/inactive='integral2' Outputs/file_base=rank_two_tensor_integral_two_tensors_out"
   [../]
   [./rank_two_tensor_integral_on_volume_scaled]
     type = CSVDiff

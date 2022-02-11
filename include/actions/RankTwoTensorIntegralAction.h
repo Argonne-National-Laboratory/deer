@@ -21,7 +21,7 @@ protected:
 
   // map between tensor components and names
   const std::map<std::pair<int, int>, std::string> _tensor_map = {
-      {std::make_pair(0, 0), "x-x"}, {std::make_pair(1, 1), "y-y"},
-      {std::make_pair(2, 2), "z-z"}, {std::make_pair(0, 1), "x-y"},
-      {std::make_pair(0, 2), "x-z"}, {std::make_pair(1, 2), "y-z"}};
+      {std::make_pair(0, 0), "xx"}, {std::make_pair(1, 1), "yy"},
+      {std::make_pair(2, 2), "zz"}, {std::make_pair(0, 1), "xy"},
+      {std::make_pair(0, 2), "xz"}, {std::make_pair(1, 2), "yz"}};
 };

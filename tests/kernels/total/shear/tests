@@ -1,8 +1,0 @@
-[Tests]
-  [./truesdell]
-    type = Exodiff
-    input = 'objective_shear.i'
-    exodiff = 'objective_shear_out.e'
-    requirement = "Classical demonstration that the shear stress/strain response remains linear for a Truesdell rate."
-  [../]
-[]

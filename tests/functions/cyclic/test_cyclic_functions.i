@@ -48,19 +48,19 @@
 
 [Kernels]
   [./sdx]
-      type = StressDivergenceNEML
+      type = UpdatedLagrangianStressDivergence
       variable = disp_x
       component = 0
       block = 0
   [../]
   [./sdy]
-      type = StressDivergenceNEML
+      type = UpdatedLagrangianStressDivergence
       variable = disp_y
       component = 1
       block = 0
   [../]
   [./sdz]
-      type = StressDivergenceNEML
+      type = UpdatedLagrangianStressDivergence
       variable = disp_z
       component = 2
       block = 0
@@ -171,10 +171,10 @@
 
 [Materials]
   [./strain]
-    type = ComputeNEMLStrain
+    type = ComputeLagrangianStrain
   [../]
   [./stress1]
-    type = ComputeNEMLStressUpdate
+    type = CauchyStressFromNEML
     database = "simple_elastic.xml"
     model = "simple_elastic"
     block = 0

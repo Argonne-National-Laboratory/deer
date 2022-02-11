@@ -37,26 +37,22 @@
   []
 []
 
-[Kernels]
-  [./sdx]
-      type = StressDivergenceNEML
-      variable = disp_x
-      component = 0
-      use_displaced_mesh = true
-  [../]
-  [./sdy]
-      type = StressDivergenceNEML
-      variable = disp_y
-      component = 1
-      use_displaced_mesh = true
-  [../]
-  [./sdz]
-      type = StressDivergenceNEML
-      variable = disp_z
-      component = 2
-      use_displaced_mesh = true
-  [../]
-[]
+[Modules]
+  [TensorMechanics]
+    [Master]
+      [all]
+        strain = FINITE
+        add_variables = true
+        new_system = true
+        formulation = UPDATED
+        volumetric_locking_correction = true
+        generate_output = 'cauchy_stress_xx cauchy_stress_yy cauchy_stress_zz cauchy_stress_xy '
+                          'cauchy_stress_xz cauchy_stress_yz mechanical_strain_xx mechanical_strain_yy mechanical_strain_zz mechanical_strain_xy '
+                          'mechanical_strain_xz mechanical_strain_yz'
+      []
+    []
+  []
+[] 
 
 [AuxVariables]
   [./stress_zz]
@@ -123,7 +119,7 @@
 [AuxKernels]
   [./stress_zz]
     type = RankTwoAux
-    rank_two_tensor = stress
+    rank_two_tensor = cauchy_stress
     variable = stress_zz
     index_i = 2
     index_j = 2
@@ -132,12 +128,8 @@
 []
 
 [Materials]
-  [./strain]
-    type = ComputeNEMLStrain
-    large_kinematics = true
-  [../]
   [./stress]
-    type = ComputeNEMLStressUpdate
+    type = CauchyStressFromNEML
     database = "test.xml"
     model = "elastic_model"
     large_kinematics = true
@@ -172,7 +164,7 @@
   [../]
   [./s_def_new]
     type = MaterialTensorIntegralScaled
-    rank_two_tensor = stress
+    rank_two_tensor = cauchy_stress
     index_i = 2
     index_j = 2
     execute_on = 'TIMESTEP_END'
@@ -180,7 +172,7 @@
   [../]
   [./s_undef_new]
     type = MaterialTensorIntegralScaled
-    rank_two_tensor = stress
+    rank_two_tensor = cauchy_stress
     index_i = 2
     index_j = 2
     execute_on = 'TIMESTEP_END'
@@ -211,7 +203,7 @@
   [../]
   [./s_def_interface_new]
     type = MaterialTensorIntegralInterfaceScaled
-    rank_two_tensor = stress
+    rank_two_tensor = cauchy_stress
     index_i = 2
     index_j = 2
     boundary = interface
@@ -221,7 +213,7 @@
   [../]
   [./s_undef_interface_new]
     type = MaterialTensorIntegralInterfaceScaled
-    rank_two_tensor = stress
+    rank_two_tensor = cauchy_stress
     index_i = 2
     index_j = 2
     boundary = interface

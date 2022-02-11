@@ -25,7 +25,7 @@ InputParameters EffectiveStressAux::validParams() {
 
 EffectiveStressAux::EffectiveStressAux(const InputParameters &parameters)
     : NodalPatchRecovery(parameters),
-      _tensor(getMaterialProperty<RankTwoTensor>("stress")),
+      _tensor(getMaterialProperty<RankTwoTensor>("cauchy_stress")),
       _effective_stress_type(getParam<MooseEnum>("effective_stress_type")),
       _params_vector(getParam<std::vector<Real>>("params_vector")) {
   if (_effective_stress_type == 2 && _params_vector.size() != 1)

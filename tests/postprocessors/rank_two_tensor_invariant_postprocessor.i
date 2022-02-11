@@ -21,27 +21,41 @@
   []
 []
 
-[NEMLMechanics]
-  displacements = "disp_x disp_y disp_z"
-  kinematics = small
-  add_all_output = true
-  add_displacements = true
+[GlobalParams]
+  displacements = 'disp_x disp_y disp_z'
 []
+
+[Modules]
+  [TensorMechanics]
+    [Master]
+      [all]
+        strain = SMALL
+        add_variables = true
+        new_system = true
+        formulation = UPDATED
+        volumetric_locking_correction = true
+        generate_output = 'cauchy_stress_xx cauchy_stress_yy cauchy_stress_zz cauchy_stress_xy '
+                          'cauchy_stress_xz cauchy_stress_yz mechanical_strain_xx mechanical_strain_yy mechanical_strain_zz mechanical_strain_xy '
+                          'mechanical_strain_xz mechanical_strain_yz'
+      []
+    []
+  []
+[] 
 
 [Materials]
   [./stress]
-    type = ComputeNEMLStressUpdate
+    type = CauchyStressFromNEML
     database = "../test_materials.xml"
     model = "elastic_model"
     large_kinematics = false
   [../]
   [./tensor_rate]
     type = TensorRateMaterial
-    rank_two_tensor = stress
+    rank_two_tensor = cauchy_stress
   []
   [s_vm_aux]
     type = RankTwoInvariant
-    rank_two_tensor = stress
+    rank_two_tensor = cauchy_stress
     invariant =  'VonMisesStress'
     property_name = s_vm
   []
@@ -106,9 +120,9 @@
 
 [RankTwoTensorIntegralOnDomain]
   [integral1]
-    rank_two_tensor = 'stress'
+    rank_two_tensor = 'cauchy_stress'
     use_displaced_mesh = true
-    base_out_names = 'stress'
+    base_out_names = 'cauchy_stress'
   []
 []
 
@@ -116,7 +130,7 @@
   [s_mises_new_pp]
     type = RankTwoTensorInvariantPostprocessor
     invariant = 'VonMisesStress'
-    rank_two_tensor_base_name = 'stress'
+    rank_two_tensor_base_name = 'cauchy_stress'
     use_displaced_mesh = true
   []
   [sdef_old]
