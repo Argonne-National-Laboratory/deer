@@ -142,8 +142,6 @@ CauchyStressFromNEML::initQpStatefulProperties()
   
   int ier;
   _history[_qp].resize(_model->nstore());
-  if (ier != neml::SUCCESS) 
-    mooseError("Error sizing history vector for NEML!");
   // This is only needed because MOOSE whines about zero sized vectors
   // that are not initialized
   if (_history[_qp].size() > 0)
