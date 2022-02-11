@@ -39,7 +39,6 @@ CauchyStressFromNEML::CauchyStressFromNEML(const InputParameters & parameters)
 {
   // Should raise an exception if it does not work
   _model = neml::parse_xml_unique(_fname, _mname);
-  std::cout << _large_kinematics << std::endl;
 }
 
 void
