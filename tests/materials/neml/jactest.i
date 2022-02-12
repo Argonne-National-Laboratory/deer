@@ -1,15 +1,17 @@
-[Mesh]
-  [./msh]
-  type = GeneratedMeshGenerator
-  dim = 3
-  nx = 4
-  ny = 4
-  nz = 4
-  []
-[]
+# Simple 3D test
 
 [GlobalParams]
   displacements = 'disp_x disp_y disp_z'
+[]
+
+[Mesh]
+  [msh]
+    type = GeneratedMeshGenerator
+    dim = 3
+    nx = 4
+    ny = 4
+    nz = 4
+  []
 []
 
 [Modules]
@@ -24,86 +26,103 @@
         generate_output = 'cauchy_stress_xx cauchy_stress_yy cauchy_stress_zz cauchy_stress_xy '
                           'cauchy_stress_xz cauchy_stress_yz mechanical_strain_xx mechanical_strain_yy mechanical_strain_zz mechanical_strain_xy '
                           'mechanical_strain_xz mechanical_strain_yz'
-        eigenstrain_names = 'thermal'
       []
     []
   []
-[] 
+[]
+
+[ICs]
+  [disp_x]
+    type = RandomIC
+    variable = disp_x
+    min = -0.02
+    max = 0.02
+  []
+  [disp_y]
+    type = RandomIC
+    variable = disp_y
+    min = -0.02
+    max = 0.02
+  []
+  [disp_z]
+    type = RandomIC
+    variable = disp_z
+    min = -0.02
+    max = 0.02
+  []
+[]
+
+[Functions]
+  [pullx]
+    type = ParsedFunction
+    value = '4000 * t'
+  []
+  [pully]
+    type = ParsedFunction
+    value = '-2000 * t'
+  []
+  [pullz]
+    type = ParsedFunction
+    value = '3000 * t'
+  []
+[]
 
 [BCs]
-  [./x]
+  [leftx]
     type = DirichletBC
     preset = true
     boundary = left
     variable = disp_x
     value = 0.0
-  [../]
-  [./right]
+  []
+  [lefty]
     type = DirichletBC
     preset = true
-    boundary = right
-    variable = disp_x
-    value = 0.0
-  [../]
-  [./y]
-    type = DirichletBC
-    preset = true
-    boundary = bottom
+    boundary = left
     variable = disp_y
     value = 0.0
-  [../]
-  [./z]
+  []
+  [leftz]
     type = DirichletBC
-     preset = true
-    boundary = back
+    preset = true
+    boundary = left
     variable = disp_z
     value = 0.0
-  [../]
-[]
-
-[AuxVariables]
-  [./T]
-    initial_condition = 0
-  [../]
-[]
-
-[AuxKernels]
-  [./temp]
-    type = FunctionAux
-    variable = T
-    function = temperature
-  [../]
-[]
-
-[Functions]
-  [./temperature]
-    type = ParsedFunction
-    value = 100.0*t
-  [../]
+  []
+  [pull_x]
+    type = FunctionNeumannBC
+    boundary = right
+    variable = disp_x
+    function = pullx
+  []
+  [pull_y]
+    type = FunctionNeumannBC
+    boundary = top
+    variable = disp_y
+    function = pully
+  []
+  [pull_z]
+    type = FunctionNeumannBC
+    boundary = right
+    variable = disp_z
+    function = pullz
+  []
 []
 
 [Materials]
   [./stress]
     type = CauchyStressFromNEML
-    database = "test.xml"
+    database = "../../test_materials.xml"
     model = "elastic_model"
-  [../]
-
-  [./thermal_strain]
-    type = ComputeThermalExpansionEigenstrainNEML
-    database = "test.xml"
-    model = "elastic_model"
-    temperature = T
-    eigenstrain_name = thermal
-    stress_free_temperature = 0
+    large_kinematics = false
   [../]
 []
 
 [Preconditioning]
-  [./smp]
+  [smp]
     type = SMP
     full = true
-  [../]
+  []
 []
 
 [Executioner]
@@ -121,10 +140,8 @@
   nl_rel_tol = 1e-8
   nl_abs_tol = 1e-10
 
-  dt = 1
+  start_time = 0.0
+  dt = 1.0
+  dtmin = 1.0
   end_time = 1.0
-[]
-
-[Outputs]
-  exodus = true
 []

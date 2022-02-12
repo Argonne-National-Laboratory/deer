@@ -93,8 +93,8 @@ GBCavitation::GBCavitation(const InputParameters &parameters)
     : CZMComputeLocalTractionIncrementalBase(parameters),
       _ndisp(_mesh.dimension()),
       _use_old_bulk_property(getParam<bool>("use_old_bulk_property")),
-      _stress_master(getMaterialPropertyByName<RankTwoTensor>("stress")),
-      _stress_slave(getNeighborMaterialPropertyByName<RankTwoTensor>("stress")),
+      _stress_master(getMaterialPropertyByName<RankTwoTensor>("cauchy_stress")),
+      _stress_slave(getNeighborMaterialPropertyByName<RankTwoTensor>("cauchy_stress")),
       _inelastic_strain_master(
           getMaterialPropertyByName<RankTwoTensor>("inelastic_strain")),
       _inelastic_strain_slave(

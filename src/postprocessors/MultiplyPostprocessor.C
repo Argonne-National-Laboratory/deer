@@ -11,9 +11,8 @@
 
 registerMooseObject("DeerApp", MultiplyPostprocessor);
 
-defineLegacyParams(MultiplyPostprocessor);
-
-InputParameters MultiplyPostprocessor::validParams() {
+InputParameters 
+MultiplyPostprocessor::validParams() {
   InputParameters params = GeneralPostprocessor::validParams();
   params.addRequiredParam<PostprocessorName>("value1", "First value");
   params.addRequiredParam<PostprocessorName>("value2", "Second value");

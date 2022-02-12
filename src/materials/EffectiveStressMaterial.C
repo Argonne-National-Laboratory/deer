@@ -32,7 +32,7 @@ InputParameters EffectiveStressMaterial::validParams() {
 EffectiveStressMaterial::EffectiveStressMaterial(
     const InputParameters &parameters)
     : Material(parameters),
-      _stress(getMaterialPropertyByName<RankTwoTensor>("stress")),
+      _stress(getMaterialPropertyByName<RankTwoTensor>("cauchy_stress")),
       _effective_stress(declareProperty<Real>(
           getParam<MaterialPropertyName>("effective_stress_mp_name"))),
       _effective_stress_type(getParam<MooseEnum>("effective_stress_type")),

@@ -18,9 +18,21 @@
   displacements = 'disp_x disp_y disp_z'
 []
 
-[NEMLMechanics]
-  kinematics = small
-  add_all_output = true
+[Modules]
+  [TensorMechanics]
+    [Master]
+      [all]
+        strain = SMALL
+        add_variables = true
+        new_system = true
+        formulation = UPDATED
+        volumetric_locking_correction = true
+        generate_output = 'cauchy_stress_xx cauchy_stress_yy cauchy_stress_zz cauchy_stress_xy '
+                          'cauchy_stress_xz cauchy_stress_yz strain_xx strain_yy strain_zz strain_xy '
+                          'strain_xz strain_yz'
+      []
+    []
+  []
 []
 
 [BCs]
@@ -53,13 +65,13 @@
 
 [Materials]
   [./stress_0]
-    type = ComputeNEMLStressUpdate
+    type = CauchyStressFromNEML
     database = neml_model.xml
     model = model_1
     block = 0
   [../]
   [./stress_1]
-    type = ComputeNEMLStressUpdate
+    type = CauchyStressFromNEML
     database = neml_model.xml
     model = model_2
     block = 1

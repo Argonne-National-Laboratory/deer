@@ -19,8 +19,12 @@
 []
 [UserObjects]
   [./euler_angle_file]
-    type = EulerAngleFileReader
-    file_name = 2gr_Euler.tex
+    type = ElementPropertyReadFile
+    nprop = 3
+    prop_file_name = 2gr_Euler.tex
+    read_type = block
+    nblock = 2
+    blocks_zero_numbered = false
   [../]
 []
 [BCs]
@@ -84,65 +88,56 @@
 [AuxKernels]
   [q1]
     type = MaterialStdVectorAux
-    property  = orientation_q
+    property  = orientation
     index = 0
     variable  = orientation_q1
   [../]
   [q2]
     type = MaterialStdVectorAux
-    property  = orientation_q
+    property  = orientation
     index = 1
     variable  = orientation_q2
   [../]
   [q3]
     type = MaterialStdVectorAux
-    property  = orientation_q
+    property  = orientation
     index = 2
     variable  = orientation_q3
   [../]
   [q4]
     type = MaterialStdVectorAux
-    property  = orientation_q
+    property  = orientation
     index = 3
     variable  = orientation_q4
   [../]
 []
 
 [Materials]
-  [./strain]
-    type = ComputeNEMLStrain
-    large_kinematics = true
-  [../]
   [./stress1]
-    type = ComputeNEMLCPOutput
+    type = NEMLCrystalPlasticity
     database = "test.xml"
     model = "grain_1"
     large_kinematics = true
-    euler_angle_provider = euler_angle_file
-    # block = 1
-    # grain_id = 0
+    euler_angle_reader = euler_angle_file
   [../]
 []
-[Kernels]
-  [./sdx]
-      type = StressDivergenceNEML
-      variable = disp_x
-      component = 0
-      use_displaced_mesh = true
-  [../]
-  [./sdy]
-      type = StressDivergenceNEML
-      variable = disp_y
-      component = 1
-      use_displaced_mesh = true
-  [../]
-  [./sdz]
-      type = StressDivergenceNEML
-      variable = disp_z
-      component = 2
-      use_displaced_mesh = true
-  [../]
-[]
+
+[Modules]
+  [TensorMechanics]
+    [Master]
+      [all]
+        strain = FINITE
+        add_variables = true
+        new_system = true
+        formulation = TOTAL
+        volumetric_locking_correction = true
+        generate_output = 'cauchy_stress_xx cauchy_stress_yy cauchy_stress_zz cauchy_stress_xy '
+                          'cauchy_stress_xz cauchy_stress_yz mechanical_strain_xx mechanical_strain_yy mechanical_strain_zz mechanical_strain_xy '
+                          'mechanical_strain_xz mechanical_strain_yz'
+      []
+    []
+  []
+[] 
 
 [Preconditioning]
   [./smp]
@@ -155,12 +150,11 @@
   type = Transient
 
   solve_type = 'newton'
-  line_search = none
 
   petsc_options_iname = '-pc_type'
   petsc_options_value = 'lu'
 
-  nl_max_its = 7
+  nl_max_its = 20
   nl_rel_tol = 1e-8
   nl_abs_tol = 1e-10
 

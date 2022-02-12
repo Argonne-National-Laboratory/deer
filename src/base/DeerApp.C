@@ -4,15 +4,6 @@
 #include "Moose.h"
 #include "MooseSyntax.h"
 
-// New functions
-#include "CapGradient.h"
-#include "ThicknessGradient.h"
-
-// New materials
-#include "ComputeNEMLStress.h"
-#include "ComputeRadiationSwellingEigenstrain.h"
-#include "ComputeThermalExpansionEigenstrainNEML.h"
-
 InputParameters DeerApp::validParams() {
   InputParameters params = MooseApp::validParams();
   return params;

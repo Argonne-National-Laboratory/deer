@@ -16,29 +16,42 @@
   [./boundary]
     type = SideSetsBetweenSubdomainsGenerator
     input = new_block
-    master_block = '0 1'
+    primary_block = '0 1'
     paired_block = 1
     new_boundary = 'interface'
   []
 []
 
-[NEMLMechanics]
-  displacements = "disp_x disp_y disp_z"
-  kinematics = small
-  add_all_output = true
-  add_displacements = true
+[Modules]
+  [TensorMechanics]
+    [Master]
+      [all]
+        strain = SMALL
+        add_variables = true
+        new_system = true
+        formulation = UPDATED
+        volumetric_locking_correction = true
+        generate_output = 'cauchy_stress_xx cauchy_stress_yy cauchy_stress_zz cauchy_stress_xy '
+                          'cauchy_stress_xz cauchy_stress_yz mechanical_strain_xx mechanical_strain_yy mechanical_strain_zz mechanical_strain_xy '
+                          'mechanical_strain_xz mechanical_strain_yz'
+      []
+    []
+  []
+[] 
+
+[GlobalParams]
+  displacements = 'disp_x disp_y disp_z'
 []
 
 [Materials]
   [./stress]
-    type = ComputeNEMLStressUpdate
+    type = CauchyStressFromNEML
     database = "../../test_materials.xml"
     model = "elastic_model"
-    large_kinematics = false
   [../]
   [./tensor_rate]
     type = TensorRateMaterial
-    rank_two_tensor = stress
+    rank_two_tensor = cauchy_stress
    []
 []
 
@@ -118,21 +131,21 @@
 [AuxKernels]
   [./sdot_xx]
     type = RankTwoAux
-    rank_two_tensor = stress_rate
+    rank_two_tensor = cauchy_stress_rate
     variable = sdot_xx
     index_i = 0
     index_j = 0
   [../]
   [./sdot_yy]
     type = RankTwoAux
-    rank_two_tensor = stress_rate
+    rank_two_tensor = cauchy_stress_rate
     variable = sdot_yy
     index_i = 1
     index_j = 1
   [../]
   [./sdot_zz]
     type = RankTwoAux
-    rank_two_tensor = stress_rate
+    rank_two_tensor = cauchy_stress_rate
     variable = sdot_zz
     index_i = 2
     index_j = 2
@@ -154,15 +167,15 @@
   [../]
   [./s_xx]
     type = ElementAverageValue
-    variable = stress_x-x
+    variable = cauchy_stress_xx
   [../]
   [./s_yy]
     type = ElementAverageValue
-    variable = stress_y-y
+    variable = cauchy_stress_yy
   [../]
   [./s_zz]
     type = ElementAverageValue
-    variable = stress_z-z
+    variable = cauchy_stress_zz
   [../]
 []
 

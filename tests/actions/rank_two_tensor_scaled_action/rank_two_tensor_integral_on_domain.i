@@ -31,7 +31,7 @@
   [./interface]
     type = SideSetsBetweenSubdomainsGenerator
     input = new_block
-    master_block = 0
+    primary_block = 0
     paired_block = 1
     new_boundary = 'interface'
   []
@@ -89,7 +89,7 @@
 
 [Materials]
   [./stress]
-    type = ComputeNEMLStressUpdate
+    type = CauchyStressFromNEML
     database = "test.xml"
     model = "elastic_model"
     large_kinematics = true
@@ -103,12 +103,22 @@
   [../]
 []
 
-[NEMLMechanics]
-  displacements = 'disp_x disp_y disp_z'
-  kinematics = large
-  add_all_output = true
-  add_displacements = true
-[]
+[Modules]
+  [TensorMechanics]
+    [Master]
+      [all]
+        strain = FINITE
+        add_variables = true
+        new_system = true
+        formulation = UPDATED
+        volumetric_locking_correction = false
+        generate_output = 'cauchy_stress_xx cauchy_stress_yy cauchy_stress_zz cauchy_stress_xy '
+                          'cauchy_stress_xz cauchy_stress_yz mechanical_strain_xx mechanical_strain_yy mechanical_strain_zz mechanical_strain_xy '
+                          'mechanical_strain_xz mechanical_strain_yz'
+      []
+    []
+  []
+[] 
 
 [Postprocessors]
   [./area]
@@ -133,12 +143,12 @@
 
 [RankTwoTensorIntegralOnDomain]
   [integral1]
-    rank_two_tensor = 'stress'
+    rank_two_tensor = 'cauchy_stress'
     use_displaced_mesh = true
     base_out_names = 'stress_int1'
   []
   [integral2]
-    rank_two_tensor = 'stress'
+    rank_two_tensor = 'cauchy_stress'
     use_displaced_mesh = true
     base_out_names = 'stress_int2'
   []

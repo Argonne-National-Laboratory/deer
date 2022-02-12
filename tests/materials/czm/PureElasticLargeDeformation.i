@@ -24,11 +24,21 @@
   displacements = 'disp_x disp_y disp_z'
 []
 
-[NEMLMechanics]
-  displacements = 'disp_x disp_y disp_z'
-  kinematics = small
-  add_all_output = true
-  add_displacements = true
+[Modules]
+  [TensorMechanics]
+    [Master]
+      [all]
+        strain = FINITE
+        add_variables = true
+        new_system = true
+        formulation = TOTAL
+        volumetric_locking_correction = false
+        generate_output = 'cauchy_stress_xx cauchy_stress_yy cauchy_stress_zz cauchy_stress_xy '
+                          'cauchy_stress_xz cauchy_stress_yz mechanical_strain_xx mechanical_strain_yy mechanical_strain_zz mechanical_strain_xy '
+                          'mechanical_strain_xz mechanical_strain_yz'
+      []
+    []
+  []
 []
 
 [Modules/TensorMechanics/CohesiveZoneMaster]
@@ -41,10 +51,10 @@
 []
 [Materials]
   [./stress]
-    type = ComputeNEMLStressUpdate
+    type = CauchyStressFromNEML 
     database = "../../neml_test_material.xml"
     model = "elastic_model"
-    large_kinematics = false
+    large_kinematics = true
   [../]
   [./czm]
     # nothing need to changed in cohesive material to use large deformations
@@ -68,7 +78,6 @@
   type = Transient
 
   solve_type = 'newton'
-  line_search = none
 
   petsc_options_iname = '-pc_type'
   petsc_options_value = 'lu'

@@ -27,12 +27,22 @@
   displacements = 'disp_x disp_y disp_z'
 []
 
-[NEMLMechanics]
-  kinematics = large
-  add_all_output = true
-  add_displacements = true
-  formulation = total
-[]
+[Modules]
+  [TensorMechanics]
+    [Master]
+      [all]
+        strain = FINITE
+        new_system = true
+        add_variables = true
+        formulation = TOTAL
+        volumetric_locking_correction = false
+        generate_output = 'cauchy_stress_xx cauchy_stress_yy cauchy_stress_zz cauchy_stress_xy '
+                          'cauchy_stress_xz cauchy_stress_yz mechanical_strain_xx mechanical_strain_yy mechanical_strain_zz mechanical_strain_xy '
+                          'mechanical_strain_xz mechanical_strain_yz'
+      []
+    []
+  []
+[] 
 
 #output some material propertiy from the cavitation model
 [AuxVariables]
@@ -170,19 +180,22 @@
 
 [UserObjects]
   [euler_angle_file]
-    # read the euler angles and use them to setup the bulk model
-    type = EulerAngleFileReader
-    file_name = grn_10_rand.tex
-  []
+    type = ElementPropertyReadFile
+    nprop = 3
+    prop_file_name = grn_10_rand.tex
+    read_type = block
+    nblock = 10
+    blocks_zero_numbered = false
+  [../]
 []
 [Materials]
   [stress]
     # define the bulk material model, euler angles for each grain come from the `euler_angle_file` UserObjects
-    type = ComputeNEMLCPOutput
+    type = NEMLCrystalPlasticity
     database = "Gr91.xml"
     model = "Gr91"
     large_kinematics = true
-    euler_angle_provider = euler_angle_file
+    euler_angle_reader = euler_angle_file
   []
   [ShamNeedleman]
     #setting up the GBcavitation model. Most model paramters have default values that have been calibrated for Grade 91 at 600C. If you want to modify them just list their value in this block. For the complete paramter list see GBCavitation.C

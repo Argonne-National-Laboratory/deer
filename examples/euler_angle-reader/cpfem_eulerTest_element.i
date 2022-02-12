@@ -93,10 +93,8 @@
   [./euler_angle_file]
     type = ElementPropertyReadFile
     nprop = 3
-    prop_file_name = grn_10_rand.tex
-    read_type = block
-    nblock = 10
-    blocks_zero_numbered = false
+    prop_file_name = grn_element_rand.tex
+    read_type = element
   [../]
 []
 [BCs]
