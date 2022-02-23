@@ -139,7 +139,7 @@ CauchyStressFromNEML::initQpStatefulProperties()
 {
   ComputeLagrangianStressCauchy::initQpStatefulProperties();
   
-  int ier;
+  int ier = 0;
   _history[_qp].resize(_model->nstore());
   // This is only needed because MOOSE whines about zero sized vectors
   // that are not initialized

@@ -505,7 +505,7 @@ void GBCavitation::tractionDecay() {
 
   const Real decay_factor =
       std::exp((_time_at_failure[_qp] - _t) / (_residual_life[_qp] / 5.));
-  for (int i = 0; i < _ndisp; i++) {
+  for (unsigned int i = 0; i < _ndisp; i++) {
     Real C = std::max(
         std::abs(_traction_at_failure[_qp](i) / _jump_at_failure[_qp](i)) *
             decay_factor,
@@ -517,7 +517,7 @@ void GBCavitation::tractionDecay() {
                                       C +
                                   _traction_at_failure[_qp](i) * decay_factor;
 
-    for (int j = 0; j < _ndisp; j++) {
+    for (unsigned int j = 0; j < _ndisp; j++) {
       if (i == j) {
         _dinterface_traction_djump[_qp](i, j) = C;
         if (i == 0) {
