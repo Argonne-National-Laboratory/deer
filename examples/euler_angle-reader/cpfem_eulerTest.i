@@ -96,7 +96,7 @@
     prop_file_name = grn_10_rand.tex
     read_type = block
     nblock = 10
-    blocks_zero_numbered = false
+    use_zero_based_block_indexing = false
   [../]
 []
 [BCs]
