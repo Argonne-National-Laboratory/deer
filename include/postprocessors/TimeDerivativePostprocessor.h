@@ -13,8 +13,6 @@
 
 class TimeDerivativePostprocessor;
 
-template <> InputParameters validParams<TimeDerivativePostprocessor>();
-
 /**
  * Computes the time derivative of Postprocessor, i.e. (v-v_old)/dt
  */

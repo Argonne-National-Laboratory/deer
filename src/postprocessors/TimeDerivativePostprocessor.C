@@ -11,9 +11,8 @@
 
 registerMooseObject("MooseApp", TimeDerivativePostprocessor);
 
-defineLegacyParams(TimeDerivativePostprocessor);
-
-InputParameters TimeDerivativePostprocessor::validParams() {
+InputParameters 
+TimeDerivativePostprocessor::validParams() {
   InputParameters params = GeneralPostprocessor::validParams();
   params.addClassDescription("Compute the time derivative of a postprocessor");
   params.addRequiredParam<PostprocessorName>("postprocessor",
