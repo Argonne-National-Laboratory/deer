@@ -41,6 +41,8 @@ class CauchyStressFromNEML : public ComputeLagrangianStressCauchy
 
   MaterialProperty<RankTwoTensor> & _inelastic_strain;
   MaterialProperty<RankTwoTensor> & _elastic_strain;
+
+  MaterialProperty<Real> & _dissipation_rate;
 };
 
 /// Tensor -> Mandel
