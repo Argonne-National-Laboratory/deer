@@ -35,7 +35,8 @@ CauchyStressFromNEML::CauchyStressFromNEML(const InputParameters & parameters)
                                                                 "mechanical_strain")),
     _inelastic_strain(declareProperty<RankTwoTensor>(_base_name + "inelastic_strain")),
     _elastic_strain(declareProperty<RankTwoTensor>(_base_name +
-                                                   "elastic_strain"))
+                                                   "elastic_strain")),
+    _dissipation_rate(declareProperty<Real>(_base_name + "dissipation_rate"))
 {
   // Should raise an exception if it does not work
   _model = neml::parse_xml_unique(_fname, _mname);
@@ -129,6 +130,7 @@ CauchyStressFromNEML::computeQpCauchyStress()
   recombine_tangent(A_np1, B_np1, _cauchy_jacobian[_qp]);
   _energy[_qp] = u_np1;
   _dissipation[_qp] = p_np1;
+  _dissipation_rate[_qp] = (p_np1 - p_n) / (t_np1 - t_n);
   
   neml_tensor(estrain, _elastic_strain[_qp]);
   _inelastic_strain[_qp] = _mechanical_strain[_qp] - _elastic_strain[_qp];
@@ -139,7 +141,7 @@ CauchyStressFromNEML::initQpStatefulProperties()
 {
   ComputeLagrangianStressCauchy::initQpStatefulProperties();
   
-  int ier;
+  int ier = 0;
   _history[_qp].resize(_model->nstore());
   // This is only needed because MOOSE whines about zero sized vectors
   // that are not initialized
@@ -152,6 +154,7 @@ CauchyStressFromNEML::initQpStatefulProperties()
 
   _energy[_qp] = 0.0;
   _dissipation[_qp] = 0.0;
+  _dissipation_rate[_qp] = 0.0;
 }
 
 void tensor_neml(const RankTwoTensor &in, double *const out) {
