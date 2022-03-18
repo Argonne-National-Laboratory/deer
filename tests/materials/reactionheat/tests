@@ -5,4 +5,10 @@
     csvdiff = 'heat_out.csv'
     requirement = 'Integrated power matches exact formula'
   [../]
+  [./check_irreversible]
+    type = CSVDiff
+    input = 'irreversible.i'
+    csvdiff = 'irreversible_out.csv'
+    requirement = 'Reaction does not run in reverse'
+  [../]
 []
