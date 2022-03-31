@@ -29,4 +29,10 @@
     csvdiff = 'czm_area_postprocessor_out.csv'
     requirement = "The CZMAreaPostprocessor shall properly compute the cohesive zone for large area cahnges and rotations."
   [../]
+  [./surface_extreme]
+    type = CSVDiff
+    input = 'surface_extreme.i'
+    csvdiff = 'surface_extreme_out.csv'
+    requirement = "The SideExtremePostprocess will correct calculate minimum and maximum values on surfaces."
+  [../]
 []
