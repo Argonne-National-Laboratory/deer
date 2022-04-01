@@ -107,7 +107,10 @@
 []
 
 [Executioner]
-  type = Steady
+  type = Transient
+
+  end_time = 1.0
+  dt = 1.0
 
   solve_type = NEWTON
   line_search = none
