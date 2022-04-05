@@ -25,5 +25,5 @@ AdiabaticHeating::AdiabaticHeating(const InputParameters & parameters) :
 Real
 AdiabaticHeating::computeQpResidual()
 {
-  return _test[_i][_qp] * _fraction * _heat[_qp];
+  return -_test[_i][_qp] * _fraction * _heat[_qp];
 }

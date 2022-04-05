@@ -73,7 +73,6 @@
     type = MaterialRealAux
     variable = reaction_heat
     property = "reaction_power"
-    execute_on = TIMESTEP_END
   [../]
 []
 
@@ -92,8 +91,8 @@
   nl_rel_tol = 1e-6
   nl_abs_tol = 1e-8
 
-  dt = 1.0
-  end_time = 500.0
+  dt = 10.0
+  end_time = 200.0
 []
 
 [Outputs]
