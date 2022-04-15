@@ -26,18 +26,28 @@ protected:
   virtual void initQpStatefulProperties() override;
 
   virtual void computeInterfaceTractionAndDerivatives() override;
+
+  /// Calculate the traction and derivative
+  virtual std::tuple<RealVectorValue, RankTwoTensor> updateState(const
+                                                                 RealVectorValue
+                                                                 & delta);
   
   /// calculate the mode mixity
-  virtual Real modeMixity(const RealVectorValue & delta) const;
+  virtual std::tuple<Real,RealVectorValue> modeMixity(const RealVectorValue & delta) const;
 
   /// calculate the damage
-  virtual Real damage(const Real & delta, const Real & delta_init, const Real & delta_final) const;
+  virtual std::tuple<Real,Real,Real,Real> damage(const Real & delta, const Real & delta_init, 
+                                                 const Real & delta_final) const;
 
   /// calculate the effective displacement
-  virtual Real delta_eff(const RealVectorValue & delta) const;
+  std::tuple<Real, RealVectorValue> deltaEffective(const RealVectorValue & delta) const;
 
   /// calculate the onset and final displacements
-  virtual std::tuple<Real,Real> delta_threshold(const RealVectorValue & delta) const;
+  virtual std::tuple<Real,Real,Real,Real> deltaThreshold(const RealVectorValue & delta, 
+                                                          const Real & beta) const;
+
+  /// Old displacements (for lagging)
+  const MaterialProperty<RealVectorValue> & _interface_displacement_jump_old;
 
   /// penalty elastic stiffness
   const Real _K;
@@ -48,9 +58,6 @@ protected:
   const MaterialProperty<Real> & _d_old;
   ///@}
   
-  /// Old displacement jump
-  const MaterialProperty<RealVectorValue> & _interface_displacement_jump_old;
-
   ///@{
   /// critical Mode I and II fracture toughness
   const Real _GI_C;
@@ -66,13 +73,16 @@ protected:
   /// The B-K power law parameter
   const Real _eta;
 
-  /// mode_mixity_ratio
-  MaterialProperty<Real> & _beta;
-
   /// mixed mode propagation criterion
   enum class MixedModeCriterion
   {
     POWER_LAW,
     BK
   } _criterion;
+
+  /// Lag the calculation of the mode-mixity
+  bool _lag_beta;
+
+  /// Lag the calculation of the damage
+  bool _lag_damage;
 };
