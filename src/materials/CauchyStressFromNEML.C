@@ -104,36 +104,36 @@ CauchyStressFromNEML::computeQpCauchyStress()
   // Tangent
   double A_np1[36];
   double B_np1[18];
-
-  // Call NEML!
-  int ier;
-  if (_large_kinematics) {
-    ier = _model->update_ld_inc(e_np1, e_n, w_np1, w_n, T_np1, T_n, t_np1, t_n,
-                                s_np1, s_n, h_np1, h_n, A_np1, B_np1, u_np1, 
-                                u_n, p_np1, p_n);
-  }
-  else {
-    ier = _model->update_sd(e_np1, e_n, T_np1, T_n, t_np1, t_n, s_np1, s_n, 
-                            h_np1, h_n, A_np1, u_np1, u_n, p_np1, p_n);
-    std::fill(B_np1, B_np1 + 18, 0.0);
-  }
-  if (ier != neml::SUCCESS)
-    throw MooseException("NEML stress update failed!");
-
-  double estrain[6];
-  ier = _model->elastic_strains(s_np1, T_np1, h_np1, estrain);
-  if (ier != neml::SUCCESS)
-    throw MooseException("Error in NEML call for elastic strains!");
-
-  // Translate back from Mandel notation
-  neml_tensor(s_np1, _cauchy_stress[_qp]);
-  recombine_tangent(A_np1, B_np1, _cauchy_jacobian[_qp]);
-  _energy[_qp] = u_np1;
-  _dissipation[_qp] = p_np1;
-  _dissipation_rate[_qp] = (p_np1 - p_n) / (t_np1 - t_n);
   
-  neml_tensor(estrain, _elastic_strain[_qp]);
-  _inelastic_strain[_qp] = _mechanical_strain[_qp] - _elastic_strain[_qp];
+  try {
+    // Call NEML!
+    if (_large_kinematics) {
+       _model->update_ld_inc(e_np1, e_n, w_np1, w_n, T_np1, T_n, t_np1, t_n,
+                                  s_np1, s_n, h_np1, h_n, A_np1, B_np1, u_np1, 
+                                  u_n, p_np1, p_n);
+    }
+    else {
+      _model->update_sd(e_np1, e_n, T_np1, T_n, t_np1, t_n, s_np1, s_n, 
+                              h_np1, h_n, A_np1, u_np1, u_n, p_np1, p_n);
+      std::fill(B_np1, B_np1 + 18, 0.0);
+    }
+
+    double estrain[6];
+    _model->elastic_strains(s_np1, T_np1, h_np1, estrain);
+
+    // Translate back from Mandel notation
+    neml_tensor(s_np1, _cauchy_stress[_qp]);
+    recombine_tangent(A_np1, B_np1, _cauchy_jacobian[_qp]);
+    _energy[_qp] = u_np1;
+    _dissipation[_qp] = p_np1;
+    _dissipation_rate[_qp] = (p_np1 - p_n) / (t_np1 - t_n);
+    
+    neml_tensor(estrain, _elastic_strain[_qp]);
+    _inelastic_strain[_qp] = _mechanical_strain[_qp] - _elastic_strain[_qp];
+  }
+  catch (const neml::NEMLError & e) {
+    throw MooseException("NEML error: " + e.message());
+  }
 }
 
 void
@@ -143,12 +143,15 @@ CauchyStressFromNEML::initQpStatefulProperties()
   
   int ier = 0;
   _history[_qp].resize(_model->nstore());
-  // This is only needed because MOOSE whines about zero sized vectors
-  // that are not initialized
-  if (_history[_qp].size() > 0)
-    ier = _model->init_store(&_history[_qp].front());
-  if (ier != neml::SUCCESS)
-    mooseError("Error setting up NEML model history!");
+  try {
+    // This is only needed because MOOSE whines about zero sized vectors
+    // that are not initialized
+    if (_history[_qp].size() > 0)
+      _model->init_store(&_history[_qp].front());
+  }
+  catch (const neml::NEMLError & e) {
+    throw MooseException("NEML error: " + e.message());
+  }
  
   _linear_rotation[_qp].zero();
 
