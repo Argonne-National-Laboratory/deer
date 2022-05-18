@@ -25,18 +25,18 @@ ComputeThermalExpansionEigenstrainNEML::ComputeThermalExpansionEigenstrainNEML(
   _model = neml::parse_xml_unique(_fname, _mname);
 }
 
-void
-ComputeThermalExpansionEigenstrainNEML::computeThermalStrain(Real & thermal_strain,
-                                                             Real & instantaneous_cte)
+ChainedReal
+ComputeThermalExpansionEigenstrainNEML::computeThermalStrain()
 {
-  double nemlCTE = _model->alpha(_temperature[_qp]);
-  double nemlCTE_old = _model->alpha(_temperature_old[_qp]);
+  Real nemlCTE = _model->alpha(raw_value(_temperature[_qp]));
+  Real nemlCTE_old = _model->alpha(_temperature_old[_qp]);
 
-  thermal_strain =
+  ChainedReal thermal_strain =
       _tstrain_old[_qp] + (nemlCTE + nemlCTE_old) / 2 * (_temperature[_qp] - _temperature_old[_qp]);
 
-  instantaneous_cte = nemlCTE;
-  _tstrain[_qp] = thermal_strain;
+  _tstrain[_qp] = raw_value(thermal_strain);
+
+  return thermal_strain;
 }
 
 void

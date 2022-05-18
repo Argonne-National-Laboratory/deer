@@ -16,7 +16,7 @@ public:
   virtual void initQpStatefulProperties() override;
 
 protected:
-  virtual void computeThermalStrain(Real & thermal_strain, Real & instantaneous_cte) override;
+  virtual ChainedReal computeThermalStrain() override;
 
 protected:
   FileName _fname;
