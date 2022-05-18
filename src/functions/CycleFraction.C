@@ -13,7 +13,9 @@
 
 registerMooseObject("DeerApp", CycleFraction);
 
-InputParameters CycleFraction::validParams() {
+InputParameters
+CycleFraction::validParams()
+{
   InputParameters params = Function::validParams();
   params.addRequiredParam<Real>("cycle_period", "period of the cycle");
   params.addClassDescription("Function providing the cycle fraction given "
@@ -21,10 +23,14 @@ InputParameters CycleFraction::validParams() {
   return params;
 }
 
-CycleFraction::CycleFraction(const InputParameters &parameters)
-    : Function(parameters), _cycle_period(getParam<Real>("cycle_period")) {}
+CycleFraction::CycleFraction(const InputParameters & parameters)
+  : Function(parameters), _cycle_period(getParam<Real>("cycle_period"))
+{
+}
 
-Real CycleFraction::value(Real /*t*/, const Point & /*p*/) const {
+Real
+CycleFraction::value(Real /*t*/, const Point & /*p*/) const
+{
   Real intpart;
   Real fractpart = std::modf(_t / _cycle_period, &intpart);
   return fractpart;

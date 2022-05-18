@@ -12,24 +12,25 @@
 #include "Material.h"
 
 /**
- * Empirical reaction heating 
+ * Empirical reaction heating
  */
-class EmpiricalReactionHeat : public Material {
- public:
+class EmpiricalReactionHeat : public Material
+{
+public:
   static InputParameters validParams();
-  EmpiricalReactionHeat(const InputParameters &parameters);
- 
- protected:
+  EmpiricalReactionHeat(const InputParameters & parameters);
+
+protected:
   virtual void computeQpProperties() override;
   virtual void initQpStatefulProperties() override;
- 
- protected:
+
+protected:
   Real _W0, _T0, _tau;
 
-  MaterialProperty<bool> &_active;
-  const MaterialProperty<bool> &_active_old;
+  MaterialProperty<bool> & _active;
+  const MaterialProperty<bool> & _active_old;
 
-  MaterialProperty<Real> &_power;
+  MaterialProperty<Real> & _power;
   const MaterialProperty<Real> & _power_old;
 
   const VariableValue & _temperature;

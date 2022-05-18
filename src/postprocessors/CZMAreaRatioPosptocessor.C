@@ -11,18 +11,22 @@
 
 registerMooseObject("DeerApp", CZMAreaRatioPostprocessor);
 
-InputParameters CZMAreaRatioPostprocessor::validParams() {
+InputParameters
+CZMAreaRatioPostprocessor::validParams()
+{
   InputParameters params = CZMAreaPostprocessor::validParams();
-  params.addClassDescription(
-      "Computes the area ratio, i.e. A/A0, of a cohesive zone.");
+  params.addClassDescription("Computes the area ratio, i.e. A/A0, of a cohesive zone.");
   return params;
 }
 
-CZMAreaRatioPostprocessor::CZMAreaRatioPostprocessor(
-    const InputParameters &parameters)
-    : CZMAreaPostprocessor(parameters) {}
+CZMAreaRatioPostprocessor::CZMAreaRatioPostprocessor(const InputParameters & parameters)
+  : CZMAreaPostprocessor(parameters)
+{
+}
 
-Real CZMAreaRatioPostprocessor::getValue() {
+Real
+CZMAreaRatioPostprocessor::getValue()
+{
   _integral_value = CZMAreaPostprocessor::getValue() / _interface_primary_area;
   return _integral_value;
 }

@@ -16,11 +16,12 @@
  * Computes an invariant of a symmetric RankTwoTensor given a set of properly
  * named postprocessors that toghether represent a tensor.
  */
-class RankTwoTensorInvariantPostprocessor : public GeneralPostprocessor {
+class RankTwoTensorInvariantPostprocessor : public GeneralPostprocessor
+{
 public:
   static InputParameters validParams();
 
-  RankTwoTensorInvariantPostprocessor(const InputParameters &parameters);
+  RankTwoTensorInvariantPostprocessor(const InputParameters & parameters);
 
   virtual void initialSetup() override;
   virtual void initialize() override{};
@@ -46,8 +47,10 @@ protected:
   Real _invariant;
 
   /// the map between postprocessor names and tensorial components
-  const std::map<std::pair<int, int>, std::string> tensor_map = {
-      {std::make_pair(0, 0), "xx"}, {std::make_pair(1, 1), "yy"},
-      {std::make_pair(2, 2), "zz"}, {std::make_pair(0, 1), "xy"},
-      {std::make_pair(0, 2), "xz"}, {std::make_pair(1, 2), "yz"}};
+  const std::map<std::pair<int, int>, std::string> tensor_map = {{std::make_pair(0, 0), "xx"},
+                                                                 {std::make_pair(1, 1), "yy"},
+                                                                 {std::make_pair(2, 2), "zz"},
+                                                                 {std::make_pair(0, 1), "xy"},
+                                                                 {std::make_pair(0, 2), "xz"},
+                                                                 {std::make_pair(1, 2), "yz"}};
 };

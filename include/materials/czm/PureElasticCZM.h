@@ -16,10 +16,11 @@ class PureElasticCZM;
  * Implementation of the non-stateful exponential traction separation law
  * proposed by Salehani, Mohsen Khajeh and Irani, Nilgoon 2018
  **/
-class PureElasticCZM : public CZMComputeLocalTractionTotalBase {
+class PureElasticCZM : public CZMComputeLocalTractionTotalBase
+{
 public:
   static InputParameters validParams();
-  PureElasticCZM(const InputParameters &parameters);
+  PureElasticCZM(const InputParameters & parameters);
 
 protected:
   virtual void computeInterfaceTractionAndDerivatives() override;
@@ -28,12 +29,10 @@ protected:
 
   virtual RankTwoTensor computeTractionDerivatives();
 
-  virtual void ComputeNormalTraction(RealVectorValue &traction);
-  virtual void
-  ComputeNormalTractionDerivatives(RankTwoTensor &traction_derivatives);
-  virtual void ComputeShearTraction(RealVectorValue &traction);
-  virtual void
-  ComputeShearTractionDerivatives(RankTwoTensor &traction_derivatives);
+  virtual void ComputeNormalTraction(RealVectorValue & traction);
+  virtual void ComputeNormalTractionDerivatives(RankTwoTensor & traction_derivatives);
+  virtual void ComputeShearTraction(RealVectorValue & traction);
+  virtual void ComputeShearTractionDerivatives(RankTwoTensor & traction_derivatives);
 
   virtual Real ComputeNormalStiffness();
   virtual RealVectorValue ComputeNormalStiffnessDerivatives();

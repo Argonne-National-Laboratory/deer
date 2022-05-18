@@ -16,18 +16,19 @@
  * EffectiveStressInterfaceMaterial uses the namespace EffectiveStressTools to
  * compute scalar values from Rank-2 tensors.
  */
-class EffectiveStressInterfaceMaterial : public InterfaceMaterial {
+class EffectiveStressInterfaceMaterial : public InterfaceMaterial
+{
 public:
   static InputParameters validParams();
-  EffectiveStressInterfaceMaterial(const InputParameters &parameters);
+  EffectiveStressInterfaceMaterial(const InputParameters & parameters);
 
 protected:
   virtual void computeQpProperties() override;
   virtual void initQpStatefulProperties() override;
 
-  const MaterialProperty<RankTwoTensor> &_stress_master;
-  const MaterialProperty<RankTwoTensor> &_stress_slave;
-  MaterialProperty<Real> &_effective_stress;
+  const MaterialProperty<RankTwoTensor> & _stress_master;
+  const MaterialProperty<RankTwoTensor> & _stress_slave;
+  MaterialProperty<Real> & _effective_stress;
 
   /// the type offective stress to be computed
   MooseEnum _effective_stress_type;

@@ -2,16 +2,16 @@
 
 #include "Kernel.h"
 
-class AdiabaticHeating: public Kernel
+class AdiabaticHeating : public Kernel
 {
- public:
+public:
   static InputParameters validParams();
   AdiabaticHeating(const InputParameters & parameters);
 
- protected:
+protected:
   virtual Real computeQpResidual() override;
 
- protected:
+protected:
   const VariableValue & _heat;
   const Real _fraction;
 };

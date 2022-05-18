@@ -10,7 +10,8 @@ SideExtremePostprocessor::validParams()
   InputParameters params = SidePostprocessor::validParams();
 
   params.addRequiredCoupledVar("variable", "The name of the variable");
-  params.addParam<MooseEnum>("value_type", type_options,
+  params.addParam<MooseEnum>("value_type",
+                             type_options,
                              "Type of extreme value to return. "
                              "Options are: 'max' and 'min'");
 
@@ -19,10 +20,12 @@ SideExtremePostprocessor::validParams()
   return params;
 }
 
-SideExtremePostprocessor::SideExtremePostprocessor(const InputParameters & parameters) :
-    SidePostprocessor(parameters), _qp(0), _curr_value(0.0), 
-    _u(coupledValue("variable")), 
-    _type((ExtremeType)(int) parameters.get<MooseEnum>("value_type"))
+SideExtremePostprocessor::SideExtremePostprocessor(const InputParameters & parameters)
+  : SidePostprocessor(parameters),
+    _qp(0),
+    _curr_value(0.0),
+    _u(coupledValue("variable")),
+    _type((ExtremeType)(int)parameters.get<MooseEnum>("value_type"))
 {
 }
 
@@ -43,7 +46,8 @@ SideExtremePostprocessor::initialize()
 void
 SideExtremePostprocessor::execute()
 {
-  for (_qp = 0; _qp < _qrule->n_points(); _qp++) {
+  for (_qp = 0; _qp < _qrule->n_points(); _qp++)
+  {
     switch (_type)
     {
       case MAX:

@@ -12,7 +12,9 @@
 
 registerMooseObject("DeerApp", CZMAreaPostprocessor);
 
-InputParameters CZMAreaPostprocessor::validParams() {
+InputParameters
+CZMAreaPostprocessor::validParams()
+{
   InputParameters params = InterfaceIntegralPostprocessor::validParams();
   MooseEnum strainType("SMALL FINITE", "SMALL");
   params.addParam<MooseEnum>("strain", strainType, "Strain formulation");
@@ -24,25 +26,26 @@ InputParameters CZMAreaPostprocessor::validParams() {
   return params;
 }
 
-CZMAreaPostprocessor::CZMAreaPostprocessor(const InputParameters &parameters)
-    : InterfaceIntegralPostprocessor(parameters),
-      _base_name(isParamValid("base_name") &&
-                         !getParam<std::string>("base_name").empty()
-                     ? getParam<std::string>("base_name") + "_"
-                     : ""),
-      _strain(getParam<MooseEnum>("strain").getEnum<Strain>()),
-      _F_czm(
-          _strain == Strain::Finite
-              ? &getMaterialPropertyByName<RankTwoTensor>(_base_name + "F_czm")
-              : nullptr) {}
+CZMAreaPostprocessor::CZMAreaPostprocessor(const InputParameters & parameters)
+  : InterfaceIntegralPostprocessor(parameters),
+    _base_name(isParamValid("base_name") && !getParam<std::string>("base_name").empty()
+                   ? getParam<std::string>("base_name") + "_"
+                   : ""),
+    _strain(getParam<MooseEnum>("strain").getEnum<Strain>()),
+    _F_czm(_strain == Strain::Finite
+               ? &getMaterialPropertyByName<RankTwoTensor>(_base_name + "F_czm")
+               : nullptr)
+{
+}
 
-Real CZMAreaPostprocessor::computeQpIntegral() {
+Real
+CZMAreaPostprocessor::computeQpIntegral()
+{
 
   Real dadA = 1;
 
   if (_strain == Strain::Finite)
     dadA = CohesiveZoneModelTools::computeAreaRatio(
-        (*_F_czm)[_qp].inverse().transpose(), (*_F_czm)[_qp].det(),
-        _normals[_qp]);
+        (*_F_czm)[_qp].inverse().transpose(), (*_F_czm)[_qp].det(), _normals[_qp]);
   return dadA;
 }

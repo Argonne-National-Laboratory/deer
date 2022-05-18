@@ -6,15 +6,15 @@
 
 class CauchyStressFromNEML : public ComputeLagrangianStressCauchy
 {
- public:
+public:
   static InputParameters validParams();
   CauchyStressFromNEML(const InputParameters & parameters);
 
- protected:
+protected:
   virtual void computeQpCauchyStress();
   virtual void initQpStatefulProperties();
 
- protected:
+protected:
   FileName _fname;
   std::string _mname;
   std::unique_ptr<neml::NEMLModel> _model;
@@ -46,20 +46,20 @@ class CauchyStressFromNEML : public ComputeLagrangianStressCauchy
 };
 
 /// Tensor -> Mandel
-void tensor_neml(const RankTwoTensor &in, double *const out);
+void tensor_neml(const RankTwoTensor & in, double * const out);
 
 /// Mandel -> tensor
-void neml_tensor(const double *const in, RankTwoTensor &out);
+void neml_tensor(const double * const in, RankTwoTensor & out);
 
 /// Tangent -> tensor
-void neml_tangent(const double *const in, RankFourTensor &out);
+void neml_tangent(const double * const in, RankFourTensor & out);
 
 /// Tensor -> skew vector
-void tensor_skew(const RankTwoTensor &in, double *const out);
+void tensor_skew(const RankTwoTensor & in, double * const out);
 
 /// Skew vector -> tensor
-void skew_tensor(const double *const in, RankTwoTensor &out);
+void skew_tensor(const double * const in, RankTwoTensor & out);
 
 /// Skew + symmetric parts to full tangent
-void recombine_tangent(const double *const Dpart, const double *const Wpart,
-                       RankFourTensor &out);
+void
+recombine_tangent(const double * const Dpart, const double * const Wpart, RankFourTensor & out);

@@ -17,22 +17,23 @@
  * strain
  */
 
-class CZMStrainComponent : public CZMAreaRatioPostprocessor {
+class CZMStrainComponent : public CZMAreaRatioPostprocessor
+{
 public:
   static InputParameters validParams();
 
-  CZMStrainComponent(const InputParameters &parameters);
+  CZMStrainComponent(const InputParameters & parameters);
 
   virtual void initialize() override;
   virtual void execute() override;
   virtual Real getValue() override;
-  virtual void threadJoin(const UserObject &y) override;
+  virtual void threadJoin(const UserObject & y) override;
 
 protected:
   virtual Real computeStrainIntegral();
 
   /// the czm volumetric strain tensor
-  const MaterialProperty<RankTwoTensor> &_tensor;
+  const MaterialProperty<RankTwoTensor> & _tensor;
 
   /// the index i of the strain tensor
   const unsigned int _i;
@@ -41,7 +42,7 @@ protected:
   const unsigned int _j;
 
   /// the postprocessor value representing the undeformed RVE volume
-  const PostprocessorValue &_initial_bulk_volume_pp;
+  const PostprocessorValue & _initial_bulk_volume_pp;
 
   /// the czm strain value
   Real _normalized_strain_component;

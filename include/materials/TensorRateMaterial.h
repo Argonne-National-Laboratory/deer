@@ -14,14 +14,15 @@
 /**
  * Material class calculating a tensor rate component by componet
  */
-class TensorRateMaterial : public Material {
+class TensorRateMaterial : public Material
+{
 public:
   static InputParameters validParams();
-  TensorRateMaterial(const InputParameters &parameters);
+  TensorRateMaterial(const InputParameters & parameters);
 
 protected:
   virtual void computeQpProperties() override;
-  const MaterialProperty<RankTwoTensor> &_tensor;
-  const MaterialProperty<RankTwoTensor> &_tensor_old;
-  MaterialProperty<RankTwoTensor> &_tensor_rate;
+  const MaterialProperty<RankTwoTensor> & _tensor;
+  const MaterialProperty<RankTwoTensor> & _tensor_old;
+  MaterialProperty<RankTwoTensor> & _tensor_rate;
 };

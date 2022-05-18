@@ -9,11 +9,12 @@ Class defining an object producing variable dependent quantites that needs to,
 or can be calcaulted precalcualted before updating the non linear system
 equations. This is handy when some value is needed by more than one equation.
 */
-class NLPreEquationEvalautionCalc {
+class NLPreEquationEvalautionCalc
+{
 public:
-  NLPreEquationEvalautionCalc(NLSystemVars *const sysvars,
-                              const NLSystemParameters *sysparams,
-                              const std::vector<std::string> &value_names);
+  NLPreEquationEvalautionCalc(NLSystemVars * const sysvars,
+                              const NLSystemParameters * sysparams,
+                              const std::vector<std::string> & value_names);
 
   /**
    * methods to override filling values an their derivatives
@@ -37,32 +38,30 @@ public:
    * methods typically used by the equations to retrive precalculated values
    */
   /// return a precomputede value by name
-  double getValue(const std::string &vname, const bool implicit = true) const;
+  double getValue(const std::string & vname, const bool implicit = true) const;
 
   /// return a precomputede dvalue/dX by name
-  vecD getDValueDX(const std::string &vname, const bool implicit = true) const;
+  vecD getDValueDX(const std::string & vname, const bool implicit = true) const;
 
 protected:
   /// return the index of a value given its name
-  uint getValueIndex(const std::string &vname) const;
+  uint getValueIndex(const std::string & vname) const;
 
   /**
    * methods typically used within updateValues and updateDerivatives
    */
   /// set a value given its name
-  void setValue(const std::string &vname, double value,
-                const bool implicit = true);
+  void setValue(const std::string & vname, double value, const bool implicit = true);
   /// set a value gradient given its name
-  void setDValueDX(const std::string &vname, const vecD &dvaluedx,
-                   const bool implicit = true);
+  void setDValueDX(const std::string & vname, const vecD & dvaluedx, const bool implicit = true);
 
   /**
    * internal object required to store values
    */
   /// the nonlinear system variables
-  NLSystemVars *const _sys_vars;
+  NLSystemVars * const _sys_vars;
   /// the nonlinear system paramters
-  const NLSystemParameters *_sysparams;
+  const NLSystemParameters * _sysparams;
   /// the number of values computed by this object
   const uint _n_values;
   /// the number of variables of the non linear system

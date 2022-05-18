@@ -2,9 +2,9 @@
 
 #include "SidePostprocessor.h"
 
-class SideExtremePostprocessor: public SidePostprocessor
+class SideExtremePostprocessor : public SidePostprocessor
 {
- public:
+public:
   static InputParameters validParams();
 
   enum ExtremeType
@@ -12,7 +12,7 @@ class SideExtremePostprocessor: public SidePostprocessor
     MAX,
     MIN
   };
-  
+
   SideExtremePostprocessor(const InputParameters & parameters);
 
   virtual void initialize() override;
@@ -20,7 +20,7 @@ class SideExtremePostprocessor: public SidePostprocessor
   virtual Real getValue() override;
   virtual void threadJoin(const UserObject & y) override;
 
- protected:
+protected:
   unsigned int _qp;
   Real _curr_value;
   const VariableValue & _u;

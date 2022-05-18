@@ -9,9 +9,12 @@
 
 #include "EffectiveStressTools.h"
 
-namespace EffectiveStressTools {
+namespace EffectiveStressTools
+{
 
-MooseEnum scalarOptions() {
+MooseEnum
+scalarOptions()
+{
   return MooseEnum("VonMises Hydrostatic Huddleston Hayhurst MaxPrincipal "
                    "Tresca RCCMRXMises RCCMRXTresca maxS1AndMises");
 }

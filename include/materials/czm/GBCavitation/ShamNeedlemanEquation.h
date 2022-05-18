@@ -13,18 +13,25 @@
 #include "NLPreEquationEvalautionCalc.h"
 #include "Newton.h"
 
-namespace ShamNeedlemann {
+namespace ShamNeedlemann
+{
 
 double h_psi(const double psi);
 
 /// class used to precalcualte the value of Vdot before computing adot and tdot
-class V_dot : public NLPreEquationEvalautionCalc {
+class V_dot : public NLPreEquationEvalautionCalc
+{
 
 public:
-  V_dot(NLSystemVars *const sysvars, const NLSystemParameters *sysparams,
-        const std::vector<std::string> &value_names, const double n,
-        const double h, const double D, const bool use_vdot_creep,
-        const unsigned int vdot_method, const bool nucleation_on);
+  V_dot(NLSystemVars * const sysvars,
+        const NLSystemParameters * sysparams,
+        const std::vector<std::string> & value_names,
+        const double n,
+        const double h,
+        const double D,
+        const bool use_vdot_creep,
+        const unsigned int vdot_method,
+        const bool nucleation_on);
 
   /// update the values and derivatives of Vdot
   void updateValues(const bool implicit = true) override;
@@ -112,11 +119,16 @@ protected:
 // the bulk.
 
 /// class implementing the adot equation
-class a_res : public RateEquation {
+class a_res : public RateEquation
+{
 public:
-  a_res(const unsigned int eq_index, NLSystemVars &sysvars,
-        NLSystemParameters &sysparams, NLPreEquationEvalautionCalc &pre_eval,
-        const double h, const double a0, const double theta = 0,
+  a_res(const unsigned int eq_index,
+        NLSystemVars & sysvars,
+        NLSystemParameters & sysparams,
+        NLPreEquationEvalautionCalc & pre_eval,
+        const double h,
+        const double a0,
+        const double theta = 0,
         const bool growth_on = true);
 
   /// computes adot
@@ -135,12 +147,19 @@ public:
 };
 
 /// class implementing the bdot equation
-class b_res : public RateEquation {
+class b_res : public RateEquation
+{
 public:
-  b_res(const unsigned int eq_index, NLSystemVars &sysvars,
-        NLSystemParameters &sysparams, NLPreEquationEvalautionCalc &pre_eval,
-        const double FN, const double FN_NI, const double S0, const double beta,
-        const double b_sat, const double theta = 0,
+  b_res(const unsigned int eq_index,
+        NLSystemVars & sysvars,
+        NLSystemParameters & sysparams,
+        NLPreEquationEvalautionCalc & pre_eval,
+        const double FN,
+        const double FN_NI,
+        const double S0,
+        const double beta,
+        const double b_sat,
+        const double theta = 0,
         const bool nucleation_on = true);
 
   /// method checking for the nucleation threshold
@@ -169,12 +188,18 @@ public:
 };
 
 /// class implementing the normal traction equation
-class TN_res : public RateEquation {
+class TN_res : public RateEquation
+{
 public:
-  TN_res(const unsigned int eq_index, NLSystemVars &sysvars,
-         NLSystemParameters &sysparams, NLPreEquationEvalautionCalc &pre_eval,
-         const double thickness, const double E_interface, const double P_mt,
-         const double _P_thickness, const double theta = 0);
+  TN_res(const unsigned int eq_index,
+         NLSystemVars & sysvars,
+         NLSystemParameters & sysparams,
+         NLPreEquationEvalautionCalc & pre_eval,
+         const double thickness,
+         const double E_interface,
+         const double P_mt,
+         const double _P_thickness,
+         const double theta = 0);
 
   /// computes TN
   double computedRate(const bool implicit) const override;
@@ -216,12 +241,17 @@ protected:
 };
 
 /// class implementing the shear traction equations
-class TS_res : public RateEquation {
+class TS_res : public RateEquation
+{
 public:
-  TS_res(const uint eq_index, NLSystemVars &sysvars,
-         NLSystemParameters &sysparams, NLPreEquationEvalautionCalc &pre_eval,
-         const uint shear_index, const double thickness,
-         const double eta_sliding, const double G_interface,
+  TS_res(const uint eq_index,
+         NLSystemVars & sysvars,
+         NLSystemParameters & sysparams,
+         NLPreEquationEvalautionCalc & pre_eval,
+         const uint shear_index,
+         const double thickness,
+         const double eta_sliding,
+         const double G_interface,
          const double theta = 0);
 
 public:
@@ -255,10 +285,13 @@ protected:
 };
 
 // class implementing the inequality constraint a<b
-class a_lt_b : public InequalityConstraint {
+class a_lt_b : public InequalityConstraint
+{
 public:
-  a_lt_b(const uint lm_index, const NLSystemVars &sys_vars,
-         const NLSystemParameters &sysparams, const uint n_sys);
+  a_lt_b(const uint lm_index,
+         const NLSystemVars & sys_vars,
+         const NLSystemParameters & sysparams,
+         const uint n_sys);
 
   /// computes g=a/b-ab_max
   double gFun() const override;
@@ -267,10 +300,13 @@ public:
 };
 
 // class implementing the inequality constraint a>=a0
-class a_gt_a0 : public InequalityConstraint {
+class a_gt_a0 : public InequalityConstraint
+{
 public:
-  a_gt_a0(const uint lm_index, const NLSystemVars &sys_vars,
-          const NLSystemParameters &sysparams, const uint n_sys,
+  a_gt_a0(const uint lm_index,
+          const NLSystemVars & sys_vars,
+          const NLSystemParameters & sysparams,
+          const uint n_sys,
           const double a0);
 
   /// computes a0/a-1
@@ -282,10 +318,13 @@ public:
 };
 
 // class implementing the inequality constraint b>=b_old
-class b_lt_b_old : public InequalityConstraint {
+class b_lt_b_old : public InequalityConstraint
+{
 public:
-  b_lt_b_old(const uint lm_index, const NLSystemVars &sys_vars,
-             const NLSystemParameters &sysparams, const uint n_sys);
+  b_lt_b_old(const uint lm_index,
+             const NLSystemVars & sys_vars,
+             const NLSystemParameters & sysparams,
+             const uint n_sys);
 
   /// computes g=b-bold
   double gFun() const override;
@@ -294,15 +333,19 @@ public:
 };
 
 /// custom newton solver allowing for custom substep interruption
-class Solver : public Newton {
+class Solver : public Newton
+{
 public:
-  Solver(NLSystem *_nlsys, NLSystemVars *sys_vars, const double tolerance,
-         const uint _max_iter, const miconossmath::normtype normtype);
+  Solver(NLSystem * _nlsys,
+         NLSystemVars * sys_vars,
+         const double tolerance,
+         const uint _max_iter,
+         const miconossmath::normtype normtype);
 
 protected:
   /// method checking if we need to interrupt while substepping.
-  int customSubstepInterruption(NLSystemParameters *const sysparams,
-                                bool &custom_interruption_flag) override;
+  int customSubstepInterruption(NLSystemParameters * const sysparams,
+                                bool & custom_interruption_flag) override;
 };
 
 } // namespace ShamNeedlemann

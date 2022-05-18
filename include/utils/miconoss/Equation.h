@@ -10,11 +10,13 @@ they will be added automatically. The equation is responsible for computing the
 residual and the derivative of the equation w.r.t. variables and parameters.
 **/
 
-class Equation {
+class Equation
+{
 public:
-  Equation(const unsigned int eq_index, NLSystemVars &sysvars,
-           NLSystemParameters &sysparams,
-           NLPreEquationEvalautionCalc &pre_eval);
+  Equation(const unsigned int eq_index,
+           NLSystemVars & sysvars,
+           NLSystemParameters & sysparams,
+           NLPreEquationEvalautionCalc & pre_eval);
 
   /// the method returning the residual, see getR in RateEquation for an example
   virtual double getR() const = 0;
@@ -39,9 +41,9 @@ public:
 
   ///{@ get and sets methods
   double getDEquationDParam(const uint i) const;
-  double getDEquationDParam(const std::string &pname) const;
+  double getDEquationDParam(const std::string & pname) const;
   void setDEquationDParam(const uint i, const double deqdx);
-  void setDEquationDParam(const std::string &pname, const double deqdx);
+  void setDEquationDParam(const std::string & pname, const double deqdx);
   ///}@
 
   /// method to override to set custom scaling rule, default is 1.
@@ -51,15 +53,15 @@ protected:
   /// the equation index in the non linear system
   const uint _eq_index;
   /// the non linear variables
-  NLSystemVars &_sys_vars;
+  NLSystemVars & _sys_vars;
   /// the paramters of the system
-  NLSystemParameters &_sysparams;
+  NLSystemParameters & _sysparams;
   /// the total number of varaibles (excluding LM)
   const uint _n_vars;
   /// the total number of paramters
   const uint _n_params;
   /// a reference to the method computing shared values
-  NLPreEquationEvalautionCalc &_pre_eval;
+  NLPreEquationEvalautionCalc & _pre_eval;
   /// the gradient of the equation w.r.t. paramters
   vecD _dequation_dparam;
 };
@@ -72,11 +74,14 @@ to perform time integration. The non linear residual is computed as xguess_i -
 computeval. Lagrange Multiplier should not be part of the equation as they will
 be added automatically.
 **/
-class RateEquation : public Equation {
+class RateEquation : public Equation
+{
 public:
-  RateEquation(const unsigned int eq_index, NLSystemVars &sysvars,
-               NLSystemParameters &sysparams,
-               NLPreEquationEvalautionCalc &pre_eval, const double theta = 0);
+  RateEquation(const unsigned int eq_index,
+               NLSystemVars & sysvars,
+               NLSystemParameters & sysparams,
+               NLPreEquationEvalautionCalc & pre_eval,
+               const double theta = 0);
 
   /// compute the residual
   double getR() const override final;

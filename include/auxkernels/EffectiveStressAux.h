@@ -16,16 +16,17 @@
  * EffectiveStressAux uses the namespace EffectiveStressTools to compute scalar
  * values from Rank-2 tensors.
  */
-class EffectiveStressAux : public NodalPatchRecovery {
+class EffectiveStressAux : public NodalPatchRecovery
+{
 public:
   static InputParameters validParams();
 
-  EffectiveStressAux(const InputParameters &parameters);
+  EffectiveStressAux(const InputParameters & parameters);
 
 protected:
   virtual Real computeValue();
 
-  const MaterialProperty<RankTwoTensor> &_tensor;
+  const MaterialProperty<RankTwoTensor> & _tensor;
 
   /**
    * Determines the information to be extracted from the tensor by using the

@@ -16,16 +16,16 @@
  * the value of another postprocessor.
  */
 template <bool is_ad>
-class MaterialTensorIntegralScaledTempl
-    : public MaterialTensorIntegralTempl<is_ad> {
+class MaterialTensorIntegralScaledTempl : public MaterialTensorIntegralTempl<is_ad>
+{
 public:
   static InputParameters validParams();
 
-  MaterialTensorIntegralScaledTempl(const InputParameters &parameters);
+  MaterialTensorIntegralScaledTempl(const InputParameters & parameters);
   virtual Real getValue() override;
 
 protected:
-  const PostprocessorValue &_scaling_factor_PP;
+  const PostprocessorValue & _scaling_factor_PP;
 };
 
 typedef MaterialTensorIntegralScaledTempl<false> MaterialTensorIntegralScaled;

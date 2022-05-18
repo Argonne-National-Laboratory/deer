@@ -2,20 +2,30 @@
 
 #include <iostream>
 
-Equation::Equation(const uint eq_index, NLSystemVars &sysvars,
-                   NLSystemParameters &sysparams,
-                   NLPreEquationEvalautionCalc &pre_eval)
-    : _eq_index(eq_index), _sys_vars(sysvars), _sysparams(sysparams),
-      _n_vars(_sys_vars.getNVars()), _n_params(_sysparams.getNParams()),
-      _pre_eval(pre_eval), _dequation_dparam(_n_params) {}
+Equation::Equation(const uint eq_index,
+                   NLSystemVars & sysvars,
+                   NLSystemParameters & sysparams,
+                   NLPreEquationEvalautionCalc & pre_eval)
+  : _eq_index(eq_index),
+    _sys_vars(sysvars),
+    _sysparams(sysparams),
+    _n_vars(_sys_vars.getNVars()),
+    _n_params(_sysparams.getNParams()),
+    _pre_eval(pre_eval),
+    _dequation_dparam(_n_params)
+{
+}
 
-void Equation::checkGradient(const double tol, const double eps) {
+void
+Equation::checkGradient(const double tol, const double eps)
+{
   _pre_eval.updateAll(true);
   updateConstants();
   const double R = getR();
   const vecD dR_dx = getJrow();
 
-  for (uint i = 0; i < _n_vars; i++) {
+  for (uint i = 0; i < _n_vars; i++)
+  {
     const double old_var_value = _sys_vars.getValue(i);
     _sys_vars.setValue(i, old_var_value + eps);
     _pre_eval.updateAll(true);
@@ -24,59 +34,82 @@ void Equation::checkGradient(const double tol, const double eps) {
     const double deltaR = Rcurrent - R;
     const double dR_dxi = (deltaR) / eps;
     const double diff = std::abs(dR_dxi - dR_dx[i]);
-    if (diff > tol) {
+    if (diff > tol)
+    {
       std::cout << "Equation " << _eq_index
-                << ": FD and analytial derivatives do not match: \n FD = "
-                << dR_dxi << " an= " << dR_dx[i] << " diff= " << diff
-                << " component " << i << ". Delta R: " << deltaR << "\n\n";
+                << ": FD and analytial derivatives do not match: \n FD = " << dR_dxi
+                << " an= " << dR_dx[i] << " diff= " << diff << " component " << i
+                << ". Delta R: " << deltaR << "\n\n";
       std::cout << "current R " << Rcurrent << " initial R " << R << "\n";
     }
     _sys_vars.setValue(i, old_var_value);
   }
 }
 
-void Equation::autoScaleEquation() const {
+void
+Equation::autoScaleEquation() const
+{
   _sys_vars.setScaleFactor(_eq_index, std::abs(equationScalingRule()));
 }
 
 /// method to override to set custom scaling rule, default is 1
-double Equation::equationScalingRule() const { return 1.; }
+double
+Equation::equationScalingRule() const
+{
+  return 1.;
+}
 
-double Equation::getDEquationDParam(const uint i) const {
+double
+Equation::getDEquationDParam(const uint i) const
+{
   return _dequation_dparam[i];
 }
-double Equation::getDEquationDParam(const std::string &pname) const {
+double
+Equation::getDEquationDParam(const std::string & pname) const
+{
   return _dequation_dparam[_sysparams.getParamIndex(pname)];
 }
 
-void Equation::setDEquationDParam(const uint i, const double deqdx) {
+void
+Equation::setDEquationDParam(const uint i, const double deqdx)
+{
   _dequation_dparam[i] = deqdx;
 }
-void Equation::setDEquationDParam(const std::string &pname,
-                                  const double deqdx) {
+void
+Equation::setDEquationDParam(const std::string & pname, const double deqdx)
+{
   _dequation_dparam[_sysparams.getParamIndex(pname)] = deqdx;
 }
 
-RateEquation::RateEquation(const uint eq_index, NLSystemVars &sysvars,
-                           NLSystemParameters &sysparams,
-                           NLPreEquationEvalautionCalc &pre_eval,
+RateEquation::RateEquation(const uint eq_index,
+                           NLSystemVars & sysvars,
+                           NLSystemParameters & sysparams,
+                           NLPreEquationEvalautionCalc & pre_eval,
                            const double theta)
-    : Equation(eq_index, sysvars, sysparams, pre_eval), _theta(theta),
-      _dexplicit_rate_dp(_n_params) {}
+  : Equation(eq_index, sysvars, sysparams, pre_eval), _theta(theta), _dexplicit_rate_dp(_n_params)
+{
+}
 
-void RateEquation::updateConstants() {
-  if (_theta != 0) {
+void
+RateEquation::updateConstants()
+{
+  if (_theta != 0)
+  {
     _explicit_rate = computedRate(/*implicit = */ false);
     _dexplicit_rate_dp = DComputedRatetDP(/*implicit =*/false);
   }
 }
 
-double RateEquation::getR() const {
+double
+RateEquation::getR() const
+{
   return _sys_vars.getValueScaled(_eq_index) -
          computedVal() / _sys_vars.getScalingFactor(_eq_index);
 }
 
-vecD RateEquation::getJrow() const {
+vecD
+RateEquation::getJrow() const
+{
   vecD Rgrad(_n_vars, 0);
   Rgrad[_eq_index] = 1;
   const double sf_x = _sys_vars.getScalingFactor(_eq_index);
@@ -86,28 +119,32 @@ vecD RateEquation::getJrow() const {
   return Rgrad;
 }
 
-double RateEquation::computedVal() const {
+double
+RateEquation::computedVal() const
+{
 
   return _sys_vars.getValueOld(_eq_index) +
-         (_theta * _explicit_rate +
-          (1. - _theta) * computedRate(/*implicit =*/true)) *
+         (_theta * _explicit_rate + (1. - _theta) * computedRate(/*implicit =*/true)) *
              _sysparams.getValue("dt");
 }
 
-vecD RateEquation::DComputedValDx() const {
+vecD
+RateEquation::DComputedValDx() const
+{
   vecD dInc_Dx = DComputedRatetDx(/*implicit =*/true);
   for (uint i = 0; i < _n_vars; i++)
     dInc_Dx[i] *= (1. - _theta) * _sysparams.getValue("dt");
   return dInc_Dx;
 }
 
-void RateEquation::computeDEquationDP() {
+void
+RateEquation::computeDEquationDP()
+{
   vecD dInc_Dp = DComputedRatetDP(/*implicit =*/true);
   _dexplicit_rate_dp = DComputedRatetDP(/*implicit =*/false);
 
   const double sf_x = _sys_vars.getDVarScaledDVar(_eq_index);
   for (uint i = 0; i < _n_params; i++)
-    _dequation_dparam[i] =
-        -(_theta * _dexplicit_rate_dp[i] + (1. - _theta) * dInc_Dp[i]) *
-        _sysparams.getValue("dt") * sf_x;
+    _dequation_dparam[i] = -(_theta * _dexplicit_rate_dp[i] + (1. - _theta) * dInc_Dp[i]) *
+                           _sysparams.getValue("dt") * sf_x;
 }

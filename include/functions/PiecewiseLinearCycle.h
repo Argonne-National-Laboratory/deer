@@ -17,11 +17,11 @@
  * Function which provides a PiecewiseLinear continuous linear interpolation
  * of a provided (x,y) point data set.
  */
-class PiecewiseLinearCycle : public PiecewiseLinear,
-                             protected FunctionInterface {
+class PiecewiseLinearCycle : public PiecewiseLinear, protected FunctionInterface
+{
 public:
   static InputParameters validParams();
-  PiecewiseLinearCycle(const InputParameters &parameters);
+  PiecewiseLinearCycle(const InputParameters & parameters);
 
   /**
    * Get the value of the function (based on time only)
@@ -29,7 +29,7 @@ public:
    * \param pt The point in space (x,y,z) (unused)
    * \return The value of the function at the specified time
    */
-  Real value(Real t, const Point &pt) const override;
+  Real value(Real t, const Point & pt) const override;
 
   /**
    * Get the time derivative of the function (based on time only)
@@ -37,12 +37,12 @@ public:
    * \param pt The point in space (x,y,z) (unused)
    * \return The time derivative of the function at the specified time
    */
-  Real timeDerivative(Real t, const Point &pt) const override;
+  Real timeDerivative(Real t, const Point & pt) const override;
 
   Real integral() const override;
 
   Real average() const override;
 
 protected:
-  const Function &_cycle_time_func;
+  const Function & _cycle_time_func;
 };

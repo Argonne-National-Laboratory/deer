@@ -17,7 +17,8 @@
 #include "RankTwoTensor.h"
 #include "libmesh/point.h"
 
-namespace EffectiveStressTools {
+namespace EffectiveStressTools
+{
 /*
  * Return the scalar_type MooseEnum
  */
@@ -40,7 +41,9 @@ MooseEnum scalarOptions();
  */
 
 template <typename T>
-T huddleston(const RankTwoTensorTempl<T> &stress, const Real &b) {
+T
+huddleston(const RankTwoTensorTempl<T> & stress, const Real & b)
+{
 
   Real I1 = stress.trace();
   Real svm = RankTwoScalarTools::vonMisesStress(stress);
@@ -57,57 +60,66 @@ T huddleston(const RankTwoTensorTempl<T> &stress, const Real &b) {
 }
 
 template <typename T>
-T Hayhurst(const RankTwoTensorTempl<T> &stress,
-           const std::vector<Real> &params_vector, Point &direction) {
+T
+Hayhurst(const RankTwoTensorTempl<T> & stress,
+         const std::vector<Real> & params_vector,
+         Point & direction)
+{
 
   Real I1 = stress.trace();
   Real svm = RankTwoScalarTools::vonMisesStress(stress);
-  Real S1_positive =
-      std::max(RankTwoScalarTools::maxPrincipal(stress, direction), 0.0);
-  return params_vector[0] * S1_positive + params_vector[1] * I1 +
-         params_vector[2] * svm;
+  Real S1_positive = std::max(RankTwoScalarTools::maxPrincipal(stress, direction), 0.0);
+  return params_vector[0] * S1_positive + params_vector[1] * I1 + params_vector[2] * svm;
 }
 
 template <typename T>
-T RCCMRXMises(const RankTwoTensorTempl<T> &stress, const Real &alpha) {
+T
+RCCMRXMises(const RankTwoTensorTempl<T> & stress, const Real & alpha)
+{
   Real svm = RankTwoScalarTools::vonMisesStress(stress);
   return alpha * stress.trace() + (1. - alpha) * svm;
 }
 
 template <typename T>
-T RCCMRXTresca(const RankTwoTensorTempl<T> &stress, const Real &alpha) {
+T
+RCCMRXTresca(const RankTwoTensorTempl<T> & stress, const Real & alpha)
+{
 
   Real tresca = RankTwoScalarTools::stressIntensity(stress);
   return alpha * stress.trace() + (1. - alpha) * tresca;
 }
 
 template <typename T>
-T getQuantity(const RankTwoTensorTempl<T> &stress, const MooseEnum &scalar_type,
-              const std::vector<Real> &params_vector) {
+T
+getQuantity(const RankTwoTensorTempl<T> & stress,
+            const MooseEnum & scalar_type,
+            const std::vector<Real> & params_vector)
+{
   Point direction(1, 0, 0);
-  switch (scalar_type) {
-  case 0:
-    return RankTwoScalarTools::vonMisesStress(stress);
-  case 1:
-    return RankTwoScalarTools::hydrostatic(stress);
-  case 2:
-    return huddleston(stress, params_vector[0]);
-  case 3:
-    return Hayhurst(stress, params_vector, direction);
-  case 4:
-    return RankTwoScalarTools::maxPrincipal(stress, direction);
-  case 5:
-    return RankTwoScalarTools::stressIntensity(stress);
-  case 6:
-    return RCCMRXMises(stress, params_vector[0]);
-  case 7:
-    return RCCMRXTresca(stress, params_vector[0]);
-  case 8:
-    return std::max(RankTwoScalarTools::maxPrincipal(stress, direction),
-                    RankTwoScalarTools::vonMisesStress(stress));
-  default:
-    mooseError("RankTwoScalarAux Error: Pass valid scalar type - " +
-               scalarOptions().getRawNames());
+  switch (scalar_type)
+  {
+    case 0:
+      return RankTwoScalarTools::vonMisesStress(stress);
+    case 1:
+      return RankTwoScalarTools::hydrostatic(stress);
+    case 2:
+      return huddleston(stress, params_vector[0]);
+    case 3:
+      return Hayhurst(stress, params_vector, direction);
+    case 4:
+      return RankTwoScalarTools::maxPrincipal(stress, direction);
+    case 5:
+      return RankTwoScalarTools::stressIntensity(stress);
+    case 6:
+      return RCCMRXMises(stress, params_vector[0]);
+    case 7:
+      return RCCMRXTresca(stress, params_vector[0]);
+    case 8:
+      return std::max(RankTwoScalarTools::maxPrincipal(stress, direction),
+                      RankTwoScalarTools::vonMisesStress(stress));
+    default:
+      mooseError("RankTwoScalarAux Error: Pass valid scalar type - " +
+                 scalarOptions().getRawNames());
   }
 }
 

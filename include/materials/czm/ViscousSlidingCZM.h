@@ -17,18 +17,18 @@ class ViscousSlidingCZM;
  * Implementation of the non-stateful exponential traction separation law
  * proposed by Salehani, Mohsen Khajeh and Irani, Nilgoon 2018
  **/
-class ViscousSlidingCZM : public PureElasticCZM {
+class ViscousSlidingCZM : public PureElasticCZM
+{
 public:
   static InputParameters validParams();
-  ViscousSlidingCZM(const InputParameters &parameters);
+  ViscousSlidingCZM(const InputParameters & parameters);
 
 protected:
   virtual void initQpStatefulProperties() override;
   virtual void computeQpProperties() override;
 
-  virtual void ComputeShearTraction(RealVectorValue &traction) override;
-  virtual void
-  ComputeShearTractionDerivatives(RankTwoTensor &traction_derivatives) override;
+  virtual void ComputeShearTraction(RealVectorValue & traction) override;
+  virtual void ComputeShearTractionDerivatives(RankTwoTensor & traction_derivatives) override;
 
   virtual Real ComputeShearViscosity();
   virtual RankTwoTensor ComputeShearViscosityDerivatives();
@@ -37,11 +37,11 @@ protected:
   const Real _shear_viscosity;
 
   /// the value of the old traction in local coordinates
-  const MaterialProperty<RealVectorValue> &_interface_traction_old;
+  const MaterialProperty<RealVectorValue> & _interface_traction_old;
 
   /// the coupled displacement and neighbor displacement values
   ///@{
-  const MaterialProperty<RealVectorValue> &_interface_displacement_jump_old;
-  MaterialProperty<RealVectorValue> &_interface_displacement_jump_dot;
+  const MaterialProperty<RealVectorValue> & _interface_displacement_jump_old;
+  MaterialProperty<RealVectorValue> & _interface_displacement_jump_dot;
   ///@}
 };

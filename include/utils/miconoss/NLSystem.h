@@ -13,14 +13,16 @@ properly setup indeces for varaible and equations, i.e. x_i =
 eq_i(x1,...xN). THis calss is responsible for assembling the residual and the
 jacobian
 **/
-class NLSystem {
+class NLSystem
+{
 public:
-  NLSystem(NLSystemVars *const sysvars, NLSystemParameters *const sysparams,
+  NLSystem(NLSystemVars * const sysvars,
+           NLSystemParameters * const sysparams,
            std::vector<Equation *> eq,
            const std::vector<const InequalityConstraint *> lm,
-           NLPreEquationEvalautionCalc *pre_eval);
-  vecD assembleR(const vecD &lm) const;
-  matrixD assembleJ(const vecD &lm) const;
+           NLPreEquationEvalautionCalc * pre_eval);
+  vecD assembleR(const vecD & lm) const;
+  matrixD assembleJ(const vecD & lm) const;
 
   /// method using NLPreEquationEvalautionCalc to precalcualte constants
   /// requried by the NLSystem
@@ -36,26 +38,25 @@ public:
   uint getDim() const { return _nlm + _nx; };
 
   /// get dResidual/dParam
-  matrixD getDResidualDParams(const std::vector<std::string> &pname);
+  matrixD getDResidualDParams(const std::vector<std::string> & pname);
 
   /// get dNLVars/dParam
-  matrixD getDSystemVarsDParams(const std::vector<std::string> &pname,
-                                const vecD &lm);
+  matrixD getDSystemVarsDParams(const std::vector<std::string> & pname, const vecD & lm);
 
   /// get the unscaled Jacobian
-  matrixD unscaleJacobian(const matrixD &Jscaled);
+  matrixD unscaleJacobian(const matrixD & Jscaled);
 
 protected:
   /// pointer to NLSystemVars
-  NLSystemVars *const _sys_vars;
+  NLSystemVars * const _sys_vars;
   /// pointer to NLSystemParameters
-  NLSystemParameters *const _sys_params;
+  NLSystemParameters * const _sys_params;
   /// vector of pointers to Equations
   std::vector<Equation *> _eq;
   /// vector of pointers to constraints
   std::vector<const InequalityConstraint *> _lm;
   /// pointer to precalculation method
-  NLPreEquationEvalautionCalc *const _pre_eval;
+  NLPreEquationEvalautionCalc * const _pre_eval;
 
   /// number of NLVariables
   const uint _nx;
