@@ -11,25 +11,35 @@
 
 registerMooseObject("MooseApp", TimeDerivativePostprocessor);
 
-InputParameters 
-TimeDerivativePostprocessor::validParams() {
+InputParameters
+TimeDerivativePostprocessor::validParams()
+{
   InputParameters params = GeneralPostprocessor::validParams();
   params.addClassDescription("Compute the time derivative of a postprocessor");
-  params.addRequiredParam<PostprocessorName>("postprocessor",
-                                             "The name of the postprocessor");
+  params.addRequiredParam<PostprocessorName>("postprocessor", "The name of the postprocessor");
   return params;
 }
 
-TimeDerivativePostprocessor::TimeDerivativePostprocessor(
-    const InputParameters &parameters)
-    : GeneralPostprocessor(parameters),
-      _pps_value(getPostprocessorValue("postprocessor")),
-      _pps_value_old(getPostprocessorValueOld("postprocessor")) {}
+TimeDerivativePostprocessor::TimeDerivativePostprocessor(const InputParameters & parameters)
+  : GeneralPostprocessor(parameters),
+    _pps_value(getPostprocessorValue("postprocessor")),
+    _pps_value_old(getPostprocessorValueOld("postprocessor"))
+{
+}
 
-void TimeDerivativePostprocessor::initialize() {}
+void
+TimeDerivativePostprocessor::initialize()
+{
+}
 
-void TimeDerivativePostprocessor::execute() {
+void
+TimeDerivativePostprocessor::execute()
+{
   _rate = (_pps_value - _pps_value_old) / _dt;
 }
 
-Real TimeDerivativePostprocessor::getValue() { return _rate; }
+Real
+TimeDerivativePostprocessor::getValue()
+{
+  return _rate;
+}

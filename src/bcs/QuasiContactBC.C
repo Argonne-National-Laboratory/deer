@@ -14,11 +14,8 @@ QuasiContactBC::validParams()
 }
 
 QuasiContactBC::QuasiContactBC(const InputParameters & parameters)
-  : IntegratedBC(parameters), 
-    _func(getFunction("penalty_function")),
-    _v(getParam<Real>("value"))
+  : IntegratedBC(parameters), _func(getFunction("penalty_function")), _v(getParam<Real>("value"))
 {
-
 }
 
 Real

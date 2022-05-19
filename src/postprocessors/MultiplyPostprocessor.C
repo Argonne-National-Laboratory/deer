@@ -11,8 +11,9 @@
 
 registerMooseObject("DeerApp", MultiplyPostprocessor);
 
-InputParameters 
-MultiplyPostprocessor::validParams() {
+InputParameters
+MultiplyPostprocessor::validParams()
+{
   InputParameters params = GeneralPostprocessor::validParams();
   params.addRequiredParam<PostprocessorName>("value1", "First value");
   params.addRequiredParam<PostprocessorName>("value2", "Second value");
@@ -20,15 +21,25 @@ MultiplyPostprocessor::validParams() {
   return params;
 }
 
-MultiplyPostprocessor::MultiplyPostprocessor(const InputParameters &parameters)
-    : GeneralPostprocessor(parameters),
-      _value1(getPostprocessorValue("value1")),
-      _value2(getPostprocessorValue("value2")) {}
+MultiplyPostprocessor::MultiplyPostprocessor(const InputParameters & parameters)
+  : GeneralPostprocessor(parameters),
+    _value1(getPostprocessorValue("value1")),
+    _value2(getPostprocessorValue("value2"))
+{
+}
 
-void MultiplyPostprocessor::initialize() {}
+void
+MultiplyPostprocessor::initialize()
+{
+}
 
-void MultiplyPostprocessor::execute() {}
+void
+MultiplyPostprocessor::execute()
+{
+}
 
-PostprocessorValue MultiplyPostprocessor::getValue() {
+PostprocessorValue
+MultiplyPostprocessor::getValue()
+{
   return _value1 * _value2;
 }

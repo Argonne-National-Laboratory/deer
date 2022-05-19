@@ -2,7 +2,9 @@
 
 registerMooseObject("DeerApp", InductionFunction);
 
-InputParameters InductionFunction::validParams() {
+InputParameters
+InductionFunction::validParams()
+{
   InputParameters params = Function::validParams();
 
   params.addRequiredParam<Point>("center", "Center point for calculating r");
@@ -14,15 +16,15 @@ InputParameters InductionFunction::validParams() {
   return params;
 };
 
-InductionFunction::InductionFunction(const InputParameters & parameters) :
-    Function(parameters), FunctionInterface(this),
+InductionFunction::InductionFunction(const InputParameters & parameters)
+  : Function(parameters),
+    FunctionInterface(this),
     _center(getParam<Point>("center")),
     _axis(getParam<Point>("axis")),
     _radius(getParam<Real>("outer_radius")),
     _thickness(getParam<Real>("thickness")),
     _delta(getParam<Real>("delta"))
 {
-
 }
 
 Real
@@ -30,7 +32,7 @@ InductionFunction::value(Real t, const Point & p) const
 {
   Real r = (p - _center).cross(_axis).norm() / _axis.norm();
   Real x = _radius - r;
-  
-  return std::exp(-2*x/_delta) / (
-      M_PI * _radius * _delta * (1.0 - std::exp(-2*_thickness / _delta)));
+
+  return std::exp(-2 * x / _delta) /
+         (M_PI * _radius * _delta * (1.0 - std::exp(-2 * _thickness / _delta)));
 }

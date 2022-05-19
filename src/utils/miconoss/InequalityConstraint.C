@@ -1,14 +1,21 @@
 #include "InequalityConstraint.h"
 
 InequalityConstraint::InequalityConstraint(const uint lm_index,
-                                           const NLSystemVars &sys_vars,
-                                           const NLSystemParameters &sysparams,
+                                           const NLSystemVars & sys_vars,
+                                           const NLSystemParameters & sysparams,
                                            const uint n_sys)
-    : _lm_index(lm_index), _sys_vars(sys_vars), _sysparams(sysparams),
-      _n_vars(_sys_vars.getNVars()), _eq_index(lm_index + _n_vars),
-      _n_sys(n_sys) {}
+  : _lm_index(lm_index),
+    _sys_vars(sys_vars),
+    _sysparams(sysparams),
+    _n_vars(_sys_vars.getNVars()),
+    _eq_index(lm_index + _n_vars),
+    _n_sys(n_sys)
+{
+}
 
-vecD InequalityConstraint::getR(const vecD &lm) const {
+vecD
+InequalityConstraint::getR(const vecD & lm) const
+{
 
   vecD R(_n_sys, 0);
 
@@ -20,11 +27,15 @@ vecD InequalityConstraint::getR(const vecD &lm) const {
   return R;
 }
 
-vecD InequalityConstraint::getJcolumn(const vecD &lm) const {
+vecD
+InequalityConstraint::getJcolumn(const vecD & lm) const
+{
   return dgFun_dx();
 }
 
-double InequalityConstraint::LM_equation(const vecD &lm) const {
+double
+InequalityConstraint::LM_equation(const vecD & lm) const
+{
   const double g_val = gFun();
   const double l_val = -lm[_lm_index];
   if (l_val < g_val)
@@ -33,17 +44,25 @@ double InequalityConstraint::LM_equation(const vecD &lm) const {
     return l_val;
 }
 
-vecD InequalityConstraint::getJrow(const vecD &lm) const {
+vecD
+InequalityConstraint::getJrow(const vecD & lm) const
+{
   const double g_val = gFun();
   const double l_val = -lm[_lm_index];
   vecD Jrow(_n_sys, 0);
-  if (l_val < g_val) {
+  if (l_val < g_val)
+  {
     const vecD dgdx = dgFun_dx();
     for (uint i = 0; i < _n_vars; i++)
       Jrow[i] = dgdx[i];
-  } else
+  }
+  else
     Jrow[_eq_index] = -1;
   return Jrow;
 }
 
-bool InequalityConstraint::constraintIsActive() const { return gFun() > 0; }
+bool
+InequalityConstraint::constraintIsActive() const
+{
+  return gFun() > 0;
+}

@@ -16,11 +16,12 @@
  * This postprocessor computes the cohesive zon area ratio, i.e. A/A0
  */
 
-class CZMAreaRatioPostprocessor : public CZMAreaPostprocessor {
+class CZMAreaRatioPostprocessor : public CZMAreaPostprocessor
+{
 public:
   static InputParameters validParams();
 
-  CZMAreaRatioPostprocessor(const InputParameters &parameters);
+  CZMAreaRatioPostprocessor(const InputParameters & parameters);
 
 protected:
   virtual Real getValue() override;

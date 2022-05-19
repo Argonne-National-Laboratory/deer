@@ -11,17 +11,22 @@
 
 registerMooseObject("DeerApp", TimeIntegralPostprocessor);
 
-InputParameters TimeIntegralPostprocessor::validParams() {
+InputParameters
+TimeIntegralPostprocessor::validParams()
+{
   InputParameters params = CumulativeValuePostprocessor::validParams();
   params.addClassDescription("Compute the time integral of a postprocessor "
                              "representing a rate.");
   return params;
 }
 
-TimeIntegralPostprocessor::TimeIntegralPostprocessor(
-    const InputParameters &parameters)
-    : CumulativeValuePostprocessor(parameters) {}
+TimeIntegralPostprocessor::TimeIntegralPostprocessor(const InputParameters & parameters)
+  : CumulativeValuePostprocessor(parameters)
+{
+}
 
-void TimeIntegralPostprocessor::execute() {
+void
+TimeIntegralPostprocessor::execute()
+{
   _sum = _sum_old + _pps_value * _dt;
 }

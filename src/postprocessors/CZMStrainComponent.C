@@ -11,62 +11,77 @@
 
 registerMooseObject("DeerApp", CZMStrainComponent);
 
-InputParameters CZMStrainComponent::validParams() {
+InputParameters
+CZMStrainComponent::validParams()
+{
   InputParameters params = CZMAreaRatioPostprocessor::validParams();
   params.addClassDescription(
       "Postprocessor computing the cohesive zon strain contrinution to an RVE");
-  params.addRequiredParam<MaterialPropertyName>(
-      "rank_two_tensor", "The rank two material tensor name");
+  params.addRequiredParam<MaterialPropertyName>("rank_two_tensor",
+                                                "The rank two material tensor name");
   params.addRequiredRangeCheckedParam<unsigned int>(
-      "index_i", "index_i >= 0 & index_i <= 2",
+      "index_i",
+      "index_i >= 0 & index_i <= 2",
       "The index i of ij for the tensor to output (0, 1, 2)");
   params.addRequiredRangeCheckedParam<unsigned int>(
-      "index_j", "index_j >= 0 & index_j <= 2",
+      "index_j",
+      "index_j >= 0 & index_j <= 2",
       "The index j of ij for the tensor to output (0, 1, 2)");
   params.addRequiredParam<PostprocessorName>(
-      "initial_bulk_volume_pp",
-      "A postprocessor used as scaling factor for the integral");
+      "initial_bulk_volume_pp", "A postprocessor used as scaling factor for the integral");
   return params;
 }
 
-CZMStrainComponent::CZMStrainComponent(const InputParameters &parameters)
-    : CZMAreaRatioPostprocessor(parameters),
-      _tensor(getMaterialPropertyByName<RankTwoTensor>(
-          _base_name + getParam<MaterialPropertyName>("rank_two_tensor"))),
-      _i(getParam<unsigned int>("index_i")),
-      _j(getParam<unsigned int>("index_j")),
-      _initial_bulk_volume_pp(getPostprocessorValueByName(
-          getParam<PostprocessorName>("initial_bulk_volume_pp"))) {}
+CZMStrainComponent::CZMStrainComponent(const InputParameters & parameters)
+  : CZMAreaRatioPostprocessor(parameters),
+    _tensor(getMaterialPropertyByName<RankTwoTensor>(
+        _base_name + getParam<MaterialPropertyName>("rank_two_tensor"))),
+    _i(getParam<unsigned int>("index_i")),
+    _j(getParam<unsigned int>("index_j")),
+    _initial_bulk_volume_pp(
+        getPostprocessorValueByName(getParam<PostprocessorName>("initial_bulk_volume_pp")))
+{
+}
 
-void CZMStrainComponent::initialize() {
+void
+CZMStrainComponent::initialize()
+{
   CZMAreaRatioPostprocessor::initialize();
   _normalized_strain_component = 0;
 }
 
-Real CZMStrainComponent::getValue() {
+Real
+CZMStrainComponent::getValue()
+{
   _integral_value = CZMAreaRatioPostprocessor::getValue();
   gatherSum(_normalized_strain_component);
 
-  _normalized_strain_component = _normalized_strain_component /
-                                 (_initial_bulk_volume_pp * _integral_value);
+  _normalized_strain_component =
+      _normalized_strain_component / (_initial_bulk_volume_pp * _integral_value);
 
   return _normalized_strain_component;
 }
 
-void CZMStrainComponent::execute() {
+void
+CZMStrainComponent::execute()
+{
   CZMAreaRatioPostprocessor::execute();
   _normalized_strain_component += computeStrainIntegral();
 }
 
-Real CZMStrainComponent::computeStrainIntegral() {
+Real
+CZMStrainComponent::computeStrainIntegral()
+{
   Real sum = 0;
   for (_qp = 0; _qp < _qrule->n_points(); _qp++)
     sum += _JxW[_qp] * _coord[_qp] * _tensor[_qp](_i, _j);
   return sum;
 }
 
-void CZMStrainComponent::threadJoin(const UserObject &y) {
+void
+CZMStrainComponent::threadJoin(const UserObject & y)
+{
   InterfaceIntegralPostprocessor::threadJoin(y);
-  const CZMStrainComponent &pps = static_cast<const CZMStrainComponent &>(y);
+  const CZMStrainComponent & pps = static_cast<const CZMStrainComponent &>(y);
   _normalized_strain_component += pps._normalized_strain_component;
 }

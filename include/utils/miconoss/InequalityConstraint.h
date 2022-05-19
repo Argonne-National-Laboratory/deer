@@ -7,14 +7,17 @@
 Thie class implements inequality constraints. All constraints shall be
 implemented as g<0
 **/
-class InequalityConstraint {
+class InequalityConstraint
+{
 public:
-  InequalityConstraint(const uint lm_index, const NLSystemVars &sys_vars,
-                       const NLSystemParameters &sysparams, const uint n_sys);
+  InequalityConstraint(const uint lm_index,
+                       const NLSystemVars & sys_vars,
+                       const NLSystemParameters & sysparams,
+                       const uint n_sys);
   /// method retuning the residual due to the
-  vecD getR(const vecD &lm) const;
-  vecD getJcolumn(const vecD &lm) const;
-  vecD getJrow(const vecD &lm) const;
+  vecD getR(const vecD & lm) const;
+  vecD getJcolumn(const vecD & lm) const;
+  vecD getJrow(const vecD & lm) const;
   bool constraintIsActive() const;
   uint getIndex() const { return _eq_index; };
 
@@ -27,9 +30,9 @@ protected:
   /// the langrance multiplier index this constraints refers to
   const uint _lm_index;
   /// the non linear system variables
-  const NLSystemVars &_sys_vars;
+  const NLSystemVars & _sys_vars;
   /// the non linear system parameters
-  const NLSystemParameters &_sysparams;
+  const NLSystemParameters & _sysparams;
   /// the number of variables excluding LM
   const uint _n_vars;
   /// the row in the nonlinear system
@@ -39,5 +42,5 @@ protected:
 
 private:
   /// method computing the actual value of the constraints
-  double LM_equation(const vecD &lm) const;
+  double LM_equation(const vecD & lm) const;
 };

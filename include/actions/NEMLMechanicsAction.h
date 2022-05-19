@@ -2,10 +2,11 @@
 
 #include "Action.h"
 
-class NEMLMechanicsAction : public Action {
+class NEMLMechanicsAction : public Action
+{
 public:
   static InputParameters validParams();
-  NEMLMechanicsAction(const InputParameters &params);
+  NEMLMechanicsAction(const InputParameters & params);
 
   virtual void act();
 
@@ -21,23 +22,26 @@ protected:
   bool _add_disp;
   bool _add_all;
 
-  enum class Kinematics { Small, Large } _kinematics;
-  enum class Formulation {Updated, Total} _formulation;
+  enum class Kinematics
+  {
+    Small,
+    Large
+  } _kinematics;
+  enum class Formulation
+  {
+    Updated,
+    Total
+  } _formulation;
 
-  std::map<Kinematics, bool> _kin_mapper = {{Kinematics::Small, false},
-                                            {Kinematics::Large, true}};
+  std::map<Kinematics, bool> _kin_mapper = {{Kinematics::Small, false}, {Kinematics::Large, true}};
 
   std::vector<MaterialPropertyName> _eigenstrains;
   std::vector<SubdomainName> _block;
 
   bool _homogenize;
   // Helper to translate into MOOSE talk
-  const std::map<unsigned int, std::string> _order_mapper = 
-  { {1, "FIRST"},
-    {3, "THIRD"},
-    {4, "FOURTH"},
-    {6, "SIXTH"},
-    {9, "NINTH"}};
+  const std::map<unsigned int, std::string> _order_mapper = {
+      {1, "FIRST"}, {3, "THIRD"}, {4, "FOURTH"}, {6, "SIXTH"}, {9, "NINTH"}};
   // Name of the homogenization scalar variable
   const std::string _hname = "hvar";
   // Name of the integrator

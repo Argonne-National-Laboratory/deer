@@ -14,11 +14,12 @@
 /**
  * Computes the time integral of a postprocessor representing a rate.
  */
-class TimeIntegralPostprocessor : public CumulativeValuePostprocessor {
+class TimeIntegralPostprocessor : public CumulativeValuePostprocessor
+{
 public:
   static InputParameters validParams();
 
-  TimeIntegralPostprocessor(const InputParameters &parameters);
+  TimeIntegralPostprocessor(const InputParameters & parameters);
 
   virtual void execute() override;
 };

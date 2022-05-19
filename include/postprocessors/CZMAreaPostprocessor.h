@@ -17,11 +17,12 @@
  * strain formulation
  */
 
-class CZMAreaPostprocessor : public InterfaceIntegralPostprocessor {
+class CZMAreaPostprocessor : public InterfaceIntegralPostprocessor
+{
 public:
   static InputParameters validParams();
 
-  CZMAreaPostprocessor(const InputParameters &parameters);
+  CZMAreaPostprocessor(const InputParameters & parameters);
 
 protected:
   virtual Real computeQpIntegral() override;
@@ -30,8 +31,12 @@ protected:
   const std::string _base_name;
 
   /// strain formulation
-  enum class Strain { Small, Finite } _strain;
+  enum class Strain
+  {
+    Small,
+    Finite
+  } _strain;
 
   /// the czm deformation gradient (if needed)
-  const MaterialProperty<RankTwoTensor> *_F_czm;
+  const MaterialProperty<RankTwoTensor> * _F_czm;
 };

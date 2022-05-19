@@ -4,7 +4,7 @@
 
 class ElementExtremeVectorMaterialProperty : public ElementPostprocessor
 {
- public:
+public:
   static InputParameters validParams();
 
   enum ExtremeType
@@ -20,7 +20,7 @@ class ElementExtremeVectorMaterialProperty : public ElementPostprocessor
   virtual Real getValue() override;
   virtual void threadJoin(const UserObject & y) override;
 
- protected:
+protected:
   virtual void computeQpValue();
 
   const MaterialProperty<std::vector<Real>> & _mat_prop;

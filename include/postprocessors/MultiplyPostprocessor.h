@@ -16,17 +16,18 @@
  *
  * result = value1 * value2
  */
-class MultiplyPostprocessor : public GeneralPostprocessor {
+class MultiplyPostprocessor : public GeneralPostprocessor
+{
 public:
   static InputParameters validParams();
 
-  MultiplyPostprocessor(const InputParameters &parameters);
+  MultiplyPostprocessor(const InputParameters & parameters);
 
   virtual void initialize() override;
   virtual void execute() override;
   virtual PostprocessorValue getValue() override;
 
 protected:
-  const PostprocessorValue &_value1;
-  const PostprocessorValue &_value2;
+  const PostprocessorValue & _value1;
+  const PostprocessorValue & _value2;
 };

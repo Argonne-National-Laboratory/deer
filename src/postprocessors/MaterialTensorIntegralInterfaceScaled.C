@@ -17,48 +17,52 @@ registerMooseObject("DeerApp", ADMaterialTensorIntegralInterfaceScaled);
 
 template <bool is_ad>
 InputParameters
-MaterialTensorIntegralInterfaceScaledTempl<is_ad>::validParams() {
+MaterialTensorIntegralInterfaceScaledTempl<is_ad>::validParams()
+{
   InputParameters params = InterfaceIntegralPostprocessor::validParams();
   params.addClassDescription("Computes an interface integral of "
                              "a component of a material tensor as specified by "
                              "the user-supplied indices.");
-  params.addRequiredParam<MaterialPropertyName>(
-      "rank_two_tensor", "The rank two material tensor name");
+  params.addRequiredParam<MaterialPropertyName>("rank_two_tensor",
+                                                "The rank two material tensor name");
   params.addRequiredRangeCheckedParam<unsigned int>(
-      "index_i", "index_i >= 0 & index_i <= 2",
+      "index_i",
+      "index_i >= 0 & index_i <= 2",
       "The index i of ij for the tensor to output (0, 1, 2)");
   params.addRequiredRangeCheckedParam<unsigned int>(
-      "index_j", "index_j >= 0 & index_j <= 2",
+      "index_j",
+      "index_j >= 0 & index_j <= 2",
       "The index j of ij for the tensor to output (0, 1, 2)");
-  params.addParam<PostprocessorName>(
-      "scaling_factor_PP",
-      "A postprocessor used as scaling factor for the integral");
+  params.addParam<PostprocessorName>("scaling_factor_PP",
+                                     "A postprocessor used as scaling factor for the integral");
   return params;
 }
 
 template <bool is_ad>
-MaterialTensorIntegralInterfaceScaledTempl<
-    is_ad>::MaterialTensorIntegralInterfaceScaledTempl(const InputParameters
-                                                           &parameters)
-    : InterfaceIntegralPostprocessor(parameters),
-      _tensor(
-          getGenericMaterialProperty<RankTwoTensor, is_ad>("rank_two_tensor")),
-      _i(getParam<unsigned int>("index_i")),
-      _j(getParam<unsigned int>("index_j")),
-      _scaling_factor_PP(
-          isParamValid("scaling_factor_PP")
-              ? &getPostprocessorValueByName(
-                    getParam<PostprocessorName>("scaling_factor_PP"))
-              : nullptr) {}
-
-template <bool is_ad>
-Real MaterialTensorIntegralInterfaceScaledTempl<is_ad>::computeQpIntegral() {
-  return RankTwoScalarTools::component(MetaPhysicL::raw_value(_tensor[_qp]), _i,
-                                       _j);
+MaterialTensorIntegralInterfaceScaledTempl<is_ad>::MaterialTensorIntegralInterfaceScaledTempl(
+    const InputParameters & parameters)
+  : InterfaceIntegralPostprocessor(parameters),
+    _tensor(getGenericMaterialProperty<RankTwoTensor, is_ad>("rank_two_tensor")),
+    _i(getParam<unsigned int>("index_i")),
+    _j(getParam<unsigned int>("index_j")),
+    _scaling_factor_PP(
+        isParamValid("scaling_factor_PP")
+            ? &getPostprocessorValueByName(getParam<PostprocessorName>("scaling_factor_PP"))
+            : nullptr)
+{
 }
 
 template <bool is_ad>
-Real MaterialTensorIntegralInterfaceScaledTempl<is_ad>::getValue() {
+Real
+MaterialTensorIntegralInterfaceScaledTempl<is_ad>::computeQpIntegral()
+{
+  return RankTwoScalarTools::component(MetaPhysicL::raw_value(_tensor[_qp]), _i, _j);
+}
+
+template <bool is_ad>
+Real
+MaterialTensorIntegralInterfaceScaledTempl<is_ad>::getValue()
+{
   _integral_value = InterfaceIntegralPostprocessor::getValue();
   if (_scaling_factor_PP)
     _integral_value /= *_scaling_factor_PP;

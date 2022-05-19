@@ -11,12 +11,13 @@
 
 #include "Function.h"
 
-class CycleFraction : public Function {
+class CycleFraction : public Function
+{
 public:
   static InputParameters validParams();
-  CycleFraction(const InputParameters &parameters);
+  CycleFraction(const InputParameters & parameters);
 
-  Real value(Real t, const Point &p) const override;
+  Real value(Real t, const Point & p) const override;
 
   const Real _cycle_period;
 };

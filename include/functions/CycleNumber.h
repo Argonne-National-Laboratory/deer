@@ -13,12 +13,13 @@
 
 class CycleNumber;
 
-class CycleNumber : public Function {
+class CycleNumber : public Function
+{
 public:
   static InputParameters validParams();
-  CycleNumber(const InputParameters &parameters);
+  CycleNumber(const InputParameters & parameters);
 
-  Real value(Real t, const Point &p) const override;
+  Real value(Real t, const Point & p) const override;
 
   const Real _cycle_period;
 };

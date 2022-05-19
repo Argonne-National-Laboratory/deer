@@ -17,11 +17,12 @@ class TimeDerivativePostprocessor;
  * Computes the time derivative of Postprocessor, i.e. (v-v_old)/dt
  */
 
-class TimeDerivativePostprocessor : public GeneralPostprocessor {
+class TimeDerivativePostprocessor : public GeneralPostprocessor
+{
 public:
   static InputParameters validParams();
 
-  TimeDerivativePostprocessor(const InputParameters &parameters);
+  TimeDerivativePostprocessor(const InputParameters & parameters);
 
   virtual void initialize() override;
   virtual void execute() override;
@@ -32,8 +33,8 @@ protected:
   Real _rate;
 
   /// current post-processor value
-  const PostprocessorValue &_pps_value;
+  const PostprocessorValue & _pps_value;
 
   /// old post-processor value
-  const PostprocessorValue &_pps_value_old;
+  const PostprocessorValue & _pps_value_old;
 };

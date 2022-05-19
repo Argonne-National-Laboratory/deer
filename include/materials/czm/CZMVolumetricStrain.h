@@ -17,11 +17,12 @@
  * (default) area changes and large rotation are used to properly adjust the
  * resulting strains.
  */
-class CZMVolumetricStrain : public InterfaceMaterial {
+class CZMVolumetricStrain : public InterfaceMaterial
+{
 
 public:
   static InputParameters validParams();
-  CZMVolumetricStrain(const InputParameters &parameters);
+  CZMVolumetricStrain(const InputParameters & parameters);
 
 protected:
   virtual void computeQpProperties() override;
@@ -29,33 +30,37 @@ protected:
   virtual void initQpStatefulProperties() override;
 
   /// normal to the interface
-  const MooseArray<Point> &_normals;
+  const MooseArray<Point> & _normals;
 
   /// Base name of the material system
   const std::string _base_name;
 
   /// the displacement jump in global and interface coordiantes
   ///@{
-  const MaterialProperty<RealVectorValue> &_displacement_jump_global;
+  const MaterialProperty<RealVectorValue> & _displacement_jump_global;
   ///@}
 
   /// the material property defining the czm normal
-  const MaterialProperty<RankTwoTensor> &_czm_total_rotation;
+  const MaterialProperty<RankTwoTensor> & _czm_total_rotation;
 
   /// interface strains and strains rate
   ///@{
-  MaterialProperty<RankTwoTensor> &_czm_total_strain;
-  MaterialProperty<RankTwoTensor> &_czm_normal_strain;
-  MaterialProperty<RankTwoTensor> &_czm_sliding_strain;
+  MaterialProperty<RankTwoTensor> & _czm_total_strain;
+  MaterialProperty<RankTwoTensor> & _czm_normal_strain;
+  MaterialProperty<RankTwoTensor> & _czm_sliding_strain;
   ///@}
 
   /// ratio between deformed and undeformed area
-  MaterialProperty<Real> &_dadA_mp;
+  MaterialProperty<Real> & _dadA_mp;
 
   /// strain formulation
-  enum class Strain { Small, Finite } _strain;
+  enum class Strain
+  {
+    Small,
+    Finite
+  } _strain;
 
-  const MaterialProperty<RankTwoTensor> *_F_czm;
+  const MaterialProperty<RankTwoTensor> * _F_czm;
 
   /// method computing the interface strain contribution
   void computeInterfaceStrain();

@@ -18,25 +18,23 @@
  * resulting integral can be scaled by the value of another postprocessor.
  */
 template <bool is_ad>
-class MaterialTensorIntegralInterfaceScaledTempl
-    : public InterfaceIntegralPostprocessor {
+class MaterialTensorIntegralInterfaceScaledTempl : public InterfaceIntegralPostprocessor
+{
 public:
   static InputParameters validParams();
 
-  MaterialTensorIntegralInterfaceScaledTempl(const InputParameters &parameters);
+  MaterialTensorIntegralInterfaceScaledTempl(const InputParameters & parameters);
   virtual Real getValue() override;
 
 protected:
   virtual Real computeQpIntegral();
 
 private:
-  const GenericMaterialProperty<RankTwoTensor, is_ad> &_tensor;
+  const GenericMaterialProperty<RankTwoTensor, is_ad> & _tensor;
   const unsigned int _i;
   const unsigned int _j;
-  const PostprocessorValue *_scaling_factor_PP;
+  const PostprocessorValue * _scaling_factor_PP;
 };
 
-typedef MaterialTensorIntegralInterfaceScaledTempl<false>
-    MaterialTensorIntegralInterfaceScaled;
-typedef MaterialTensorIntegralInterfaceScaledTempl<true>
-    ADMaterialTensorIntegralInterfaceScaled;
+typedef MaterialTensorIntegralInterfaceScaledTempl<false> MaterialTensorIntegralInterfaceScaled;
+typedef MaterialTensorIntegralInterfaceScaledTempl<true> ADMaterialTensorIntegralInterfaceScaled;

@@ -2,7 +2,9 @@
 
 registerMooseObject("DeerApp", CapGradient);
 
-InputParameters CapGradient::validParams() {
+InputParameters
+CapGradient::validParams()
+{
   InputParameters params = Function::validParams();
   params.addParam<Real>("delay", 0.0, "Keep T1 until...");
   params.addParam<Real>("T1", 0.0, "Initial temperature");
@@ -20,42 +22,62 @@ InputParameters CapGradient::validParams() {
   return params;
 }
 
-CapGradient::CapGradient(const InputParameters &parameters)
-    : Function(parameters), _delay(getParam<Real>("delay")),
-      _T1(getParam<Real>("T1")), _T2(getParam<Real>("T2")),
-      _tramp1(getParam<Real>("tramp1")), _thold1(getParam<Real>("thold1")),
-      _tramp2(getParam<Real>("tramp2")), _thold2(getParam<Real>("thold2")),
-      _r1(getParam<Real>("r1")), _r2(getParam<Real>("r2")),
-      _trans(getParam<Real>("trans")), _radius(getParam<Real>("radius")),
-      _index(getParam<int>("index")) {}
+CapGradient::CapGradient(const InputParameters & parameters)
+  : Function(parameters),
+    _delay(getParam<Real>("delay")),
+    _T1(getParam<Real>("T1")),
+    _T2(getParam<Real>("T2")),
+    _tramp1(getParam<Real>("tramp1")),
+    _thold1(getParam<Real>("thold1")),
+    _tramp2(getParam<Real>("tramp2")),
+    _thold2(getParam<Real>("thold2")),
+    _r1(getParam<Real>("r1")),
+    _r2(getParam<Real>("r2")),
+    _trans(getParam<Real>("trans")),
+    _radius(getParam<Real>("radius")),
+    _index(getParam<int>("index"))
+{
+}
 
-Real CapGradient::value(Real t, const Point &p) {
+Real
+CapGradient::value(Real t, const Point & p)
+{
   // This trusts that z = 0.0 for 2d meshes...
   double z;
   int oc[2];
-  if (_index == 0) {
+  if (_index == 0)
+  {
     z = p(0);
     oc[0] = 1;
     oc[1] = 2;
-  } else if (_index == 1) {
+  }
+  else if (_index == 1)
+  {
     z = p(1);
     oc[0] = 0;
     oc[1] = 2;
-  } else if (_index == 2) {
+  }
+  else if (_index == 2)
+  {
     z = p(2);
     oc[0] = 0;
     oc[1] = 1;
-  } else {
+  }
+  else
+  {
     mooseError("Coordinate index provided is > 2!");
   }
 
   double r;
-  if (z < _trans) {
+  if (z < _trans)
+  {
     r = 0.0;
     for (int i = 0; i < 2; i++)
       r += p(oc[i]) * p(oc[i]);
     r = sqrt(r);
-  } else {
+  }
+  else
+  {
     r = 0.0;
     for (int i = 0; i < 2; i++)
       r += p(oc[i]) * p(oc[i]);
@@ -68,22 +90,36 @@ Real CapGradient::value(Real t, const Point &p) {
   Real nt = fmod(t - _delay, period);
   Real nx = (r - _r1) / (_r2 - _r1);
 
-  if (t > _delay) {
+  if (t > _delay)
+  {
     Real T2p;
-    if (nt < _tramp1) {
+    if (nt < _tramp1)
+    {
       T2p = _T1 + (_T2 - _T1) / _tramp1 * nt;
-    } else if (nt < (_tramp1 + _thold1)) {
+    }
+    else if (nt < (_tramp1 + _thold1))
+    {
       T2p = _T2;
-    } else if (nt < (_tramp1 + _thold1 + _tramp2)) {
+    }
+    else if (nt < (_tramp1 + _thold1 + _tramp2))
+    {
       T2p = _T2 + (_T1 - _T2) / _tramp2 * (nt - _tramp1 - _thold1);
-    } else {
+    }
+    else
+    {
       T2p = _T1;
     }
 
     return _getTemp(T2p, nx);
-  } else {
+  }
+  else
+  {
     return _T1;
   }
 }
 
-Real CapGradient::_getTemp(Real T2p, Real nx) { return (T2p - _T1) * nx + _T1; }
+Real
+CapGradient::_getTemp(Real T2p, Real nx)
+{
+  return (T2p - _T1) * nx + _T1;
+}

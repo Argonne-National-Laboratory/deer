@@ -11,7 +11,7 @@ EmpiricalReactionHeat::validParams()
   params.addRequiredParam<Real>("start_temperature", "Temperature at which to start the reaction");
   params.addRequiredParam<Real>("time_constant", "Characteristic reaction time");
 
-  params.addRequiredCoupledVar("temperature", "Coupled temperature");  
+  params.addRequiredCoupledVar("temperature", "Coupled temperature");
 
   return params;
 }
@@ -27,21 +27,23 @@ EmpiricalReactionHeat::EmpiricalReactionHeat(const InputParameters & parameters)
     _power_old(getMaterialPropertyOld<Real>("reaction_power")),
     _temperature(coupledValue("temperature"))
 {
-
 }
 
 void
 EmpiricalReactionHeat::computeQpProperties()
 {
-  if (!_active_old[_qp] && (_temperature[_qp] >= _T0)) {
+  if (!_active_old[_qp] && (_temperature[_qp] >= _T0))
+  {
     _active[_qp] = true;
     _power[_qp] = _W0 / _tau;
   }
-  else if (_active_old[_qp]) {
+  else if (_active_old[_qp])
+  {
     _active[_qp] = true;
-    _power[_qp] = _power_old[_qp] * std::exp(-_dt/_tau);
+    _power[_qp] = _power_old[_qp] * std::exp(-_dt / _tau);
   }
-  else {
+  else
+  {
     _active[_qp] = false;
     _power[_qp] = 0.0;
   }

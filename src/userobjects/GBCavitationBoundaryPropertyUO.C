@@ -12,7 +12,9 @@
 
 registerMooseObject("DeerApp", GBCavitationBoundaryPropertyUO);
 
-InputParameters GBCavitationBoundaryPropertyUO::validParams() {
+InputParameters
+GBCavitationBoundaryPropertyUO::validParams()
+{
   InputParameters params = InterfaceUserObject::validParams();
   params.addRequiredParam<FileName>("file_name",
                                     "the filename containing the different "
@@ -22,43 +24,47 @@ InputParameters GBCavitationBoundaryPropertyUO::validParams() {
   return params;
 }
 
-GBCavitationBoundaryPropertyUO::GBCavitationBoundaryPropertyUO(
-    const InputParameters &parameters)
-    : InterfaceUserObject(parameters),
-      _file_name(getParam<FileName>("file_name")) {}
+GBCavitationBoundaryPropertyUO::GBCavitationBoundaryPropertyUO(const InputParameters & parameters)
+  : InterfaceUserObject(parameters), _file_name(getParam<FileName>("file_name"))
+{
+}
 
-void GBCavitationBoundaryPropertyUO::initialSetup() {
+void
+GBCavitationBoundaryPropertyUO::initialSetup()
+{
   ReadGBPropertyFile();
   constructGBPairsMap();
 }
 
-void GBCavitationBoundaryPropertyUO::constructGBPairsMap() {
+void
+GBCavitationBoundaryPropertyUO::constructGBPairsMap()
+{
   /* define the boundary map*/
   // build the global element,side,boundary_id list
-  std::vector<std::tuple<dof_id_type, unsigned short int, boundary_id_type>>
-      elem_side_bid = _mesh.buildSideList();
+  std::vector<std::tuple<dof_id_type, unsigned short int, boundary_id_type>> elem_side_bid =
+      _mesh.buildSideList();
 
   // retrieve on which boundary this UO operates on
   std::set<BoundaryID> boundaryList = boundaryIDs();
 
   // initialize the map_values looping over all the element and sides
-  for (unsigned int i = 0; i < elem_side_bid.size(); i++) {
+  for (unsigned int i = 0; i < elem_side_bid.size(); i++)
+  {
     // check if this element side paris is part of the boundary this UO operates
-    if (boundaryList.find(std::get<2>(elem_side_bid[i])) !=
-        boundaryList.end()) {
+    if (boundaryList.find(std::get<2>(elem_side_bid[i])) != boundaryList.end())
+    {
 
       // I would like to avoid this but apparently we need to query the mesh to
       // get the proper nieghhbor at his stage.
-      const Elem *current_elem = _mesh.elemPtr(std::get<0>(elem_side_bid[i]));
-      const Elem *neighbor_elem =
-          current_elem->neighbor_ptr(std::get<1>(elem_side_bid[i]));
+      const Elem * current_elem = _mesh.elemPtr(std::get<0>(elem_side_bid[i]));
+      const Elem * neighbor_elem = current_elem->neighbor_ptr(std::get<1>(elem_side_bid[i]));
       // construct the elemnt side pair
-      std::pair<dof_id_type, unsigned int> elem_side_pair = std::make_pair(
-          std::get<0>(elem_side_bid[i]), std::get<1>(elem_side_bid[i]));
+      std::pair<dof_id_type, unsigned int> elem_side_pair =
+          std::make_pair(std::get<0>(elem_side_bid[i]), std::get<1>(elem_side_bid[i]));
 
       // query element and neighbor to get their subdomain ids to create a pair
-      std::pair<SubdomainID, SubdomainID> subdomain_pair = std::make_pair(
-          current_elem->subdomain_id(), neighbor_elem->subdomain_id());
+      std::pair<SubdomainID, SubdomainID> subdomain_pair =
+          std::make_pair(current_elem->subdomain_id(), neighbor_elem->subdomain_id());
 
       // add entry to the value elmeside_gbpair_map, will reuse this map in the
       // get mp values map
@@ -67,7 +73,9 @@ void GBCavitationBoundaryPropertyUO::constructGBPairsMap() {
   }
 }
 
-void GBCavitationBoundaryPropertyUO::ReadGBPropertyFile() {
+void
+GBCavitationBoundaryPropertyUO::ReadGBPropertyFile()
+{
 
   // open file file
   std::ifstream inFile(_file_name.c_str());
@@ -79,12 +87,12 @@ void GBCavitationBoundaryPropertyUO::ReadGBPropertyFile() {
     inFile.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
   SubdomainID gid1, gid2;
-  Real FN_NI, Nmax_NI, thickness, a_0, b_0, sigma_0, D_GB, beta_exponent,
-      n_exponent, E_GB, G_GB, eta_sliding, psi_degree;
+  Real FN_NI, Nmax_NI, thickness, a_0, b_0, sigma_0, D_GB, beta_exponent, n_exponent, E_GB, G_GB,
+      eta_sliding, psi_degree;
 
-  while (inFile >> gid1 >> gid2 >> FN_NI >> Nmax_NI >> thickness >> a_0 >>
-         b_0 >> sigma_0 >> D_GB >> beta_exponent >> n_exponent >> E_GB >>
-         G_GB >> eta_sliding >> psi_degree) {
+  while (inFile >> gid1 >> gid2 >> FN_NI >> Nmax_NI >> thickness >> a_0 >> b_0 >> sigma_0 >> D_GB >>
+         beta_exponent >> n_exponent >> E_GB >> G_GB >> eta_sliding >> psi_degree)
+  {
 
     std::pair<SubdomainID, SubdomainID> gb_pair = std::make_pair(gid1, gid2);
     std::map<std::string, Real> boundary_property;
@@ -109,7 +117,8 @@ void GBCavitationBoundaryPropertyUO::ReadGBPropertyFile() {
 
 std::map<std::string, Real>
 GBCavitationBoundaryPropertyUO::getPropertyMap(const dof_id_type elem_id,
-                                               const unsigned int side) const {
+                                               const unsigned int side) const
+{
 
   // find the subdomain pairs give an lement and a side
   std::pair<SubdomainID, SubdomainID> gb_pairs;
