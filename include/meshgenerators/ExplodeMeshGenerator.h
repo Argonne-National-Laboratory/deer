@@ -1,6 +1,7 @@
 #pragma once
 
 #include "MeshGenerator.h"
+#include "libmesh/elem.h"
 
 /*
  * A mesh generator to split a mesh by breaking all element-element interfaces in the

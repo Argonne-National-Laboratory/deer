@@ -1,4 +1,6 @@
 #include "ExplodeMeshGenerator.h"
+#include "CastUniquePointer.h"
+
 #include "libmesh/partitioner.h"
 
 registerMooseObject("MooseApp", ExplodeMeshGenerator);
