@@ -1,8 +1,14 @@
 [Tests]
-  [./3d]
+  [3d]
     type = Exodiff
     input = 'eigenstrain_3d.i'
     exodiff = 'eigenstrain_3d_out.e'
     requirement = "Check on the thermal strain definition, 3d."
-  [../]
+  []
+  [anisotropic_eigenstrain]
+    type = Exodiff
+    input = 'anisotropic_eigenstrain.i'
+    exodiff = 'anisotropic_eigenstrain_out.e'
+    requirement = "Provide an anisotropic thermal eigenstrain"
+  []
 []
