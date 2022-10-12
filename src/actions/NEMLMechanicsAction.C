@@ -4,8 +4,6 @@
 #include "NEMLMechanicsAction.h"
 #include "libmesh/string_to_enum.h"
 
-#include "HomogenizationConstraintIntegral.h" // just for the constants
-
 registerMooseAction("DeerApp", NEMLMechanicsAction, "add_variable");
 registerMooseAction("DeerApp", NEMLMechanicsAction, "add_kernel");
 registerMooseAction("DeerApp", NEMLMechanicsAction, "add_material");
@@ -111,8 +109,11 @@ NEMLMechanicsAction::act()
     {
       InputParameters params = _factory.getValidParams("MooseVariableBase");
       params.set<MooseEnum>("family") = "SCALAR";
-      params.set<MooseEnum>("order") = _order_mapper.at(
-          HomogenizationConstants::required.at(_kin_mapper[_kinematics])[_ndisp - 1]);
+      int order = 0;
+      for (const auto & constraint_type : _constraint_types)
+        if (MooseUtils::toUpper(constraint_type) != "NONE")
+          order++;
+      params.set<MooseEnum>("order") = order;
       auto fe_type = AddVariableAction::feType(params);
       auto var_type = AddVariableAction::determineType(fe_type, 1);
       _problem->addVariable(var_type, _hname, params);
@@ -216,9 +217,7 @@ NEMLMechanicsAction::act()
     {
       InputParameters params = _factory.getValidParams("HomogenizationConstraintScalarKernel");
       params.set<NonlinearVariableName>("variable") = _hname;
-      params.set<unsigned int>("ndim") = _ndisp;
-      params.set<UserObjectName>("integrator") = _integrator_name;
-      params.set<bool>("large_kinematics") = _kin_mapper[_kinematics];
+      params.set<UserObjectName>("homogenization_constraint") = _integrator_name;
       if (_block.size() > 0)
         params.set<std::vector<SubdomainName>>("block") = _block;
 
@@ -230,14 +229,13 @@ NEMLMechanicsAction::act()
   {
     if (_homogenize)
     {
-      InputParameters params = _factory.getValidParams("HomogenizationConstraintIntegral");
-      params.set<std::vector<VariableName>>("displacements") = _displacements;
+      InputParameters params = _factory.getValidParams("HomogenizationConstraint");
       params.set<std::vector<std::string>>("constraint_types") = _constraint_types;
       params.set<std::vector<FunctionName>>("targets") = _targets;
       params.set<bool>("large_kinematics") = _kin_mapper[_kinematics];
       params.set<ExecFlagEnum>("execute_on") = {EXEC_INITIAL, EXEC_LINEAR};
 
-      _problem->addUserObject("HomogenizationConstraintIntegral", _integrator_name, params);
+      _problem->addUserObject("HomogenizationConstraint", _integrator_name, params);
     }
   }
 }
