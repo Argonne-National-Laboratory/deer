@@ -298,6 +298,25 @@ GBCavitation::setupShamNeedlemanConstraints(std::vector<const InequalityConstrai
   my_lms.push_back(new ShamNeedlemann::b_lt_b_old(2, sysvars, sysparams, 8));
 }
 
+void
+GBCavitation::freeEquations(std::vector<Equation *> & equations)
+{
+  // The horror, the horror
+  delete dynamic_cast<ShamNeedlemann::a_res *>(equations[0]);
+  delete dynamic_cast<ShamNeedlemann::b_res *>(equations[1]);
+  delete dynamic_cast<ShamNeedlemann::TN_res *>(equations[2]);
+  delete dynamic_cast<ShamNeedlemann::TS_res *>(equations[3]);
+  delete dynamic_cast<ShamNeedlemann::TS_res *>(equations[4]);
+}
+
+void
+GBCavitation::freeConstraints(std::vector<const InequalityConstraint *> & constraints)
+{
+  delete dynamic_cast<const ShamNeedlemann::a_lt_b *>(constraints[0]);
+  delete dynamic_cast<const ShamNeedlemann::a_gt_a0 *>(constraints[1]);
+  delete dynamic_cast<const ShamNeedlemann::b_lt_b_old *>(constraints[2]);
+}
+
 NLSystem
 GBCavitation::setupNonLinearSystem(std::vector<Equation *> & sys_equations,
                                    NLSystemVars & sysvars,
@@ -507,6 +526,9 @@ GBCavitation::computeInterfaceTractionIncrementAndDerivatives()
 
     if (ierr != 0 || !converged)
     {
+      // Oh Andrea...
+      freeEquations(my_eqs);
+      freeConstraints(my_lms);
       // if we didn't converge request a global cutback
       throw MooseException("GB Cavitation traction update failed, requesting global cutback");
     }
@@ -520,6 +542,9 @@ GBCavitation::computeInterfaceTractionIncrementAndDerivatives()
         updateForFullStep(sysvars, dt_effective, my_eqs, deq_dparam);
     }
     postSolutionDebugChecks();
+    // Oh Andrea...
+    freeEquations(my_eqs);
+    freeConstraints(my_lms);
   }
 }
 
