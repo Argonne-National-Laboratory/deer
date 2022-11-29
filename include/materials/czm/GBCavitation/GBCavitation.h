@@ -52,6 +52,9 @@ protected:
                                      NLSystemVars & sysvars,
                                      NLSystemParameters & sysparams);
 
+  void freeEquations(std::vector<Equation *> & equations);
+  void freeConstraints(std::vector<const InequalityConstraint *> & constraints);
+
   NLSystem setupNonLinearSystem(std::vector<Equation *> & sys_equations,
                                 NLSystemVars & sysvars,
                                 NLSystemParameters & sysparams,
