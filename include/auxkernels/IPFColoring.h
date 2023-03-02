@@ -4,25 +4,25 @@
 
 class IPFColoring : public AuxKernel
 {
- public:
-   static InputParameters validParams();
+public:
+  static InputParameters validParams();
 
-   IPFColoring(const InputParameters & parameters);
+  IPFColoring(const InputParameters & parameters);
 
- protected:
+protected:
   virtual Real computeValue();
-  
-  /// quaternion 
+
+  /// quaternion
   /// @{
   const VariableValue & _q1;
   const VariableValue & _q2;
   const VariableValue & _q3;
   const VariableValue & _q4;
   /// @}
-  
+
   /// Sample direction
   const Point _sample_direction;
-  
+
   /// Crystal symmetry code
   const std::string _crystal_symmetry;
 
