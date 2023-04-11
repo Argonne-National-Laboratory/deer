@@ -22,8 +22,8 @@ ScalarPrincipalValues::validParams()
   return params;
 }
 
-ScalarPrincipalValues::ScalarPrincipalValues(const InputParameters & parameters) :
-    GeneralPostprocessor(parameters),
+ScalarPrincipalValues::ScalarPrincipalValues(const InputParameters & parameters)
+  : GeneralPostprocessor(parameters),
     _scalar_var(coupledScalarValue("scalar_variable")),
     _scalar_order(coupledScalarOrder("scalar_variable")),
     _rank(getParam<size_t>("rank"))
@@ -46,15 +46,19 @@ ScalarPrincipalValues::initialize()
 }
 
 void
-ScalarPrincipalValues::execute() 
+ScalarPrincipalValues::execute()
 {
-  RankTwoTensor val(_scalar_var[0], _scalar_var[3], _scalar_var[5],
-                    _scalar_var[4], _scalar_var[2], _scalar_var[1]);
+  RankTwoTensor val(_scalar_var[0],
+                    _scalar_var[3],
+                    _scalar_var[5],
+                    _scalar_var[4],
+                    _scalar_var[2],
+                    _scalar_var[1]);
 
   std::vector<Real> vals;
   val.symmetricEigenvalues(vals);
-  
-  _value = vals[2-_rank];
+
+  _value = vals[2 - _rank];
 }
 
 PostprocessorValue

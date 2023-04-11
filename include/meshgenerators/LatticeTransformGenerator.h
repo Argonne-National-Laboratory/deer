@@ -14,26 +14,25 @@
 class LatticeTransformGenerator : public MeshGenerator
 {
 public:
- static InputParameters validParams();
+  static InputParameters validParams();
 
- LatticeTransformGenerator(const InputParameters & parameters);
+  LatticeTransformGenerator(const InputParameters & parameters);
 
- std::unique_ptr<MeshBase> generate() override;
+  std::unique_ptr<MeshBase> generate() override;
 
- private:
- void setupTransforms();
+private:
+  void setupTransforms();
 
- protected:
- /// the three lattice vectors
- Point _a1, _a2, _a3;
+protected:
+  /// the three lattice vectors
+  Point _a1, _a2, _a3;
 
- /// the input mesh
- std::unique_ptr<MeshBase> & _input;
+  /// the input mesh
+  std::unique_ptr<MeshBase> & _input;
 
- /// Transformation matrix
- RankTwoTensor _T;
+  /// Transformation matrix
+  RankTwoTensor _T;
 
- /// Shift
- Point _b;
+  /// Shift
+  Point _b;
 };
-

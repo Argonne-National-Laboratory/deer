@@ -6,7 +6,7 @@
 
 class ElementCSVFunction : public Function
 {
- public:
+public:
   static InputParameters validParams();
   ElementCSVFunction(const InputParameters & parameters);
 

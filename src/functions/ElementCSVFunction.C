@@ -28,7 +28,7 @@ ElementCSVFunction::read()
 {
   _reader.setFormatFlag(MooseUtils::DelimitedFileReader::FormatFlag::ROWS);
   _reader.read();
-  
+
   _data = _reader.getData();
 }
 
@@ -40,14 +40,13 @@ ElementCSVFunction::value(Real t, const Point & p) const
   if (potential_elements.size() == 0)
     mooseError("No element located at point ", p);
   else if (potential_elements.size() > 1)
-    mooseWarning("More than one element located at point ", p, 
-                 ".  Will use lowest element id");
+    mooseWarning("More than one element located at point ", p, ".  Will use lowest element id");
 
   const Elem * use = nullptr;
   for (const auto & elem : potential_elements)
     if (!use || elem->id() < use->id())
       use = elem;
-  
+
   size_t row = std::round(_row);
 
   if (row >= _data.size())
@@ -55,6 +54,6 @@ ElementCSVFunction::value(Real t, const Point & p) const
 
   if (_data[row].size() < _ti_feproblem.mesh().nElem())
     mooseError("Row ", _row, " in CSV file does not have enough entries");
-  
+
   return _data[row][use->id()];
 }
