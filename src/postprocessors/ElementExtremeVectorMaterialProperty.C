@@ -66,8 +66,14 @@ ElementExtremeVectorMaterialProperty::computeQpValue()
   }
 }
 
-Real
-ElementExtremeVectorMaterialProperty::getValue()
+PostprocessorValue
+ElementExtremeVectorMaterialProperty::getValue() const
+{
+  return _value;
+}
+
+void
+ElementExtremeVectorMaterialProperty::finalize()
 {
   switch (_type)
   {
@@ -78,8 +84,6 @@ ElementExtremeVectorMaterialProperty::getValue()
       gatherMin(_value);
       break;
   }
-
-  return _value;
 }
 
 void

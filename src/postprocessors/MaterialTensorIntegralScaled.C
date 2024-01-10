@@ -34,7 +34,7 @@ MaterialTensorIntegralScaledTempl<is_ad>::MaterialTensorIntegralScaledTempl(
 }
 
 template <bool is_ad>
-Real
+PostprocessorValue
 MaterialTensorIntegralScaledTempl<is_ad>::getValue()
 {
   this->_integral_value = MaterialTensorIntegralTempl<is_ad>::getValue();

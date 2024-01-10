@@ -39,7 +39,7 @@ MultiplyPostprocessor::execute()
 }
 
 PostprocessorValue
-MultiplyPostprocessor::getValue()
+MultiplyPostprocessor::getValue() const
 {
   return _value1 * _value2;
 }

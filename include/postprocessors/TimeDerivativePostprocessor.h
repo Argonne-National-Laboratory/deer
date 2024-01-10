@@ -26,11 +26,11 @@ public:
 
   virtual void initialize() override;
   virtual void execute() override;
-  virtual Real getValue() override;
+  virtual PostprocessorValue getValue() const;
 
 protected:
   /// cumulative sum of the post-processor value
-  Real _rate;
+  PostprocessorValue _rate;
 
   /// current post-processor value
   const PostprocessorValue & _pps_value;

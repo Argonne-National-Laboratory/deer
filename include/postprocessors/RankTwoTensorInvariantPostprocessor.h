@@ -29,7 +29,7 @@ public:
   /// we don't need to override finalize because we are working with
   /// postprocessors values. Therefore the values this PP will get, have already
   /// be summed/averaged among processes/threads.
-  virtual Real getValue() override;
+  virtual PostprocessorValue getValue() const;
 
 protected:
   const PostprocessorName _rank_two_tensor_base_name;
@@ -44,7 +44,7 @@ protected:
   std::vector<std::vector<const PostprocessorValue *>> _pps_values;
 
   /// the calculated invariant value to be returned
-  Real _invariant;
+  PostprocessorValue _invariant;
 
   /// the map between postprocessor names and tensorial components
   const std::map<std::pair<int, int>, std::string> tensor_map = {{std::make_pair(0, 0), "xx"},

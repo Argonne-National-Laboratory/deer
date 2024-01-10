@@ -77,8 +77,8 @@ RankTwoTensorInvariantPostprocessor::execute()
   }
 }
 
-Real
-RankTwoTensorInvariantPostprocessor::getValue()
+PostprocessorValue
+RankTwoTensorInvariantPostprocessor::getValue() const
 {
   return _invariant;
 }
