@@ -50,16 +50,16 @@ CZMStrainComponent::initialize()
   _normalized_strain_component = 0;
 }
 
-Real
-CZMStrainComponent::getValue()
+PostprocessorValue
+CZMStrainComponent::getValue() const
 {
-  _integral_value = CZMAreaRatioPostprocessor::getValue();
+  return _normalized_strain_component / (_initial_bulk_volume_pp * CZMAreaRatioPostprocessor::getValue());
+}
+
+void
+CZMStrainComponent::finalize()
+{
   gatherSum(_normalized_strain_component);
-
-  _normalized_strain_component =
-      _normalized_strain_component / (_initial_bulk_volume_pp * _integral_value);
-
-  return _normalized_strain_component;
 }
 
 void

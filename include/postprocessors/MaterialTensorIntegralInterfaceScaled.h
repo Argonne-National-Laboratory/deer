@@ -24,7 +24,7 @@ public:
   static InputParameters validParams();
 
   MaterialTensorIntegralInterfaceScaledTempl(const InputParameters & parameters);
-  virtual Real getValue();
+  virtual PostprocessorValue getValue() const;
 
 protected:
   virtual Real computeQpIntegral();

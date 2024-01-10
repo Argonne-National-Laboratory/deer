@@ -23,6 +23,5 @@ public:
 
   CZMAreaRatioPostprocessor(const InputParameters & parameters);
 
-protected:
-  virtual Real getValue();
+  virtual PostprocessorValue getValue() const override;
 };
