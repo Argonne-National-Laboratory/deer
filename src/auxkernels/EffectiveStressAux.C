@@ -19,7 +19,7 @@ EffectiveStressAux::validParams()
   params.addClassDescription("Compute an effective stress");
   params.addParam<MooseEnum>(
       "effective_stress_type", EffectiveStressTools::scalarOptions(), "Type of scalar output");
-  params.addParam<std::vector<Real>>("params_vector", "Vector of effective stress parameters");
+  params.addParam<std::vector<Real>>("params_vector", {}, "Vector of effective stress parameters");
   return params;
 }
 

@@ -24,7 +24,7 @@ EffectiveStressInterfaceMaterial::validParams()
   params.addParam<MooseEnum>("interface_value_type",
                              InterfaceValueTools::InterfaceAverageOptions(),
                              "Type of scalar output");
-  params.addParam<std::vector<Real>>("params_vector", "Vector of effective stress parameters");
+  params.addParam<std::vector<Real>>("params_vector", {}, "Vector of effective stress parameters");
   params.addRequiredParam<MaterialPropertyName>("effective_stress_mp_name",
                                                 "the name of the calcualte effective stress");
   params.addParam<bool>("stateful", false, "If true make the material property stateful");
