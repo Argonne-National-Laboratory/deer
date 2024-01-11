@@ -173,7 +173,7 @@
 
 [Outputs]
   exodus = true
-  sync_times = '0 0.1 300 300.02 410 410.1'
+  sync_times = '0 0.1 300 300.02 348.92 410 410.1 421.18 443.34 487.66'
   print_linear_converged_reason = false
   print_nonlinear_converged_reason = false
 []

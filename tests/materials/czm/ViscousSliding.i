@@ -167,5 +167,5 @@
 
 [Outputs]
   exodus = true
-  sync_times = '0 1 10 11 20'
+  sync_times = '0 1 10 11 14 20'
 []
