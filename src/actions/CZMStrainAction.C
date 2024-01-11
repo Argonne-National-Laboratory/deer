@@ -34,8 +34,10 @@ CZMStrainAction::validParams()
 
 CZMStrainAction::CZMStrainAction(const InputParameters & params)
   : Action(params),
-    _block(params.isParamValid("block") ? getParam<std::vector<SubdomainName>>("block") : std::vector<SubdomainName>()),
-    _boundary(params.isParamValid("boundary") ? getParam<std::vector<BoundaryName>>("boundary") : std::vector<BoundaryName>()),
+    _block(params.isParamValid("block") ? getParam<std::vector<SubdomainName>>("block")
+                                        : std::vector<SubdomainName>()),
+    _boundary(params.isParamValid("boundary") ? getParam<std::vector<BoundaryName>>("boundary")
+                                              : std::vector<BoundaryName>()),
     _scaled(!getParam<PostprocessorName>("bulk_volume_PP").empty()),
     _bulk_volume_PP(_scaled ? getParam<PostprocessorName>("bulk_volume_PP") : "czm_strain_V0"),
     _area_ratio_PP("czm_area_ratio"),

@@ -53,7 +53,8 @@ CZMStrainComponent::initialize()
 PostprocessorValue
 CZMStrainComponent::getValue() const
 {
-  return _normalized_strain_component / (_initial_bulk_volume_pp * CZMAreaRatioPostprocessor::getValue());
+  return _normalized_strain_component /
+         (_initial_bulk_volume_pp * CZMAreaRatioPostprocessor::getValue());
 }
 
 void

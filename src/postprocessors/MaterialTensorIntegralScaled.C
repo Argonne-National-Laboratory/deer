@@ -37,7 +37,7 @@ template <bool is_ad>
 PostprocessorValue
 MaterialTensorIntegralScaledTempl<is_ad>::getValue() const
 {
-  return  MaterialTensorIntegralTempl<is_ad>::getValue() / _scaling_factor_PP; 
+  return MaterialTensorIntegralTempl<is_ad>::getValue() / _scaling_factor_PP;
 }
 
 template class MaterialTensorIntegralScaledTempl<false>;
