@@ -61,8 +61,8 @@ SideExtremeMaterialProperty::execute()
   }
 }
 
-Real
-SideExtremeMaterialProperty::getValue()
+void
+SideExtremeMaterialProperty::finalize()
 {
   switch (_type)
   {
@@ -73,7 +73,6 @@ SideExtremeMaterialProperty::getValue()
       gatherMin(_curr_value);
       break;
   }
-  return _curr_value;
 }
 
 void
@@ -89,4 +88,10 @@ SideExtremeMaterialProperty::threadJoin(const UserObject & y)
       _curr_value = std::min(_curr_value, pps._curr_value);
       break;
   }
+}
+
+Real
+SideExtremeMaterialProperty::getValue() const
+{
+  return _curr_value;
 }
