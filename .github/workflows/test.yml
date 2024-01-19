@@ -21,7 +21,7 @@ jobs:
         run: |
           cd neml
           if [[ "${{ matrix.btype }}" == "opt" ]]; then type="Release"; elif [[ "${{ matrix.btype }}" == "dbg" ]]; then type="Debug"; fi
-          cmake -DCMAKE_BUILD_TYPE=$type .
+          cmake -DCMAKE_BUILD_TYPE=$type -DUSE_OPENMP=OFF .
           make -j 2
       - name: Compile extra MOOSE packages
         env:
