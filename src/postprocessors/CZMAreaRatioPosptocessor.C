@@ -24,9 +24,8 @@ CZMAreaRatioPostprocessor::CZMAreaRatioPostprocessor(const InputParameters & par
 {
 }
 
-Real
-CZMAreaRatioPostprocessor::getValue()
+PostprocessorValue
+CZMAreaRatioPostprocessor::getValue() const
 {
-  _integral_value = CZMAreaPostprocessor::getValue() / _interface_primary_area;
-  return _integral_value;
+  return CZMAreaPostprocessor::getValue() / _interface_primary_area;
 }

@@ -40,12 +40,13 @@ RankTwoTensorIntegralAction::RankTwoTensorIntegralAction(const InputParameters &
   : Action(params),
     _mp_names(getParam<std::vector<MaterialPropertyName>>("rank_two_tensor")),
     _use_displaced_mesh(getParam<bool>("use_displaced_mesh")),
-    _block(getParam<std::vector<SubdomainName>>("block")),
-    _boundary(getParam<std::vector<BoundaryName>>("boundary")),
-
+    _block(params.isParamValid("block") ? getParam<std::vector<SubdomainName>>("block")
+                                        : std::vector<SubdomainName>()),
+    _boundary(params.isParamValid("boundary") ? getParam<std::vector<BoundaryName>>("boundary")
+                                              : std::vector<BoundaryName>()),
     _scaled(isParamValid("scaling_factor_PP")),
     _scaling_factor_PP(_scaled ? getParam<PostprocessorName>("scaling_factor_PP") : ""),
-    _PP_type(_boundary.size() == 0
+    _PP_type(!params.isParamValid("boundary")
                  ? (_scaled ? "MaterialTensorIntegralScaled" : "MaterialTensorIntegral")
                  : "MaterialTensorIntegralInterfaceScaled"),
     _base_out_name(getParam<std::vector<PostprocessorName>>("base_out_names"))

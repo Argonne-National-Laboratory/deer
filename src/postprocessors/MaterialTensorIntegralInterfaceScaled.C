@@ -60,14 +60,12 @@ MaterialTensorIntegralInterfaceScaledTempl<is_ad>::computeQpIntegral()
 }
 
 template <bool is_ad>
-Real
-MaterialTensorIntegralInterfaceScaledTempl<is_ad>::getValue()
+PostprocessorValue
+MaterialTensorIntegralInterfaceScaledTempl<is_ad>::getValue() const
 {
-  _integral_value = InterfaceIntegralPostprocessor::getValue();
   if (_scaling_factor_PP)
-    _integral_value /= *_scaling_factor_PP;
-
-  return _integral_value;
+    return InterfaceIntegralPostprocessor::getValue() / *_scaling_factor_PP;
+  return InterfaceIntegralPostprocessor::getValue();
 }
 
 template class MaterialTensorIntegralInterfaceScaledTempl<false>;

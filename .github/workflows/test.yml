@@ -1,55 +1,46 @@
-name: tests
+name: run-deer-tests
 
-on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
-
-  # We don't update deer all that often, but it is still of interest to know ASAP if a MOOSE update has broken deer
-  schedule:
-    - cron: '0 0 * * *'
-
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
+on: [push, pull_request]
 
 jobs:
-      tests-linux:
-            runs-on: ubuntu-latest
-            strategy:
-                  matrix:
-                        btype: [opt, dbg]
-            steps:
-            - uses: actions/checkout@v2
-              with:
-                    submodules: recursive
-            - name: Setup build system
-              run: | 
-                  sudo apt update 
-                  sudo apt install build-essential cmake libblas-dev liblapack-dev mpich libmpich-dev python3-dev
-            - name: Compile neml
-              run: |
-                  cd neml
-                  if [[ "${{ matrix.btype }}" == "opt" ]]; then type="Release"; elif [[ "${{ matrix.btype }}" == "dbg" ]]; then type="Debug"; fi
-                  cmake -DCMAKE_BUILD_TYPE=$type .
-                  make -j 2
-            - name: Compile extra MOOSE packages
-              env:
-                    MOOSE_DIR: ${{github.workspace}}/moose
-              run:  |
-                  git clone https://github.com/idaholab/moose.git $MOOSE_DIR
-                  cd $MOOSE_DIR/scripts
-                  export MOOSE_JOBS=2
-                  ./update_and_rebuild_petsc.sh
-                  ./update_and_rebuild_libmesh.sh
-            - name: Compile code
-              env:
-                    MOOSE_DIR: ${{github.workspace}}/moose
-              run: |
-                    export MOOSE_DIR=$PWD/moose
-                    make -j 2 METHOD=${{ matrix.btype }}
-            - name: Test code
-              env:
-                    MOOSE_DIR: ${{github.workspace}}/moose
-                    LD_LIBRARY_PATH: $LD_LIBRARY_PATH:${{github.workspace}}/neml/lib
-              run: if [[ "${{ matrix.btype }}" == "opt" ]]; then ./run_tests --opt; elif [[ "${{ matrix.btype }}" == "dbg" ]]; then ./run_tests --dbg; fi
+  tests-linux:
+    name: Run tests on linux
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        btype: [opt, dbg]
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - name: Setup build system
+        run: | 
+          sudo apt update 
+          sudo apt install build-essential cmake libblas-dev liblapack-dev mpich libmpich-dev python3-dev
+      - name: Compile neml
+        run: |
+          cd neml
+          if [[ "${{ matrix.btype }}" == "opt" ]]; then type="Release"; elif [[ "${{ matrix.btype }}" == "dbg" ]]; then type="Debug"; fi
+          cmake -DCMAKE_BUILD_TYPE=$type -DUSE_OPENMP=OFF .
+          make -j 2
+      - name: Compile extra MOOSE packages
+        env:
+          MOOSE_DIR: ${{github.workspace}}/moose
+        run:  |
+          git clone https://github.com/idaholab/moose.git $MOOSE_DIR
+          cd $MOOSE_DIR/scripts
+          export MOOSE_JOBS=2
+          ./update_and_rebuild_petsc.sh
+          METHOD=${{matrix.btype}} ./update_and_rebuild_libmesh.sh
+          ./update_and_rebuild_wasp.sh
+      - name: Compile code
+        env:
+          MOOSE_DIR: ${{github.workspace}}/moose
+        run: |
+          export MOOSE_DIR=$PWD/moose
+          make -j 2 METHOD=${{ matrix.btype }}
+      - name: Test code
+        env:
+          MOOSE_DIR: ${{github.workspace}}/moose
+          LD_LIBRARY_PATH: $LD_LIBRARY_PATH:${{github.workspace}}/neml/lib
+        run: if [[ "${{ matrix.btype }}" == "opt" ]]; then ./run_tests --opt; elif [[ "${{ matrix.btype }}" == "dbg" ]]; then ./run_tests --dbg; fi

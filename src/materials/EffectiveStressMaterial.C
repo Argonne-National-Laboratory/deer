@@ -21,7 +21,7 @@ EffectiveStressMaterial::validParams()
   params.addRequiredParam<MooseEnum>("effective_stress_type",
                                      EffectiveStressTools::scalarOptions(),
                                      "Type of effective stress to be computed");
-  params.addParam<std::vector<Real>>("params_vector", "Vector of effective stress parameters");
+  params.addParam<std::vector<Real>>("params_vector", {}, "Vector of effective stress parameters");
   params.addRequiredParam<MaterialPropertyName>("effective_stress_mp_name",
                                                 "The name of the new  material_property");
   params.addParam<bool>("stateful", false, "If true make the material property stateful");
