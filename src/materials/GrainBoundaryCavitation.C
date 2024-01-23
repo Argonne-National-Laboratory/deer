@@ -44,6 +44,12 @@ GrainBoundaryCavitation::validParams()
   params.addParam<bool>(
       "growth_due_to_creep", true, "Whether to account for void growth due to creep");
 
+  MooseEnum triaxiality_state("LOW MEDIUM HIGH", "LOW");
+  params.addParam<MooseEnum>("fixed_triaxiality",
+                             triaxiality_state,
+                             "Fix the stress triaxiality eta to improve convergence. LOW for eta < "
+                             "0, MEDIUM for 0 <= eta < 1, HIGH for eta > 1");
+
   return params;
 }
 
@@ -98,7 +104,10 @@ GrainBoundaryCavitation::GrainBoundaryCavitation(const InputParameters & paramet
     _delta_D_max(getParam<Real>("delta_D_max")),
     _dt_cutback_factor(getParam<Real>("timestep_cutback_factor")),
     _diffusion_growth(getParam<bool>("growth_due_to_diffusion")),
-    _creep_growth(getParam<bool>("growth_due_to_creep"))
+    _creep_growth(getParam<bool>("growth_due_to_creep")),
+    // should we fix stress triaxiality state?
+    _fixed_triaxiality_state(isParamSetByUser("fixed_triaxiality")),
+    _triaxiality_state(getParam<MooseEnum>("fixed_triaxiality"))
 {
 }
 
@@ -245,15 +254,48 @@ GrainBoundaryCavitation::computeDamageDrivingForces()
   }
   if (_creep_growth)
   {
-    const Real g =
-        _sigma_h[_qp] > 0 ? std::log(3.0) - 2.0 / 3.0 : 2.0 * M_PI / 9.0 / std::sqrt(3.0);
-    const Real alpha = 1.5 / _n;
-    const Real beta = (_n - 1.0) * (_n + g) / _n / _n;
-    const Real V = cavityVolume();
-    _delta_V[_qp] += degradation() * 1.5 * _delta_ec[_qp] * V *
-                     (std::abs(_eta[_qp]) > 1
-                          ? MathUtils::sign(_eta[_qp]) * std::pow(alpha * _eta[_qp] + beta, _n)
-                          : _eta[_qp] * std::pow(alpha + beta, _n));
+    if (!_fixed_triaxiality_state)
+    {
+      const Real g =
+          _sigma_h[_qp] > 0 ? std::log(3.0) - 2.0 / 3.0 : 2.0 * M_PI / 9.0 / std::sqrt(3.0);
+      const Real alpha = 1.5 / _n;
+      const Real beta = (_n - 1.0) * (_n + g) / _n / _n;
+      const Real V = cavityVolume();
+      _delta_V[_qp] += degradation() * 1.5 * _delta_ec[_qp] * V *
+                       (std::abs(_eta[_qp]) > 1
+                            ? MathUtils::sign(_eta[_qp]) * std::pow(alpha * _eta[_qp] + beta, _n)
+                            : _eta[_qp] * std::pow(alpha + beta, _n));
+    }
+    else
+    {
+      if (_triaxiality_state == "LOW")
+      {
+        const Real g = 2.0 * M_PI / 9.0 / std::sqrt(3.0);
+        const Real alpha = 1.5 / _n;
+        const Real beta = (_n - 1.0) * (_n + g) / _n / _n;
+        const Real V = cavityVolume();
+        _delta_V[_qp] +=
+            degradation() * 1.5 * _delta_ec[_qp] * V * (_eta[_qp] * std::pow(alpha + beta, _n));
+      }
+      else if (_triaxiality_state == "MEDIUM")
+      {
+        const Real g = std::log(3.0) - 2.0 / 3.0;
+        const Real alpha = 1.5 / _n;
+        const Real beta = (_n - 1.0) * (_n + g) / _n / _n;
+        const Real V = cavityVolume();
+        _delta_V[_qp] +=
+            degradation() * 1.5 * _delta_ec[_qp] * V * (_eta[_qp] * std::pow(alpha + beta, _n));
+      }
+      else if (_triaxiality_state == "HIGH")
+      {
+        const Real g = std::log(3.0) - 2.0 / 3.0;
+        const Real alpha = 1.5 / _n;
+        const Real beta = (_n - 1.0) * (_n + g) / _n / _n;
+        const Real V = cavityVolume();
+        _delta_V[_qp] += degradation() * 1.5 * _delta_ec[_qp] * V *
+                         (MathUtils::sign(_eta[_qp]) * std::pow(alpha * _eta[_qp] + beta, _n));
+      }
+    }
   }
 }
 

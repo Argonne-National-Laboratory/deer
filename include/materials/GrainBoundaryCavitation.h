@@ -107,6 +107,9 @@ protected:
   const bool _diffusion_growth;
   const bool _creep_growth;
 
+  const bool _fixed_triaxiality_state;
+  const MooseEnum _triaxiality_state;
+
 private:
   Real cavityVolume() const;
   Real cavityShapeFactor() const;
