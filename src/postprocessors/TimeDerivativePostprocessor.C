@@ -38,8 +38,8 @@ TimeDerivativePostprocessor::execute()
   _rate = (_pps_value - _pps_value_old) / _dt;
 }
 
-Real
-TimeDerivativePostprocessor::getValue()
+PostprocessorValue
+TimeDerivativePostprocessor::getValue() const
 {
   return _rate;
 }

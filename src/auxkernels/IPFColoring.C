@@ -116,11 +116,12 @@ std::vector<Point>
 project_ipf(std::vector<Real> q, Point sd, std::string crystal_sym, std::string sample_sym)
 {
   // Setup sample direction
-  neml::Vector d({sd(0), sd(1), sd(2)});
+  std::vector<Real> temp = {sd(0), sd(1), sd(2)};
+  neml::Vector d(&temp[0]);
   d.normalize();
 
   // Setup orientation
-  neml::Orientation qa(q);
+  neml::Orientation qa(&q[0]);
   neml::Orientation qo = qa.inverse(); // The following assumes a passive rotation
 
   // Get crystal and sample symmetry operations

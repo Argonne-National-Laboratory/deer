@@ -17,8 +17,9 @@ public:
 
   virtual void initialize() override;
   virtual void execute() override;
-  virtual Real getValue() override;
+  virtual PostprocessorValue getValue() const;
   virtual void threadJoin(const UserObject & y) override;
+  virtual void finalize() override;
 
 protected:
   virtual void computeQpValue();
@@ -27,6 +28,6 @@ protected:
   unsigned int _index;
 
   ExtremeType _type;
-  Real _value;
+  PostprocessorValue _value;
   unsigned int _qp;
 };

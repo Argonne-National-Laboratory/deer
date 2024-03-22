@@ -60,8 +60,14 @@ SideExtremePostprocessor::execute()
   }
 }
 
-Real
-SideExtremePostprocessor::getValue()
+PostprocessorValue
+SideExtremePostprocessor::getValue() const
+{
+  return _curr_value;
+}
+
+void
+SideExtremePostprocessor::finalize()
 {
   switch (_type)
   {
@@ -72,7 +78,6 @@ SideExtremePostprocessor::getValue()
       gatherMin(_curr_value);
       break;
   }
-  return _curr_value;
 }
 
 void

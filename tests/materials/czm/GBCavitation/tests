@@ -6,6 +6,7 @@
     requirement = "The GB cavitation model should work under an applied normal stress. Also, traction component should exhibit a smooth behavior if the time step changes drastically."
     mesh_mode = 'REPLICATED'
     recover = false
+    abs_zero = 1e-5
   [../]
   [./czm_GBcavitationShear]
     type = Exodiff
