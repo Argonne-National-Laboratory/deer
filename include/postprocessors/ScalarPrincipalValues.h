@@ -20,7 +20,7 @@ public:
 
   virtual void initialize() override;
   virtual void execute() override;
-  virtual PostprocessorValue getValue() override;
+  virtual PostprocessorValue getValue() const;
 
 protected:
   const VariableValue & _scalar_var;

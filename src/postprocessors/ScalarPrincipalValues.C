@@ -62,7 +62,7 @@ ScalarPrincipalValues::execute()
 }
 
 PostprocessorValue
-ScalarPrincipalValues::getValue()
+ScalarPrincipalValues::getValue() const
 {
   return _value;
 }
