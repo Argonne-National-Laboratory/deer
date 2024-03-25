@@ -140,7 +140,6 @@
     interface_thickness = 1
   [../]
   [./czm_strain]
-
     type = CZMVolumetricStrain
     boundary = 'interface'
     strain = FINITE
