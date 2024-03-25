@@ -32,7 +32,9 @@ InterpolateCSVFunction::validParams()
 
 InterpolateCSVFunction::InterpolateCSVFunction(const InputParameters & parameters)
   : Function(parameters),
-    _transform(RankTwoTensor(getParam<Point>("a1"), getParam<Point>("a2"), getParam<Point>("a3")).transpose().inverse()),
+    _transform(RankTwoTensor(getParam<Point>("a1"), getParam<Point>("a2"), getParam<Point>("a3"))
+                   .transpose()
+                   .inverse()),
     _min(getParam<Real>("min_x"), getParam<Real>("min_y"), getParam<Real>("min_z")),
     _max(getParam<Real>("max_x"), getParam<Real>("max_y"), getParam<Real>("max_z")),
     _n({getParam<size_t>("n_x"), getParam<size_t>("n_y"), getParam<size_t>("n_z")}),
