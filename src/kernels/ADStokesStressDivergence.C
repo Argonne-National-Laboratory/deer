@@ -9,7 +9,7 @@
 
 #include "ADStokesStressDivergence.h"
 
-registerMooseObject("MooseApp", ADStokesStressDivergence);
+registerMooseObject("DeerApp", ADStokesStressDivergence);
 
 InputParameters
 ADStokesStressDivergence::validParams()
@@ -17,16 +17,22 @@ ADStokesStressDivergence::validParams()
   InputParameters params = ADVectorKernel::validParams();
   params.addClassDescription("The unstabilized stress diveregence kernel for Stokes flow");
 
+  params.addRequiredCoupledVar("pressure", "The pressure");
+
   return params;
 }
 
 ADStokesStressDivergence::ADStokesStressDivergence(const InputParameters & parameters)
-  : ADVectorKernel(parameters), _stress(getADMaterialPropertyByName<RankTwoTensor>("stress"))
+  : ADVectorKernel(parameters),
+    _stress(getADMaterialPropertyByName<RankTwoTensor>("stress")),
+    _pressure(adCoupledValue("pressure"))
 {
 }
 
 ADReal
 ADStokesStressDivergence::computeQpResidual()
 {
-  return _stress[_qp].contract(_grad_phi[_qp]);
+  return _stress[_qp].contract(_grad_test[_i][_qp]) -
+         (_grad_test[_i][_qp](0, 0) + _grad_test[_i][_qp](1, 1) + _grad_test[_i][_qp](2, 2)) *
+             _pressure[_qp];
 }

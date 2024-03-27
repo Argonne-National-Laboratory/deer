@@ -22,4 +22,5 @@ protected:
   virtual ADReal computeQpResidual() override;
 
   const ADMaterialProperty<RankTwoTensor> & _stress;
+  const ADVariableValue & _pressure;
 };

@@ -9,26 +9,26 @@
 
 #include "ADStokesIncompressibility.h"
 
-registerMooseObject("MooseApp", ADStokesIncompressibility);
+registerMooseObject("DeerApp", ADStokesIncompressibility);
 
 InputParameters
 ADStokesIncompressibility::validParams()
 {
-  InputParameters params = ADVectorKernel::validParams();
+  InputParameters params = ADKernel::validParams();
   params.addClassDescription("The incompressibility equation for Stokes flow");
 
-  params.addRequiredCoupledVar("displacement", "The vector-valued displacement");
+  params.addRequiredCoupledVar("velocity", "The vector-valued velocity");
 
   return params;
 }
 
 ADStokesIncompressibility::ADStokesIncompressibility(const InputParameters & parameters)
-  : ADVectorKernel(parameters), _grad_disp(adCoupledVectorGradient("displacement"))
+  : ADKernel(parameters), _grad_vel(adCoupledVectorGradient("velocity"))
 {
 }
 
 ADReal
 ADStokesIncompressibility::computeQpResidual()
 {
-  return (_grad_disp[_qp](0, 0) + _grad_disp[_qp](1, 1) + _grad_disp[_qp](2, 2)) * _phi[_qp];
+  return (_grad_vel[_qp](0, 0) + _grad_vel[_qp](1, 1) + _grad_vel[_qp](2, 2)) * _test[_i][_qp];
 }

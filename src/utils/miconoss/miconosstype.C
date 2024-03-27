@@ -115,7 +115,7 @@ solveAxb(const matrixD & A, const vecD & b, const uint & syssize, vecD & b_out)
       k += 1;
     }
 
-  dgesv_(&neq, &nrhs, &jac[0], &neq, &IPIV[0], &b_out[0], &neq, &info);
+  dgesv_(neq, nrhs, &jac[0], neq, &IPIV[0], &b_out[0], neq, info);
 
   if (info < 0)
     std::cerr << "solveAxb the " + std::to_string(info) + "the argument has an illegal value";
@@ -154,7 +154,7 @@ solveAxNb(const matrixD & A, const matrixD & b, const uint & syssize, matrixD & 
       k += 1;
     }
 
-  dgesv_(&neq, &nrhs, &A_to_use[0], &neq, &IPIV[0], &b_to_use[0], &neq, &info);
+  dgesv_(neq, nrhs, &A_to_use[0], neq, &IPIV[0], &b_to_use[0], neq, info);
 
   if (info < 0)
     std::cerr << "solveAxNb the " + std::to_string(-info) + "th argument has an illegal value";

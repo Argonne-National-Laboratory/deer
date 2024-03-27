@@ -20,11 +20,10 @@ public:
 
   virtual void initialize() override;
   virtual void execute() override;
-  virtual PostprocessorValue getValue() const;
+  virtual PostprocessorValue getValue() const override;
 
 protected:
   const VariableValue & _scalar_var;
-  const Order & _scalar_order;
   const size_t _rank;
   PostprocessorValue _value;
 };

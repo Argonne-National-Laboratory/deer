@@ -9,17 +9,26 @@
 
 #pragma once
 
-#include "ADKernel.h"
+#include "Material.h"
+#include "DerivativeMaterialInterface.h"
 
-class ADStokesIncompressibility : public ADKernel
+/**
+ * Calculate the simple small strain rate
+ */
+class StokesStrainRate : public DerivativeMaterialInterface<Material>
 {
 public:
   static InputParameters validParams();
 
-  ADStokesIncompressibility(const InputParameters & parameters);
+  StokesStrainRate(const InputParameters & parameters);
 
 protected:
-  virtual ADReal computeQpResidual() override;
+  /// @brief  Calculate the strain
+  void computeQpProperties() override;
 
+  /// The strain rate
+  ADMaterialProperty<RankTwoTensor> & _strain_rate;
+
+  /// The coupled velocity gradient
   const ADVectorVariableGradient & _grad_vel;
 };

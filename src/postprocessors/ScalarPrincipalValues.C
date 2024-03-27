@@ -25,11 +25,10 @@ ScalarPrincipalValues::validParams()
 ScalarPrincipalValues::ScalarPrincipalValues(const InputParameters & parameters)
   : GeneralPostprocessor(parameters),
     _scalar_var(coupledScalarValue("scalar_variable")),
-    _scalar_order(coupledScalarOrder("scalar_variable")),
     _rank(getParam<size_t>("rank"))
 {
   // Could add general case later
-  if (_scalar_order != 6)
+  if (coupledScalarOrder("scalar_variable") != 6)
     mooseError("Coupled scalar variable needs to have order 6");
 
   if (_rank < 0)

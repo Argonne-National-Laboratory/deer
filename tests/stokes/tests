@@ -1,0 +1,8 @@
+[Tests]
+  [./flow]
+    type = Exodiff
+    input = 'flow.i'
+    exodiff = 'flow_out.e'
+    requirement = "Stokes flow gives the right result for simple creeping flow"
+  [../]
+[]

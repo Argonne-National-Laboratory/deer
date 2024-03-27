@@ -26,7 +26,7 @@ void printMatrix(const matrixD & M, const std::string & Mname);
 namespace miconossmath
 {
 
-extern "C" void dgesv_(int *, int *, double *, int *, int *, double *, int *, int *);
+extern "C"  void dgesv_(const int & n, const int & nrhs, double * A, const int & lda, int * ipiv, double * b, const int & ldb, int & info);
 
 /// the allowed norm types
 enum normtype
