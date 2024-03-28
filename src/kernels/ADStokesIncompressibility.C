@@ -30,5 +30,5 @@ ADStokesIncompressibility::ADStokesIncompressibility(const InputParameters & par
 ADReal
 ADStokesIncompressibility::computeQpResidual()
 {
-  return (_grad_vel[_qp](0, 0) + _grad_vel[_qp](1, 1) + _grad_vel[_qp](2, 2)) * _test[_i][_qp];
+  return -(_grad_vel[_qp](0, 0) + _grad_vel[_qp](1, 1) + _grad_vel[_qp](2, 2)) * _test[_i][_qp];
 }
