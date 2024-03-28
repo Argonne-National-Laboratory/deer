@@ -8,9 +8,9 @@
     ymax = 1
     zmin = 0
     zmax = 1
-    nx = 4
-    ny = 4
-    nz = 4
+    nx = 6
+    ny = 6
+    nz = 6
     elem_type = HEX20
   []
 []
@@ -117,7 +117,7 @@
 #        type = ADVectorFunctionNeumannBC
 #        variable = u
 #        boundary = 'right'
-#        function_x = 5
+#        function_x = 7
 #        function_y = 3
 #        function_z = 3
 #    []

@@ -33,5 +33,5 @@ StokesLinearViscous::StokesLinearViscous(const InputParameters & parameters)
 void
 StokesLinearViscous::computeQpProperties()
 {
-  _stress[_qp] = _strain_rate[_qp] * _mu[_qp];
+  _stress[_qp] = 2.0 * _strain_rate[_qp] * _mu[_qp];
 }
