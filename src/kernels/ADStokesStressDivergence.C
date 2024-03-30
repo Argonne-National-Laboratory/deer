@@ -32,7 +32,5 @@ ADStokesStressDivergence::ADStokesStressDivergence(const InputParameters & param
 ADReal
 ADStokesStressDivergence::computeQpResidual()
 {
-  return _stress[_qp].contract(_grad_test[_i][_qp]) -
-         (_grad_test[_i][_qp](0, 0) + _grad_test[_i][_qp](1, 1) + _grad_test[_i][_qp](2, 2)) *
-             _pressure[_qp];
+  return _stress[_qp].contract(_grad_test[_i][_qp]) - _grad_test[_i][_qp].tr() * _pressure[_qp];
 }
