@@ -25,12 +25,12 @@ ADStokesStressDivergence::validParams()
 ADStokesStressDivergence::ADStokesStressDivergence(const InputParameters & parameters)
   : ADVectorKernel(parameters),
     _stress(getADMaterialPropertyByName<RankTwoTensor>("stress")),
-    _pressure(adCoupledValue("pressure"))
+    _pressure(adCoupledGradient("pressure"))
 {
 }
 
 ADReal
 ADStokesStressDivergence::computeQpResidual()
 {
-  return _stress[_qp].contract(_grad_test[_i][_qp]) - _grad_test[_i][_qp].tr() * _pressure[_qp];
+  return _stress[_qp].contract(_grad_test[_i][_qp]) + _test[_i][_qp] * _pressure[_qp];
 }

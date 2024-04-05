@@ -8,9 +8,9 @@
     ymax = 1
     zmin = 0
     zmax = 1
-    nx = 2
-    ny = 2
-    nz = 2
+    nx = 5
+    ny = 5
+    nz = 5
     elem_type = HEX20
   []
 []
