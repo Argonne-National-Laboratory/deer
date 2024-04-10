@@ -1,8 +1,20 @@
 [Tests]
-  [./flow]
+  [./patch_no_by_parts]
     type = Exodiff
-    input = 'flow.i'
-    exodiff = 'flow_out.e'
-    requirement = "Stokes flow gives the right result for simple creeping flow"
+    input = 'patch.i'
+    exodiff = 'patch_out.e'
+    requirement = "Stokes flow gives the right result for a simple patch test, no integration by parts"
+  [../]
+  [./patch_by_parts]
+    type = Exodiff
+    input = 'patch_by.i'
+    exodiff = 'patch_by_out.e'
+    requirement = "Stokes flow gives the right result for a simple patch test, with integration by parts"
+  [../]
+  [./structural]
+    type = Exodiff
+    input = 'structural.i'
+    exodiff = 'structural_out.e'
+    requirement = "Stokes flow gives the right result for a structural problem (no integration by parts)"
   [../]
 []

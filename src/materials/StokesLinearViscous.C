@@ -24,7 +24,7 @@ StokesLinearViscous::validParams()
 
 StokesLinearViscous::StokesLinearViscous(const InputParameters & parameters)
   : DerivativeMaterialInterface<Material>(parameters),
-    _stress(declareADProperty<RankTwoTensor>("stress")),
+    _stress(declareADProperty<RankTwoTensor>("deviatoric_stress")),
     _strain_rate(getADMaterialPropertyByName<RankTwoTensor>("strain_rate")),
     _mu(getADMaterialProperty<Real>("mu"))
 {

@@ -11,15 +11,15 @@
 
 #include "ADVectorKernel.h"
 
-class ADStokesStressDivergence : public ADVectorKernel
+class ADStokesPressureByParts : public ADVectorKernel
 {
 public:
   static InputParameters validParams();
 
-  ADStokesStressDivergence(const InputParameters & parameters);
+  ADStokesPressureByParts(const InputParameters & parameters);
 
 protected:
   virtual ADReal computeQpResidual() override;
 
-  const ADMaterialProperty<RankTwoTensor> & _deviatoric_stress;
+  const ADVariableValue & _pressure;
 };

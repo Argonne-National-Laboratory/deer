@@ -6,9 +6,9 @@
     dx = '1 1'
     dy = '1 1'
     dz = '2'
-    ix = '1 1'
-    iy = '1 1'
-    iz = '2'
+    ix = '2 2'
+    iy = '2 2'
+    iz = '4'
     subdomain_id = '1 2 3 4'
   []
 []
@@ -16,7 +16,7 @@
 [Variables]
   [p]
     order = FIRST
-    family = MONOMIAL
+    family = LAGRANGE
   []
   [u]
     order = SECOND
@@ -25,6 +25,30 @@
 []
 
 [AuxVariables]
+    [deviatoric_stress_xx]
+        family = MONOMIAL
+        order = CONSTANT
+    []
+    [deviatoric_stress_yy]
+        family = MONOMIAL
+        order = CONSTANT
+    []
+    [deviatoric_stress_zz]
+        family = MONOMIAL
+        order = CONSTANT
+    []
+    [deviatoric_stress_xy]
+        family = MONOMIAL
+        order = CONSTANT
+    []
+    [deviatoric_stress_yz]
+        family = MONOMIAL
+        order = CONSTANT
+    []
+    [deviatoric_stress_xz]
+        family = MONOMIAL
+        order = CONSTANT
+    []
     [stress_xx]
         family = MONOMIAL
         order = CONSTANT
@@ -34,48 +58,121 @@
         order = CONSTANT
     []
     [stress_zz]
+        family = MONOMIAL
+        order = CONSTANT
+    []
+    [stress_xy]
+        family = MONOMIAL
+        order = CONSTANT
+    []
+    [stress_yz]
+        family = MONOMIAL
+        order = CONSTANT
+    []
+    [stress_xz]
         family = MONOMIAL
         order = CONSTANT
     []
 []
 
 [AuxKernels]
-    [stress_xx]
+    [deviatoric_stress_xx]
         type = ADMaterialRankTwoTensorAux
-        variable = stress_xx
-        property = 'stress'
+        variable = deviatoric_stress_xx
+        property = 'deviatoric_stress'
         i = 0
         j = 0
     []
-    [stress_yy]
+    [deviatoric_stress_yy]
         type = ADMaterialRankTwoTensorAux
-        variable = stress_yy
-        property = 'stress'
+        variable = deviatoric_stress_yy
+        property = 'deviatoric_stress'
         i = 1
         j = 1
     []
-    [stress_zz]
+    [deviatoric_stress_zz]
         type = ADMaterialRankTwoTensorAux
-        variable = stress_zz
-        property = 'stress'
+        variable = deviatoric_stress_zz
+        property = 'deviatoric_stress'
         i = 2
         j = 2
+    []
+    [deviatoric_stress_xy]
+        type = ADMaterialRankTwoTensorAux
+        variable = deviatoric_stress_xy
+        property = 'deviatoric_stress'
+        i = 0
+        j = 1
+    []
+    [deviatoric_stress_yz]
+        type = ADMaterialRankTwoTensorAux
+        variable = deviatoric_stress_yz
+        property = 'deviatoric_stress'
+        i = 1
+        j = 2
+    []
+    [deviatoric_stress_xz]
+        type = ADMaterialRankTwoTensorAux
+        variable = deviatoric_stress_xz
+        property = 'deviatoric_stress'
+        i = 0
+        j = 2
+    []
+    [stress_xx]
+      type = ParsedAux
+      variable = stress_xx
+      coupled_variables = 'p deviatoric_stress_xx'
+      expression = 'deviatoric_stress_xx - p'
+    []
+    [stress_yy]
+      type = ParsedAux
+      variable = stress_yy
+      coupled_variables = 'p deviatoric_stress_yy'
+      expression = 'deviatoric_stress_yy - p'
+    []
+    [stress_zz]
+      type = ParsedAux
+      variable = stress_zz
+      coupled_variables = 'p deviatoric_stress_zz'
+      expression = 'deviatoric_stress_zz - p'
+    []
+    [stress_xy]
+      type = ParsedAux
+      variable = stress_xy
+      coupled_variables = 'deviatoric_stress_xy'
+      expression = 'deviatoric_stress_xy'
+    []
+    [stress_xz]
+      type = ParsedAux
+      variable = stress_xz
+      coupled_variables = 'deviatoric_stress_xz'
+      expression = 'deviatoric_stress_xz'
+    []
+    [stress_yz]
+      type = ParsedAux
+      variable = stress_yz
+      coupled_variables = 'deviatoric_stress_yz'
+      expression = 'deviatoric_stress_yz'
     []
 []
 
 [ICs]
   [u]
-    type = VectorConstantIC
+    type = VectorFunctionIC
     variable = u
-    x_value = 1e-15
-    y_value = 1e-15
-    z_value = 1e-15
+    function_x = '1.0 * x'
+    function_y = '1.0 * y'
+    function_z = '1.0 * z'
   []
 []
 
 [Kernels]
   [equil]
     type = ADStokesStressDivergence
+    variable = u
+  []
+  [pressure]
+    type = ADStokesPressure
     variable = u
     pressure = p
   []
@@ -93,7 +190,7 @@
   []
   [stress]
     type = StokesLinearViscous
-    mu = 1.0
+    mu = 1
   []
 []
 
@@ -129,13 +226,11 @@
     value = -1.0
   []
 
-  [test]
-    type = ADVectorFunctionNeumannBC
-    boundary = 'front'
-    variable = u
-    function_x = '0'
-    function_y = '0'
-    function_z = '2.0/3.0'
+  [fix_zero]
+    type = ADDirichletBC
+    variable = p
+    boundary = 'right top'
+    value = 0.0
   []
 []
 
@@ -143,8 +238,8 @@
   type = Steady
 
   solve_type = 'newton'
-  petsc_options_iname = '-pc_type'
-  petsc_options_value = 'svd'
+  petsc_options_iname = '-pc_type -pc_factor_shift_type'
+  petsc_options_value = 'lu NONZERO'
   line_search = none
 
   l_max_its = 10

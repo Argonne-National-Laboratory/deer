@@ -17,20 +17,17 @@ ADStokesStressDivergence::validParams()
   InputParameters params = ADVectorKernel::validParams();
   params.addClassDescription("The unstabilized stress diveregence kernel for Stokes flow");
 
-  params.addRequiredCoupledVar("pressure", "The pressure");
-
   return params;
 }
 
 ADStokesStressDivergence::ADStokesStressDivergence(const InputParameters & parameters)
   : ADVectorKernel(parameters),
-    _stress(getADMaterialPropertyByName<RankTwoTensor>("stress")),
-    _pressure(adCoupledGradient("pressure"))
+    _deviatoric_stress(getADMaterialPropertyByName<RankTwoTensor>("deviatoric_stress"))
 {
 }
 
 ADReal
 ADStokesStressDivergence::computeQpResidual()
 {
-  return _stress[_qp].contract(_grad_test[_i][_qp]) + _test[_i][_qp] * _pressure[_qp];
+  return _deviatoric_stress[_qp].contract(_grad_test[_i][_qp]);
 }

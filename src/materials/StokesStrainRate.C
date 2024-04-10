@@ -32,4 +32,5 @@ void
 StokesStrainRate::computeQpProperties()
 {
   _strain_rate[_qp] = 0.5 * (_grad_vel[_qp] + _grad_vel[_qp].transpose());
+  _strain_rate[_qp] = _strain_rate[_qp].deviatoric();
 }

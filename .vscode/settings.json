@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "ADStokesStressDivergence.C": "cpp",
+        "ADStokesIncompressibility.C": "cpp"
+    }
+}

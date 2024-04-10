@@ -77,6 +77,10 @@
   [equil]
     type = ADStokesStressDivergence
     variable = u
+  []
+  [pressure]
+    type = ADStokesPressure
+    variable = u
     pressure = p
   []
   [incompressible]
