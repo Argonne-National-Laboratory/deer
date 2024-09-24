@@ -198,7 +198,7 @@ Ty = 0
     type = SideAverageMaterialProperty
     property = damage
     boundary = interface
-    execute_on = 'INITIAL TIMESTEP_END'
+    execute_on = 'TIMESTEP_END'
   []
   [avg_disp_x]
     type = SideAverageValue
