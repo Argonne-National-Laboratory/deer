@@ -8,6 +8,8 @@ InputParameters
 DeerApp::validParams()
 {
   InputParameters params = MooseApp::validParams();
+  params.set<bool>("use_legacy_material_output") = false;
+  params.set<bool>("use_legacy_initial_residual_evaluation_behavior") = false;
   return params;
 }
 
@@ -44,7 +46,7 @@ DeerApp::registerAll(Factory & f, ActionFactory & af, Syntax & s)
 
   associateSyntaxInner(s, af);
 
-  ModulesApp::registerAll(f, af, s);
+  ModulesApp::registerAllObjects<DeerApp>(f, af, s);
 }
 
 // External entry point for dynamic application loading
