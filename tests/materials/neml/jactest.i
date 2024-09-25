@@ -14,18 +14,16 @@
   []
 []
 
-[Modules]
-  [TensorMechanics]
-    [Master]
+[Physics]
+  [SolidMechanics]
+    [QuasiStatic]
       [all]
         strain = SMALL
         add_variables = true
         new_system = true
         formulation = UPDATED
         volumetric_locking_correction = true
-        generate_output = 'cauchy_stress_xx cauchy_stress_yy cauchy_stress_zz cauchy_stress_xy '
-                          'cauchy_stress_xz cauchy_stress_yz mechanical_strain_xx mechanical_strain_yy mechanical_strain_zz mechanical_strain_xy '
-                          'mechanical_strain_xz mechanical_strain_yz'
+        generate_output = 'cauchy_stress_xx cauchy_stress_yy cauchy_stress_zz cauchy_stress_xy cauchy_stress_xz cauchy_stress_yz mechanical_strain_xx mechanical_strain_yy mechanical_strain_zz mechanical_strain_xy mechanical_strain_xz mechanical_strain_yz'
       []
     []
   []
@@ -55,15 +53,15 @@
 [Functions]
   [pullx]
     type = ParsedFunction
-    value = '4000 * t'
+    expression = '4000 * t'
   []
   [pully]
     type = ParsedFunction
-    value = '-2000 * t'
+    expression = '-2000 * t'
   []
   [pullz]
     type = ParsedFunction
-    value = '3000 * t'
+    expression = '3000 * t'
   []
 []
 
@@ -110,12 +108,12 @@
 []
 
 [Materials]
-  [./stress]
+  [stress]
     type = CauchyStressFromNEML
     database = "../../test_materials.xml"
     model = "elastic_model"
     large_kinematics = false
-  [../]
+  []
 []
 
 [Preconditioning]

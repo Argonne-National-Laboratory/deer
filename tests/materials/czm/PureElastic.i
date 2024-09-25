@@ -1,20 +1,20 @@
 [Mesh]
-  [./msh]
-  type = GeneratedMeshGenerator
-  dim = 3
-  nx = 1
-  ny = 1
-  nz = 2
-  zmax = 2
+  [msh]
+    type = GeneratedMeshGenerator
+    dim = 3
+    nx = 1
+    ny = 1
+    nz = 2
+    zmax = 2
   []
-  [./new_block]
+  [new_block]
     type = SubdomainBoundingBoxGenerator
     input = msh
     block_id = 1
     bottom_left = '0 0 1'
     top_right = '1 1 2'
   []
-  [./split]
+  [split]
     type = BreakMeshByBlockGenerator
     input = new_block
   []
@@ -24,50 +24,48 @@
   displacements = 'disp_x disp_y disp_z'
 []
 
-[Modules]
-  [TensorMechanics]
-    [Master]
+[Physics]
+  [SolidMechanics]
+    [QuasiStatic]
       [all]
         strain = SMALL
         add_variables = true
         new_system = true
         formulation = UPDATED
         volumetric_locking_correction = false
-        generate_output = 'cauchy_stress_xx cauchy_stress_yy cauchy_stress_zz cauchy_stress_xy '
-                          'cauchy_stress_xz cauchy_stress_yz mechanical_strain_xx mechanical_strain_yy mechanical_strain_zz mechanical_strain_xy '
-                          'mechanical_strain_xz mechanical_strain_yz'
+        generate_output = 'cauchy_stress_xx cauchy_stress_yy cauchy_stress_zz cauchy_stress_xy cauchy_stress_xz cauchy_stress_yz mechanical_strain_xx mechanical_strain_yy mechanical_strain_zz mechanical_strain_xy mechanical_strain_xz mechanical_strain_yz'
       []
     []
   []
 []
 
-[Modules/TensorMechanics/CohesiveZoneMaster]
-  [./czm]
+[Physics/SolidMechanics/CohesiveZone]
+  [czm]
     boundary = 'interface'
     generate_output = 'traction_x traction_y traction_z normal_traction tangent_traction jump_x jump_y jump_z normal_jump tangent_jump'
-  [../]
+  []
 []
 [Materials]
-  [./stress]
+  [stress]
     type = CauchyStressFromNEML
     database = "../../neml_test_material.xml"
     model = "elastic_model"
-  [../]
-  [./czm]
+  []
+  [czm]
     type = PureElasticCZM
     displacements = 'disp_x disp_y disp_z'
     boundary = 'interface'
     E = 1e2
     G = 1e2
     interface_thickness = 1
-  [../]
+  []
 []
 
 [Preconditioning]
-  [./smp]
+  [smp]
     type = SMP
     full = true
-  [../]
+  []
 []
 
 [Executioner]
@@ -89,53 +87,51 @@
 []
 
 [BCs]
-  [./x]
+  [x]
     type = DirichletBC
     boundary = left
     variable = disp_x
     value = 0.0
-  [../]
-  [./y]
+  []
+  [y]
     type = DirichletBC
     boundary = bottom
     variable = disp_y
     value = 0.0
-  [../]
-  [./z]
+  []
+  [z]
     type = DirichletBC
     boundary = back
     variable = disp_z
     value = 0.0
-  [../]
-  [./x_top]
+  []
+  [x_top]
     type = DirichletBC
     boundary = front
     variable = disp_x
     value = 0.0
-  [../]
-  [./y_top]
+  []
+  [y_top]
     type = DirichletBC
     boundary = front
     variable = disp_y
     value = 0.0
-  [../]
-  [./z_top]
+  []
+  [z_top]
     type = FunctionDirichletBC
     boundary = front
     variable = disp_z
     function = disp_fun
-  [../]
+  []
 []
 
 [Functions]
-  [./disp_fun]
+  [disp_fun]
     type = PiecewiseLinear
     x = '0 1  3  4 6'
     y = '0 1 -1 -2 0'
-  [../]
+  []
 []
-
-
 
 [Outputs]
   exodus = true

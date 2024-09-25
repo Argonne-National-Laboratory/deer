@@ -103,9 +103,9 @@ bulk_volume_PP = 'czm_strain_V0'
   displacements = 'disp_x disp_y disp_z'
 []
 
-[Modules]
-  [TensorMechanics]
-    [Master]
+[Physics]
+  [SolidMechanics]
+    [QuasiStatic]
       [all]
         strain = SMALL
         add_variables = true
@@ -118,7 +118,7 @@ bulk_volume_PP = 'czm_strain_V0'
   []
 []
 
-[Modules/TensorMechanics/CohesiveZoneMaster]
+[Physics/SolidMechanics/CohesiveZone]
   [czm]
     boundary = 'interface'
     strain = FINITE

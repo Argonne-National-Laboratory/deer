@@ -1,31 +1,31 @@
 [Mesh]
-  [./msh]
-  type = GeneratedMeshGenerator
-  dim = 3
-  nx = 1
-  ny = 1
-  nz = 2
-  xmin = -0.5
-  xmax = 0.5
-  ymin = -0.5
-  ymax = 0.5
-  zmin = -1
-  zmax = 1
+  [msh]
+    type = GeneratedMeshGenerator
+    dim = 3
+    nx = 1
+    ny = 1
+    nz = 2
+    xmin = -0.5
+    xmax = 0.5
+    ymin = -0.5
+    ymax = 0.5
+    zmin = -1
+    zmax = 1
   []
-  [./new_block]
+  [new_block]
     type = SubdomainBoundingBoxGenerator
     input = msh
     block_id = 1
     bottom_left = '-0.5 -0.5 0'
     top_right = '0.5 0.5 0.5'
   []
-  [./scale]
-  type = TransformGenerator
-  input = new_block
-  transform = SCALE
-  vector_value ='0.06 0.06 0.06'
+  [scale]
+    type = TransformGenerator
+    input = new_block
+    transform = SCALE
+    vector_value = '0.06 0.06 0.06'
   []
-  [./split]
+  [split]
     type = BreakMeshByBlockGenerator
     input = scale
   []
@@ -36,80 +36,77 @@
 []
 
 [Functions]
-  [./applied_load_x]
+  [applied_load_x]
     type = PiecewiseLinear
     x = '0 0.1 1e7'
     y = '0 0 0'
-  [../]
-  [./applied_load_y]
+  []
+  [applied_load_y]
     type = PiecewiseLinear
     x = '0 0.1 1e7'
     y = '0 0 0'
-  [../]
-  [./applied_load_z]
+  []
+  [applied_load_z]
     type = PiecewiseLinear
     x = '0 0.1 300 300.02 1e6'
     y = '0 100 100 -500 -500'
-  [../]
+  []
 []
 [BCs]
-    [./x]
-      type = DirichletBC
-      boundary = left
-      variable = disp_x
-      value = 0.0
-    [../]
-    [./y]
-      type = DirichletBC
-      boundary = bottom
-      variable = disp_y
-      value = 0.0
-    [../]
-    [./z]
-      type = DirichletBC
-      boundary = back
-      variable = disp_z
-      value = 0.0
-    [../]
-    [./x1]
-      type = FunctionNeumannBC
-      boundary = right
-      function = applied_load_x
-      variable = disp_x
-    [../]
-    [./y1]
-      type = FunctionNeumannBC
-      boundary = top
-      function = applied_load_y
-      variable = disp_y
-    [../]
-    [./z1]
-      type = FunctionNeumannBC
-      boundary = front
-      function = applied_load_z
-      variable = disp_z
-    [../]
+  [x]
+    type = DirichletBC
+    boundary = left
+    variable = disp_x
+    value = 0.0
+  []
+  [y]
+    type = DirichletBC
+    boundary = bottom
+    variable = disp_y
+    value = 0.0
+  []
+  [z]
+    type = DirichletBC
+    boundary = back
+    variable = disp_z
+    value = 0.0
+  []
+  [x1]
+    type = FunctionNeumannBC
+    boundary = right
+    function = applied_load_x
+    variable = disp_x
+  []
+  [y1]
+    type = FunctionNeumannBC
+    boundary = top
+    function = applied_load_y
+    variable = disp_y
+  []
+  [z1]
+    type = FunctionNeumannBC
+    boundary = front
+    function = applied_load_z
+    variable = disp_z
+  []
 []
 
-[Modules]
-  [TensorMechanics]
-    [Master]
+[Physics]
+  [SolidMechanics]
+    [QuasiStatic]
       [all]
         strain = FINITE
         add_variables = true
         new_system = true
         formulation = TOTAL
         volumetric_locking_correction = true
-        generate_output = 'cauchy_stress_xx cauchy_stress_yy cauchy_stress_zz cauchy_stress_xy '
-                          'cauchy_stress_xz cauchy_stress_yz mechanical_strain_xx mechanical_strain_yy mechanical_strain_zz mechanical_strain_xy '
-                          'mechanical_strain_xz mechanical_strain_yz'
+        generate_output = 'cauchy_stress_xx cauchy_stress_yy cauchy_stress_zz cauchy_stress_xy cauchy_stress_xz cauchy_stress_yz mechanical_strain_xx mechanical_strain_yy mechanical_strain_zz mechanical_strain_xy mechanical_strain_xz mechanical_strain_yz'
       []
     []
   []
-[] 
+[]
 
-
-[Modules/TensorMechanics/CohesiveZoneMaster]
+[Physics/SolidMechanics/CohesiveZone]
   [czm]
     strain = FINITE
     boundary = 'interface'
@@ -118,13 +115,13 @@
 []
 
 [Materials]
-  [./stress]
+  [stress]
     type = CauchyStressFromNEML
     database = "mat.xml"
     model = "creep_and_hardening"
     large_kinematics = true
-  [../]
-  [./czm_mat]
+  []
+  [czm_mat]
     type = GBCavitation
     boundary = 'interface'
     max_time_cut = 10
@@ -138,14 +135,14 @@
     vdot_method = 2
     output_properties = 'a b'
     outputs = exodus
-  [../]
+  []
 []
 
 [Preconditioning]
-  [./SMP]
+  [SMP]
     type = SMP
     full = true
-  [../]
+  []
 []
 
 [Executioner]
@@ -161,10 +158,10 @@
   l_max_its = 2
   nl_max_its = 10
   start_time = 0.0
-  [./TimeStepper]
-   type =IterationAdaptiveDT
+  [TimeStepper]
+    type = IterationAdaptiveDT
     optimal_iterations = 10
-    dt =  0.1
+    dt = 0.1
   []
   dtmin = 1e-4
   end_time = 1000

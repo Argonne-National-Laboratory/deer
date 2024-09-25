@@ -6,14 +6,14 @@
     ny = 2
     nz = 2
   []
-  [./new_block]
+  [new_block]
     type = SubdomainBoundingBoxGenerator
     input = generated_mesh
     block_id = 1
     bottom_left = '0 0 0.5'
     top_right = '1 1 1'
   []
-  [./boundary]
+  [boundary]
     type = SideSetsBetweenSubdomainsGenerator
     input = new_block
     primary_block = '0 1'
@@ -26,91 +26,89 @@
   displacements = 'disp_x disp_y disp_z'
 []
 
-[Modules]
-  [TensorMechanics]
-    [Master]
+[Physics]
+  [SolidMechanics]
+    [QuasiStatic]
       [all]
         strain = SMALL
         add_variables = true
         new_system = true
         formulation = UPDATED
         volumetric_locking_correction = true
-        generate_output = 'cauchy_stress_xx cauchy_stress_yy cauchy_stress_zz cauchy_stress_xy '
-                          'cauchy_stress_xz cauchy_stress_yz mechanical_strain_xx mechanical_strain_yy mechanical_strain_zz mechanical_strain_xy '
-                          'mechanical_strain_xz mechanical_strain_yz'
+        generate_output = 'cauchy_stress_xx cauchy_stress_yy cauchy_stress_zz cauchy_stress_xy cauchy_stress_xz cauchy_stress_yz mechanical_strain_xx mechanical_strain_yy mechanical_strain_zz mechanical_strain_xy mechanical_strain_xz mechanical_strain_yz'
       []
     []
   []
-[] 
+[]
 
 [Materials]
-  [./stress]
+  [stress]
     type = CauchyStressFromNEML
     database = "../../test_materials.xml"
     model = "elastic_model"
     large_kinematics = false
-  [../]
-  [./tensor_rate]
+  []
+  [tensor_rate]
     type = TensorRateMaterial
     rank_two_tensor = cauchy_stress
   []
 []
 
 [Functions]
- [./topfunc_x]
-   type = PiecewiseLinear
-   x = '0 2'
-   y = '0 10'
- [../]
- [./topfunc_y]
-   type = PiecewiseLinear
-   x = '0 2'
-   y = '0 20'
- [../]
- [./topfunc_z]
-   type = PiecewiseLinear
-   x = '0 2'
-   y = '0 -30'
- [../]
+  [topfunc_x]
+    type = PiecewiseLinear
+    x = '0 2'
+    y = '0 10'
+  []
+  [topfunc_y]
+    type = PiecewiseLinear
+    x = '0 2'
+    y = '0 20'
+  []
+  [topfunc_z]
+    type = PiecewiseLinear
+    x = '0 2'
+    y = '0 -30'
+  []
 []
 
 [BCs]
-  [./x_0]
+  [x_0]
     type = DirichletBC
     variable = disp_x
     boundary = 'left'
     value = 0
-  [../]
-  [./y_0]
+  []
+  [y_0]
     type = DirichletBC
     variable = disp_y
     boundary = 'bottom'
     value = 0
-  [../]
-  [./z_0]
+  []
+  [z_0]
     type = DirichletBC
     variable = disp_z
     boundary = 'back'
     value = 0
-  [../]
-  [./x_1]
+  []
+  [x_1]
     type = FunctionNeumannBC
     variable = disp_x
     boundary = 'right'
     function = topfunc_x
-  [../]
-  [./y_1]
+  []
+  [y_1]
     type = FunctionNeumannBC
     variable = disp_y
     boundary = 'top'
     function = topfunc_y
-  [../]
-  [./z_1]
+  []
+  [z_1]
     type = FunctionNeumannBC
     variable = disp_z
     boundary = 'front'
     function = topfunc_z
-  [../]
+  []
 []
 
 [RankTwoTensorIntegralOnDomain]
@@ -129,12 +127,11 @@
 []
 
 [Preconditioning]
-  [./smp]
+  [smp]
     type = SMP
     full = true
-  [../]
+  []
 []
-
 
 [Executioner]
   type = Transient

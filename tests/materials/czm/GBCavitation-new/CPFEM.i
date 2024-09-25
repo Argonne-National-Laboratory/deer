@@ -47,9 +47,9 @@ Ty = 0
   use_displaced_mesh = false
 []
 
-[Modules]
-  [TensorMechanics]
-    [Master]
+[Physics]
+  [SolidMechanics]
+    [QuasiStatic]
       [all]
         strain = FINITE
         new_system = true
@@ -58,7 +58,7 @@ Ty = 0
         volumetric_locking_correction = false
       []
     []
-    [CohesiveZoneMaster]
+    [CohesiveZone]
       [interface]
         boundary = 'interface'
         strain = FINITE
@@ -210,7 +210,7 @@ Ty = 0
   [strain]
     type = ParsedPostprocessor
     pp_names = 'avg_disp_x'
-    function = 'avg_disp_x / 2'
+    expression = 'avg_disp_x / 2'
     execute_on = 'INITIAL TIMESTEP_END'
   []
   [delta_strain]
@@ -227,7 +227,7 @@ Ty = 0
   [strain_rate]
     type = ParsedPostprocessor
     pp_names = 'delta_strain dt'
-    function = 'delta_strain / dt'
+    expression = 'delta_strain / dt'
     execute_on = 'TIMESTEP_END'
   []
 []

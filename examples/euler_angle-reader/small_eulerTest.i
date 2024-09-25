@@ -10,140 +10,138 @@
 []
 
 [Variables]
-  [./disp_x]
-  [../]
-  [./disp_y]
-  [../]
-  [./disp_z]
-  [../]
+  [disp_x]
+  []
+  [disp_y]
+  []
+  [disp_z]
+  []
 []
 [UserObjects]
-  [./euler_angle_file]
+  [euler_angle_file]
     type = ElementPropertyReadFile
     nprop = 3
     prop_file_name = 2gr_Euler.tex
     read_type = block
     nblock = 2
     blocks_zero_numbered = false
-  [../]
+  []
 []
 [BCs]
-  [./leftx]
+  [leftx]
     type = DirichletBC
     preset = true
     boundary = left
     variable = disp_x
     value = 0.0
-  [../]
-  [./lefty]
+  []
+  [lefty]
     type = DirichletBC
     preset = true
     boundary = back
     variable = disp_y
     value = 0.0
-  [../]
-  [./leftz]
+  []
+  [leftz]
     type = DirichletBC
     preset = true
     boundary = bottom
     variable = disp_z
     value = 0.0
-  [../]
-  [./pull_z]
+  []
+  [pull_z]
     type = FunctionDirichletBC
     boundary = top
     variable = disp_z
     function = pfn
     preset = true
-  [../]
+  []
 []
 
 [Functions]
-  [./pfn]
+  [pfn]
     type = PiecewiseLinear
     x = '0    10'
     y = '0.00 0.1'
-  [../]
+  []
 []
 
 [AuxVariables]
-  [./orientation_q1]
+  [orientation_q1]
     order = CONSTANT
     family = MONOMIAL
-  [../]
-  [./orientation_q2]
+  []
+  [orientation_q2]
     order = CONSTANT
     family = MONOMIAL
-  [../]
-  [./orientation_q3]
+  []
+  [orientation_q3]
     order = CONSTANT
     family = MONOMIAL
-  [../]
-  [./orientation_q4]
+  []
+  [orientation_q4]
     order = CONSTANT
     family = MONOMIAL
-  [../]
+  []
 []
 
 [AuxKernels]
   [q1]
     type = MaterialStdVectorAux
-    property  = orientation
+    property = orientation
     index = 0
-    variable  = orientation_q1
-  [../]
+    variable = orientation_q1
+  []
   [q2]
     type = MaterialStdVectorAux
-    property  = orientation
+    property = orientation
     index = 1
-    variable  = orientation_q2
-  [../]
+    variable = orientation_q2
+  []
   [q3]
     type = MaterialStdVectorAux
-    property  = orientation
+    property = orientation
     index = 2
-    variable  = orientation_q3
-  [../]
+    variable = orientation_q3
+  []
   [q4]
     type = MaterialStdVectorAux
-    property  = orientation
+    property = orientation
     index = 3
-    variable  = orientation_q4
-  [../]
+    variable = orientation_q4
+  []
 []
 
 [Materials]
-  [./stress1]
+  [stress1]
     type = NEMLCrystalPlasticity
     database = "test.xml"
     model = "grain_1"
     large_kinematics = true
     euler_angle_reader = euler_angle_file
-  [../]
+  []
 []
 
-[Modules]
-  [TensorMechanics]
-    [Master]
+[Physics]
+  [SolidMechanics]
+    [QuasiStatic]
       [all]
         strain = FINITE
         add_variables = true
         new_system = true
         formulation = TOTAL
         volumetric_locking_correction = true
-        generate_output = 'cauchy_stress_xx cauchy_stress_yy cauchy_stress_zz cauchy_stress_xy '
-                          'cauchy_stress_xz cauchy_stress_yz mechanical_strain_xx mechanical_strain_yy mechanical_strain_zz mechanical_strain_xy '
-                          'mechanical_strain_xz mechanical_strain_yz'
+        generate_output = 'cauchy_stress_xx cauchy_stress_yy cauchy_stress_zz cauchy_stress_xy cauchy_stress_xz cauchy_stress_yz mechanical_strain_xx mechanical_strain_yy mechanical_strain_zz mechanical_strain_xy mechanical_strain_xz mechanical_strain_yz'
       []
     []
   []
-[] 
+[]
 
 [Preconditioning]
-  [./smp]
+  [smp]
     type = SMP
     full = true
-  [../]
+  []
 []
 
 [Executioner]

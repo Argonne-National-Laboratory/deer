@@ -5,30 +5,30 @@
 []
 
 [Variables]
-      [./disp_x]
-      [../]
-      [./disp_y]
-      [../]
-      [./disp_z]
-      [../]
+  [disp_x]
+  []
+  [disp_y]
+  []
+  [disp_z]
+  []
 []
 
 [Mesh]
-  [./msh]
-  type = GeneratedMeshGenerator
-  dim = 3
-  nx = 1
-  ny = 1
-  nz = 2
+  [msh]
+    type = GeneratedMeshGenerator
+    dim = 3
+    nx = 1
+    ny = 1
+    nz = 2
   []
-  [./new_block]
+  [new_block]
     type = SubdomainBoundingBoxGenerator
     input = msh
     block_id = 1
     bottom_left = '0 0 0.5'
     top_right = '1 1 1'
   []
-  [./interface]
+  [interface]
     type = SideSetsBetweenSubdomainsGenerator
     input = new_block
     primary_block = 0
@@ -37,171 +37,169 @@
   []
 []
 
-[Modules]
-  [TensorMechanics]
-    [Master]
+[Physics]
+  [SolidMechanics]
+    [QuasiStatic]
       [all]
         strain = FINITE
         add_variables = true
         new_system = true
         formulation = UPDATED
         volumetric_locking_correction = true
-        generate_output = 'cauchy_stress_xx cauchy_stress_yy cauchy_stress_zz cauchy_stress_xy '
-                          'cauchy_stress_xz cauchy_stress_yz mechanical_strain_xx mechanical_strain_yy mechanical_strain_zz mechanical_strain_xy '
-                          'mechanical_strain_xz mechanical_strain_yz'
+        generate_output = 'cauchy_stress_xx cauchy_stress_yy cauchy_stress_zz cauchy_stress_xy cauchy_stress_xz cauchy_stress_yz mechanical_strain_xx mechanical_strain_yy mechanical_strain_zz mechanical_strain_xy mechanical_strain_xz mechanical_strain_yz'
       []
     []
   []
-[] 
+[]
 
 [AuxVariables]
-  [./stress_zz]
+  [stress_zz]
     order = CONSTANT
     family = MONOMIAL
-  [../]
+  []
 []
 
 [Functions]
-  [./zstress]
+  [zstress]
     type = PiecewiseLinear
     x = '0 1'
     y = '0 500'
-  [../]
-  [./constant]
+  []
+  [constant]
     type = ConstantFunction
     value = 1.0
-  [../]
-  [./szz_V0]
+  []
+  [szz_V0]
     type = ParsedFunction
-    vars = 'sd V0 V'
-    vals = 's_def volume0 volume'
-    value = 'sd *V / V0'
-  [../]
-  [./szz_A0]
+    symbol_names = 'sd V0 V'
+    symbol_values = 's_def volume0 volume'
+    expression = 'sd *V / V0'
+  []
+  [szz_A0]
     type = ParsedFunction
-    vars = 'sd A A0'
-    vals = 's_def_interface area area0'
-    value = 'sd*A/A0'
-  [../]
+    symbol_names = 'sd A A0'
+    symbol_values = 's_def_interface area area0'
+    expression = 'sd*A/A0'
+  []
 []
 
 [BCs]
-  [./leftx]
+  [leftx]
     type = DirichletBC
     preset = true
     boundary = left
     variable = disp_x
     value = 0.0
-  [../]
-  [./boty]
+  []
+  [boty]
     type = DirichletBC
     preset = true
     boundary = bottom
     variable = disp_y
     value = 0.0
-  [../]
-  [./backz]
+  []
+  [backz]
     type = DirichletBC
     preset = true
     boundary = back
     variable = disp_z
     value = 0.0
-  [../]
-  [./pull_z]
+  []
+  [pull_z]
     type = FunctionNeumannBC
     boundary = front
     variable = disp_z
     function = zstress
     use_displaced_mesh = true
-  [../]
+  []
 []
 
 [AuxKernels]
-  [./stress_zz]
+  [stress_zz]
     type = RankTwoAux
     rank_two_tensor = cauchy_stress
     variable = stress_zz
     index_i = 2
     index_j = 2
     execute_on = timestep_end
-  [../]
+  []
 []
 
 [Materials]
-  [./stress]
+  [stress]
     type = CauchyStressFromNEML
     database = "test.xml"
     model = "elastic_model"
     large_kinematics = true
-  [../]
+  []
 []
 
 [Preconditioning]
-  [./smp]
+  [smp]
     type = SMP
     full = true
-  [../]
+  []
 []
 
 [Postprocessors]
   #volume related functions
-  [./s_def]
+  [s_def]
     type = ElementAverageValue
     variable = stress_zz
     use_displaced_mesh = true
-  [../]
-  [./s_def_V0]
+  []
+  [s_def_V0]
     type = FunctionValuePostprocessor
     function = szz_V0
-  [../]
-  [./volume]
+  []
+  [volume]
     type = VolumePostprocessor
     use_displaced_mesh = true
-  [../]
-  [./volume0]
+  []
+  [volume0]
     type = VolumePostprocessor
     use_displaced_mesh = false
-  [../]
-  [./s_def_new]
+  []
+  [s_def_new]
     type = MaterialTensorIntegralScaled
     rank_two_tensor = cauchy_stress
     index_i = 2
     index_j = 2
     execute_on = 'TIMESTEP_END'
     scaling_factor_PP = volume
-  [../]
-  [./s_undef_new]
+  []
+  [s_undef_new]
     type = MaterialTensorIntegralScaled
     rank_two_tensor = cauchy_stress
     index_i = 2
     index_j = 2
     execute_on = 'TIMESTEP_END'
     scaling_factor_PP = volume0
-  [../]
+  []
 
   #interface related functions
-  [./s_def_interface]
+  [s_def_interface]
     type = SideAverageValue
     variable = stress_zz
     boundary = interface
     use_displaced_mesh = true
-  [../]
-  [./s_def_A0]
+  []
+  [s_def_A0]
     type = FunctionValuePostprocessor
     function = szz_A0
-  [../]
-  [./area]
+  []
+  [area]
     type = AreaPostprocessor
     boundary = interface
     use_displaced_mesh = true
-  [../]
-  [./area0]
+  []
+  [area0]
     type = AreaPostprocessor
     boundary = interface
     use_displaced_mesh = false
     execute_on = 'INITIAL'
-  [../]
-  [./s_def_interface_new]
+  []
+  [s_def_interface_new]
     type = MaterialTensorIntegralInterfaceScaled
     rank_two_tensor = cauchy_stress
     index_i = 2
@@ -210,8 +208,8 @@
     execute_on = 'TIMESTEP_END'
     scaling_factor_PP = area
     use_displaced_mesh = true
-  [../]
-  [./s_undef_interface_new]
+  []
+  [s_undef_interface_new]
     type = MaterialTensorIntegralInterfaceScaled
     rank_two_tensor = cauchy_stress
     index_i = 2
@@ -220,7 +218,7 @@
     execute_on = 'TIMESTEP_END'
     scaling_factor_PP = area0
     use_displaced_mesh = true
-  [../]
+  []
 []
 
 [Executioner]

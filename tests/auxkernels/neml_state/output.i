@@ -14,78 +14,75 @@
   []
 []
 
-[Modules]
-  [TensorMechanics]
-    [Master]
+[Physics]
+  [SolidMechanics]
+    [QuasiStatic]
       [all]
         strain = SMALL
         add_variables = true
         new_system = true
         formulation = TOTAL
         volumetric_locking_correction = true
-        generate_output = 'cauchy_stress_xx cauchy_stress_yy cauchy_stress_zz cauchy_stress_xy '
-                          'cauchy_stress_xz cauchy_stress_yz mechanical_strain_xx mechanical_strain_yy mechanical_strain_zz mechanical_strain_xy '
-                          'mechanical_strain_xz mechanical_strain_yz'
+        generate_output = 'cauchy_stress_xx cauchy_stress_yy cauchy_stress_zz cauchy_stress_xy cauchy_stress_xz cauchy_stress_yz mechanical_strain_xx mechanical_strain_yy mechanical_strain_zz mechanical_strain_xy mechanical_strain_xz mechanical_strain_yz'
       []
     []
   []
 []
 
 [AuxVariables]
-  [./alpha]
+  [alpha]
     order = CONSTANT
     family = MONOMIAL
-  [../]
-  [./X1_0]
+  []
+  [X1_0]
     order = CONSTANT
     family = MONOMIAL
-  [../]
-  [./X2_0]
+  []
+  [X2_0]
     order = CONSTANT
     family = MONOMIAL
-  [../]
-  [./X3_0]
+  []
+  [X3_0]
     order = CONSTANT
     family = MONOMIAL
-  [../]
+  []
 []
 
 [AuxKernels]
-  [./alpha]
+  [alpha]
     type = NEMLStateAux
     database = "../../test_materials.xml"
     model = "chaboche_model"
     variable = alpha
     state_variable = "alpha"
-  [../]
-  [./X1_0]
+  []
+  [X1_0]
     type = NEMLStateAux
     database = "../../test_materials.xml"
     model = "chaboche_model"
     variable = X1_0
     state_variable = "backstress_0_0"
-  [../]
-  [./X2_0]
+  []
+  [X2_0]
     type = NEMLStateAux
     database = "../../test_materials.xml"
     model = "chaboche_model"
     variable = X2_0
     state_variable = "backstress_1_0"
-  [../]
-  [./X3_0]
+  []
+  [X3_0]
     type = NEMLStateAux
     database = "../../test_materials.xml"
     model = "chaboche_model"
     variable = X3_0
     state_variable = "backstress_2_0"
-  [../]
+  []
 []
-
 
 [Functions]
   [pullz]
     type = ParsedFunction
-    value = '0.005 * t'
+    expression = '0.005 * t'
   []
 []
 
@@ -120,12 +117,12 @@
 []
 
 [Materials]
-  [./stress]
+  [stress]
     type = CauchyStressFromNEML
     database = "../../test_materials.xml"
     model = "chaboche_model"
     large_kinematics = false
-  [../]
+  []
 []
 
 [Preconditioning]

@@ -1,40 +1,40 @@
 # Test under stress cotrolled condition BC. Load reversal is very quick
 
 [Mesh]
-  [./msh]
-  type = GeneratedMeshGenerator
-  dim = 3
-  nx = 1
-  ny = 1
-  nz = 3
-  xmin = -0.5
-  xmax = 0.5
-  ymin = -0.5
-  ymax = 0.5
-  zmin = 0
-  zmax = 3
+  [msh]
+    type = GeneratedMeshGenerator
+    dim = 3
+    nx = 1
+    ny = 1
+    nz = 3
+    xmin = -0.5
+    xmax = 0.5
+    ymin = -0.5
+    ymax = 0.5
+    zmin = 0
+    zmax = 3
   []
-  [./new_block1]
+  [new_block1]
     type = SubdomainBoundingBoxGenerator
     input = msh
     block_id = 1
     bottom_left = '-0.5 -0.5 1'
     top_right = '0.5 0.5 2'
   []
-  [./new_block2]
+  [new_block2]
     type = SubdomainBoundingBoxGenerator
     input = new_block1
     block_id = 2
     bottom_left = '-0.5 -0.5 2'
     top_right = '0.5 0.5 3'
   []
-  [./scale]
-  type = TransformGenerator
-  input = new_block2
-  transform = SCALE
-  vector_value ='0.06 0.06 0.06'
+  [scale]
+    type = TransformGenerator
+    input = new_block2
+    transform = SCALE
+    vector_value = '0.06 0.06 0.06'
   []
-  [./split]
+  [split]
     type = BreakMeshByBlockGenerator
     input = scale
   []
@@ -45,59 +45,59 @@
 []
 
 [Functions]
-  [./applied_load_x]
+  [applied_load_x]
     type = PiecewiseLinear
     x = '0 0.1 1e7'
     y = '0 0 0'
-  [../]
-  [./applied_load_y]
+  []
+  [applied_load_y]
     type = PiecewiseLinear
     x = '0 0.1 1e7'
     y = '0 0 0'
-  [../]
-  [./applied_load_z]
+  []
+  [applied_load_z]
     type = PiecewiseLinear
     x = '0 0.1 300'
     y = '0 1 1'
-  [../]
+  []
 []
 [BCs]
-    [./x]
-      type = DirichletBC
-      boundary = left
-      variable = disp_x
-      value = 0.0
-    [../]
-    [./y]
-      type = DirichletBC
-      boundary = bottom
-      variable = disp_y
-      value = 0.0
-    [../]
-    [./z]
-      type = DirichletBC
-      boundary = back
-      variable = disp_z
-      value = 0.0
-    [../]
-    [./x1]
-      type = FunctionNeumannBC
-      boundary = right
-      function = applied_load_x
-      variable = disp_x
-    [../]
-    [./y1]
-      type = FunctionNeumannBC
-      boundary = top
-      function = applied_load_y
-      variable = disp_y
-    [../]
-    [./z1]
-      type = FunctionNeumannBC
-      boundary = front
-      function = applied_load_z
-      variable = disp_z
-    [../]
+  [x]
+    type = DirichletBC
+    boundary = left
+    variable = disp_x
+    value = 0.0
+  []
+  [y]
+    type = DirichletBC
+    boundary = bottom
+    variable = disp_y
+    value = 0.0
+  []
+  [z]
+    type = DirichletBC
+    boundary = back
+    variable = disp_z
+    value = 0.0
+  []
+  [x1]
+    type = FunctionNeumannBC
+    boundary = right
+    function = applied_load_x
+    variable = disp_x
+  []
+  [y1]
+    type = FunctionNeumannBC
+    boundary = top
+    function = applied_load_y
+    variable = disp_y
+  []
+  [z1]
+    type = FunctionNeumannBC
+    boundary = front
+    function = applied_load_z
+    variable = disp_z
+  []
 []
 
 # [AuxVariables]
@@ -119,44 +119,23 @@
     boundary = 'interface'
   []
 []
-# [AuxKernels]
-#   [./a]
-#     type = MaterialRealAux
-#     boundary = 'interface'
-#     property = average_cavity_radii
-#     execute_on = 'TIMESTEP_END'
-#     variable = a
-#     check_boundary_restricted = false
-#   []
-#   [./b]
-#     type = MaterialRealAux
-#     boundary = 'interface'
-#     property = average_cavity_spacing
-#     execute_on = 'TIMESTEP_END'
-#     variable = b
-#     check_boundary_restricted = false
-#   []
-# []
 
-[Modules]
-  [TensorMechanics]
-    [Master]
+[Physics]
+  [SolidMechanics]
+    [QuasiStatic]
       [all]
         strain = FINITE
         add_variables = true
         new_system = true
         formulation = TOTAL
         volumetric_locking_correction = true
-        generate_output = 'cauchy_stress_xx cauchy_stress_yy cauchy_stress_zz cauchy_stress_xy '
-                          'cauchy_stress_xz cauchy_stress_yz mechanical_strain_xx mechanical_strain_yy mechanical_strain_zz mechanical_strain_xy '
-                          'mechanical_strain_xz mechanical_strain_yz'
+        generate_output = 'cauchy_stress_xx cauchy_stress_yy cauchy_stress_zz cauchy_stress_xy cauchy_stress_xz cauchy_stress_yz mechanical_strain_xx mechanical_strain_yy mechanical_strain_zz mechanical_strain_xy mechanical_strain_xz mechanical_strain_yz'
       []
     []
   []
-[] 
+[]
 
-
-[Modules/TensorMechanics/CohesiveZoneMaster]
+[Physics/SolidMechanics/CohesiveZone]
   [czm]
     strain = FINITE
     boundary = 'interface'
@@ -164,13 +143,13 @@
 []
 
 [Materials]
-  [./stress]
+  [stress]
     type = CauchyStressFromNEML
     database = "mat.xml"
     model = "creep_and_hardening"
     large_kinematics = true
-  [../]
-  [./czm_mat]
+  []
+  [czm_mat]
     type = GBCavitation
     boundary = 'interface'
     max_time_cut = 4
@@ -184,14 +163,14 @@
     GBCavitationBoundaryPropertyUO = 'cavitation_properties'
     output_properties = 'a0 a b n_exponent beta_exponent GB_diffusivity GB_sliding_viscosity NI FN GB_young_modulus GB_shear_modulus GB_thickness sigma_0 h'
     outputs = exodus
-  [../]
+  []
 []
 
 [Preconditioning]
-  [./SMP]
+  [SMP]
     type = SMP
     full = true
-  [../]
+  []
 []
 
 [Executioner]

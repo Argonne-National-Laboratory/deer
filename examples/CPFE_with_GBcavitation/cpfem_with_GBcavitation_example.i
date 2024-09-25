@@ -27,22 +27,20 @@
   displacements = 'disp_x disp_y disp_z'
 []
 
-[Modules]
-  [TensorMechanics]
-    [Master]
+[Physics]
+  [SolidMechanics]
+    [QuasiStatic]
       [all]
         strain = FINITE
         new_system = true
         add_variables = true
         formulation = TOTAL
         volumetric_locking_correction = false
-        generate_output = 'cauchy_stress_xx cauchy_stress_yy cauchy_stress_zz cauchy_stress_xy '
-                          'cauchy_stress_xz cauchy_stress_yz mechanical_strain_xx mechanical_strain_yy mechanical_strain_zz mechanical_strain_xy '
-                          'mechanical_strain_xz mechanical_strain_yz'
+        generate_output = 'cauchy_stress_xx cauchy_stress_yy cauchy_stress_zz cauchy_stress_xy cauchy_stress_xz cauchy_stress_yz mechanical_strain_xx mechanical_strain_yy mechanical_strain_zz mechanical_strain_xy mechanical_strain_xz mechanical_strain_yz'
       []
     []
   []
-[] 
+[]
 
 #output some material propertiy from the cavitation model
 [AuxVariables]
@@ -61,41 +59,40 @@
 []
 
 [AuxKernels]
-[a]
-  type = MaterialRealAux
-  boundary = 'interface'
-  property = a
-  execute_on = 'TIMESTEP_END'
-  variable = a
-  check_boundary_restricted = false #this is important
-[]
-[b]
-  type = MaterialRealAux
-  boundary = 'interface'
-  property = b
-  execute_on = 'TIMESTEP_END'
-  variable = b
-  check_boundary_restricted = false #this is important
-[]
-[D]
-  type = MaterialRealAux
-  boundary = 'interface'
-  property = interface_damage
-  execute_on = 'TIMESTEP_END'
-  variable = D
-  check_boundary_restricted = false #this is important
-[]
+  [a]
+    type = MaterialRealAux
+    boundary = 'interface'
+    property = a
+    execute_on = 'TIMESTEP_END'
+    variable = a
+    check_boundary_restricted = false #this is important
+  []
+  [b]
+    type = MaterialRealAux
+    boundary = 'interface'
+    property = b
+    execute_on = 'TIMESTEP_END'
+    variable = b
+    check_boundary_restricted = false #this is important
+  []
+  [D]
+    type = MaterialRealAux
+    boundary = 'interface'
+    property = interface_damage
+    execute_on = 'TIMESTEP_END'
+    variable = D
+    check_boundary_restricted = false #this is important
+  []
 []
 
-[Modules/TensorMechanics/CohesiveZoneMaster]
-  [./czm_ik]
+[Physics/SolidMechanics/CohesiveZone]
+  [czm_ik]
     # add the proper cohesive interface kernels
     boundary = 'interface'
     strain = FINITE # use finite strins, total lagrangian formulation
-    generate_output='traction_x traction_y traction_z jump_x jump_y jump_z normal_traction tangent_traction normal_jump tangent_jump' #output traction and jump
-  [../]
+    generate_output = 'traction_x traction_y traction_z jump_x jump_y jump_z normal_traction tangent_traction normal_jump tangent_jump' #output traction and jump
+  []
 []
-
 
 [Functions]
   # loading functions for each direction
@@ -115,7 +112,6 @@
     y = '0 0 0' #PK1 stress in z direction
   []
 []
-
 
 [BCs]
   [x0]
@@ -186,7 +182,7 @@
     read_type = block
     nblock = 10
     use_zero_based_block_indexing = false
-  [../]
+  []
 []
 [Materials]
   [stress]
@@ -228,7 +224,7 @@
   start_time = 0.0
   dtmin = 1e-4
   dtmax = 1e3
-  end_time =  10
+  end_time = 10
   n_max_nonlinear_pingpong = 1
   nl_forced_its = 2
 
@@ -244,5 +240,5 @@
 
 [Outputs]
   sync_times = '0 0.1 1 10'
-  exodus=true
+  exodus = true
 []

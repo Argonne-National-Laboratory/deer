@@ -8,145 +8,142 @@
 []
 
 [Variables]
-      [./disp_x]
-            order = second
-      [../]
-      [./disp_y]
-            order = second
-      [../]
-      [./disp_z]
-            order = second
-      [../]
+  [disp_x]
+    order = second
+  []
+  [disp_y]
+    order = second
+  []
+  [disp_z]
+    order = second
+  []
 []
 
 [Functions]
-  [./pfn]
+  [pfn]
     type = PiecewiseLinear
     x = '0    100'
     y = '0.00 0.01'
-  [../]
+  []
 []
 
 [AuxVariables]
-  [./orientation_q1]
+  [orientation_q1]
     order = CONSTANT
     family = MONOMIAL
-  [../]
-  [./orientation_q2]
+  []
+  [orientation_q2]
     order = CONSTANT
     family = MONOMIAL
-  [../]
-  [./orientation_q3]
+  []
+  [orientation_q3]
     order = CONSTANT
     family = MONOMIAL
-  [../]
-  [./orientation_q4]
+  []
+  [orientation_q4]
     order = CONSTANT
     family = MONOMIAL
-  [../]
+  []
 []
 
 [AuxKernels]
   [q1]
     type = MaterialStdVectorAux
-    property  = orientation
+    property = orientation
     index = 0
-    variable  = orientation_q1
-  [../]
+    variable = orientation_q1
+  []
   [q2]
     type = MaterialStdVectorAux
-    property  = orientation
+    property = orientation
     index = 1
-    variable  = orientation_q2
-  [../]
+    variable = orientation_q2
+  []
   [q3]
     type = MaterialStdVectorAux
-    property  = orientation
+    property = orientation
     index = 2
-    variable  = orientation_q3
-  [../]
+    variable = orientation_q3
+  []
   [q4]
     type = MaterialStdVectorAux
-    property  = orientation
+    property = orientation
     index = 3
-    variable  = orientation_q4
-  [../]
+    variable = orientation_q4
+  []
 []
 
-[Modules]
-  [TensorMechanics]
-    [Master]
+[Physics]
+  [SolidMechanics]
+    [QuasiStatic]
       [all]
         strain = FINITE
         new_system = true
         formulation = TOTAL
         volumetric_locking_correction = false
-        generate_output = 'cauchy_stress_xx cauchy_stress_yy cauchy_stress_zz cauchy_stress_xy '
-                          'cauchy_stress_xz cauchy_stress_yz mechanical_strain_xx mechanical_strain_yy mechanical_strain_zz mechanical_strain_xy '
-                          'mechanical_strain_xz mechanical_strain_yz'
+        generate_output = 'cauchy_stress_xx cauchy_stress_yy cauchy_stress_zz cauchy_stress_xy cauchy_stress_xz cauchy_stress_yz mechanical_strain_xx mechanical_strain_yy mechanical_strain_zz mechanical_strain_xy mechanical_strain_xz mechanical_strain_yz'
       []
     []
   []
-[] 
+[]
 
 [UserObjects]
-  [./euler_angle_file]
+  [euler_angle_file]
     type = ElementPropertyReadFile
     nprop = 3
     prop_file_name = grn_element_rand.tex
     read_type = element
-  [../]
+  []
 []
 [BCs]
-  [./left]
-     type = DirichletBC
-     preset = true
-     variable = disp_x
-     boundary = left
-     value = 0.0
-  [../]
-
-  [./bottom]
+  [left]
     type = DirichletBC
-     preset = true
+    preset = true
+    variable = disp_x
+    boundary = left
+    value = 0.0
+  []
+
+  [bottom]
+    type = DirichletBC
+    preset = true
     variable = disp_y
     boundary = bottom
     value = 0.0
-  [../]
+  []
 
-  [./back]
+  [back]
     type = DirichletBC
-     preset = true
+    preset = true
     variable = disp_z
     boundary = back
     value = 0.0
-  [../]
+  []
 
-  [./front]
+  [front]
     type = FunctionDirichletBC
     variable = disp_y
     boundary = top
     function = pfn
     preset = true
-  [../]
+  []
 []
 
 [Materials]
-  [./stress]
+  [stress]
     type = NEMLCrystalPlasticity
     database = "test.xml"
     model = "grain_1"
     large_kinematics = true
     euler_angle_reader = euler_angle_file
-  [../]
+  []
 []
 
-
 [Preconditioning]
-  [./smp]
+  [smp]
     type = SMP
     full = true
-  [../]
+  []
 []
 
 [Executioner]
