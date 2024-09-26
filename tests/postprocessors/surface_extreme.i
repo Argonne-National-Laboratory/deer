@@ -12,98 +12,96 @@
   displacements = 'disp_x disp_y disp_z'
 []
 
-[Modules]
-  [TensorMechanics]
-    [Master]
+[Physics]
+  [SolidMechanics]
+    [QuasiStatic]
       [all]
         strain = SMALL
         add_variables = true
         new_system = true
         formulation = UPDATED
         volumetric_locking_correction = true
-        generate_output = 'cauchy_stress_xx cauchy_stress_yy cauchy_stress_zz cauchy_stress_xy '
-                          'cauchy_stress_xz cauchy_stress_yz mechanical_strain_xx mechanical_strain_yy mechanical_strain_zz mechanical_strain_xy '
-                          'mechanical_strain_xz mechanical_strain_yz'
+        generate_output = 'cauchy_stress_xx cauchy_stress_yy cauchy_stress_zz cauchy_stress_xy cauchy_stress_xz cauchy_stress_yz mechanical_strain_xx mechanical_strain_yy mechanical_strain_zz mechanical_strain_xy mechanical_strain_xz mechanical_strain_yz'
       []
     []
   []
-[] 
+[]
 
 [Materials]
-  [./stress]
+  [stress]
     type = CauchyStressFromNEML
     database = "../test_materials.xml"
     model = "elastic_model"
     large_kinematics = false
-  [../]
-  [./tensor_rate]
+  []
+  [tensor_rate]
     type = TensorRateMaterial
     rank_two_tensor = cauchy_stress
   []
 []
 
 [BCs]
-  [./x_0]
+  [x_0]
     type = DirichletBC
     variable = disp_x
     boundary = 'left'
     value = 0
-  [../]
-  [./y_0]
+  []
+  [y_0]
     type = DirichletBC
     variable = disp_y
     boundary = 'bottom'
     value = 0
-  [../]
-  [./z_0]
+  []
+  [z_0]
     type = DirichletBC
     variable = disp_z
     boundary = 'back'
     value = 0
-  [../]
+  []
   [z_1]
     type = DirichletBC
     variable = disp_z
     boundary = 'front'
     value = 0.1
-  [../]
+  []
 []
 
 [Preconditioning]
-  [./smp]
+  [smp]
     type = SMP
     full = true
-  [../]
+  []
 []
 
 [Postprocessors]
-  [./max_pull]
+  [max_pull]
     type = SideExtremePostprocessor
     variable = disp_z
     boundary = 'front'
     value_type = max
-  [../]
+  []
 
-  [./min_pull]
+  [min_pull]
     type = SideExtremePostprocessor
     variable = disp_z
     boundary = 'front'
     value_type = min
-  [../]
+  []
 
-  [./max_right]
+  [max_right]
     type = SideExtremePostprocessor
     variable = disp_x
     boundary = 'right'
     value_type = max
-  [../]
+  []
 
-  [./min_right]
+  [min_right]
     type = SideExtremePostprocessor
     variable = disp_x
     boundary = 'right'
     value_type = min
-  [../]
+  []
 []
 
 [Executioner]

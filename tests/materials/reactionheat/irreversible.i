@@ -12,51 +12,49 @@
   []
 []
 
-[Modules]
-  [TensorMechanics]
-    [Master]
+[Physics]
+  [SolidMechanics]
+    [QuasiStatic]
       [all]
         strain = SMALL
         add_variables = true
         new_system = true
         formulation = UPDATED
         volumetric_locking_correction = true
-        generate_output = 'cauchy_stress_xx cauchy_stress_yy cauchy_stress_zz cauchy_stress_xy '
-                          'cauchy_stress_xz cauchy_stress_yz mechanical_strain_xx mechanical_strain_yy mechanical_strain_zz mechanical_strain_xy '
-                          'mechanical_strain_xz mechanical_strain_yz'
+        generate_output = 'cauchy_stress_xx cauchy_stress_yy cauchy_stress_zz cauchy_stress_xy cauchy_stress_xz cauchy_stress_yz mechanical_strain_xx mechanical_strain_yy mechanical_strain_zz mechanical_strain_xy mechanical_strain_xz mechanical_strain_yz'
       []
     []
   []
 []
 
 [Functions]
-  [./temperature]
+  [temperature]
     type = PiecewiseLinear
     x = '0 50 200'
     y = '0 51 0'
-  [../]
+  []
 []
 
 [AuxVariables]
-  [./temperature]
-  [../]
-  [./reaction_heat]
+  [temperature]
+  []
+  [reaction_heat]
     family = MONOMIAL
     order = CONSTANT
-  [../]
+  []
 []
 
 [AuxKernels]
-  [./temperature]
+  [temperature]
     type = FunctionAux
     function = temperature
     variable = temperature
-  [../]
-  [./reaction_heat]
+  []
+  [reaction_heat]
     type = MaterialRealAux
     variable = reaction_heat
     property = "reaction_power"
-  [../]
+  []
 []
 
 [BCs]
@@ -84,19 +82,19 @@
 []
 
 [Materials]
-  [./stress]
+  [stress]
     type = CauchyStressFromNEML
     database = "../../test_materials.xml"
     model = "elastic_model"
     large_kinematics = false
-  [../]
-  [./reaction_heat]
+  []
+  [reaction_heat]
     type = EmpiricalReactionHeat
     total_heat = 100.0
     start_temperature = 50.0
     time_constant = 10.0
     temperature = temperature
-  [../]
+  []
 []
 
 [Preconditioning]
@@ -127,18 +125,18 @@
 []
 
 [Postprocessors]
-  [./temperature]
+  [temperature]
     type = ElementAverageValue
     variable = temperature
-  [../]
-  [./power]
+  []
+  [power]
     type = ElementAverageValue
     variable = reaction_heat
-  [../]
-  [./energy]
+  []
+  [energy]
     type = TimeIntegratedPostprocessor
     value = power
-  [../]
+  []
 []
 
 [Outputs]

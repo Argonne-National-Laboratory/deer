@@ -5,30 +5,30 @@
 []
 
 [Variables]
-      [./disp_x]
-      [../]
-      [./disp_y]
-      [../]
-      [./disp_z]
-      [../]
+  [disp_x]
+  []
+  [disp_y]
+  []
+  [disp_z]
+  []
 []
 
 [Mesh]
-  [./msh]
-  type = GeneratedMeshGenerator
-  dim = 3
-  nx = 1
-  ny = 1
-  nz = 2
+  [msh]
+    type = GeneratedMeshGenerator
+    dim = 3
+    nx = 1
+    ny = 1
+    nz = 2
   []
-  [./new_block]
+  [new_block]
     type = SubdomainBoundingBoxGenerator
     input = msh
     block_id = 1
     bottom_left = '0 0 0.5'
     top_right = '1 1 1'
   []
-  [./interface]
+  [interface]
     type = SideSetsBetweenSubdomainsGenerator
     input = new_block
     primary_block = 0
@@ -38,107 +38,105 @@
 []
 
 [AuxVariables]
-  [./stress_zz]
+  [stress_zz]
     order = CONSTANT
     family = MONOMIAL
-  [../]
+  []
 []
 
 [Functions]
-  [./zstress]
+  [zstress]
     type = PiecewiseLinear
     x = '0 1'
     y = '0 500'
-  [../]
-  [./constant]
+  []
+  [constant]
     type = ConstantFunction
     value = 1.0
-  [../]
+  []
 []
 
 [BCs]
-  [./leftx]
+  [leftx]
     type = DirichletBC
     preset = true
     boundary = left
     variable = disp_x
     value = 0.0
-  [../]
-  [./boty]
+  []
+  [boty]
     type = DirichletBC
     preset = true
     boundary = bottom
     variable = disp_y
     value = 0.0
-  [../]
-  [./backz]
+  []
+  [backz]
     type = DirichletBC
     preset = true
     boundary = back
     variable = disp_z
     value = 0.0
-  [../]
-  [./pull_z]
+  []
+  [pull_z]
     type = FunctionNeumannBC
     boundary = front
     variable = disp_z
     function = zstress
     use_displaced_mesh = true
-  [../]
+  []
 []
 
 [Materials]
-  [./stress]
+  [stress]
     type = CauchyStressFromNEML
     database = "test.xml"
     model = "elastic_model"
     large_kinematics = true
-  [../]
+  []
 []
 
 [Preconditioning]
-  [./smp]
+  [smp]
     type = SMP
     full = true
-  [../]
+  []
 []
 
-[Modules]
-  [TensorMechanics]
-    [Master]
+[Physics]
+  [SolidMechanics]
+    [QuasiStatic]
       [all]
         strain = FINITE
         add_variables = true
         new_system = true
         formulation = UPDATED
         volumetric_locking_correction = false
-        generate_output = 'cauchy_stress_xx cauchy_stress_yy cauchy_stress_zz cauchy_stress_xy '
-                          'cauchy_stress_xz cauchy_stress_yz mechanical_strain_xx mechanical_strain_yy mechanical_strain_zz mechanical_strain_xy '
-                          'mechanical_strain_xz mechanical_strain_yz'
+        generate_output = 'cauchy_stress_xx cauchy_stress_yy cauchy_stress_zz cauchy_stress_xy cauchy_stress_xz cauchy_stress_yz mechanical_strain_xx mechanical_strain_yy mechanical_strain_zz mechanical_strain_xy mechanical_strain_xz mechanical_strain_yz'
       []
     []
   []
-[] 
+[]
 
 [Postprocessors]
-  [./area]
+  [area]
     type = AreaPostprocessor
     boundary = interface
     use_displaced_mesh = true
-  [../]
-  [./area0]
+  []
+  [area0]
     type = AreaPostprocessor
     boundary = interface
     use_displaced_mesh = false
-  [../]
-  [./volume]
+  []
+  [volume]
     type = VolumePostprocessor
     use_displaced_mesh = true
-  [../]
-  [./volume0]
+  []
+  [volume0]
     type = VolumePostprocessor
     use_displaced_mesh = false
-  [../]
+  []
 []
 
 [RankTwoTensorIntegralOnDomain]

@@ -1,0 +1,9 @@
+[Tests]
+  [creep]
+    type = Exodiff
+    input = CPFEM.i
+    exodiff = Tx_150_Ty_0.e
+    abs_zero = 1e-8
+    cli_args = 'Executioner/num_steps=5'
+  []
+[]

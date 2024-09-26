@@ -6,14 +6,14 @@
     ny = 2
     nz = 2
   []
-  [./new_block]
+  [new_block]
     type = SubdomainBoundingBoxGenerator
     input = generated_mesh
     block_id = 1
     bottom_left = '0 0 0.5'
     top_right = '1 1 1'
   []
-  [./boundary]
+  [boundary]
     type = SideSetsBetweenSubdomainsGenerator
     input = new_block
     primary_block = '0 1'
@@ -26,218 +26,216 @@
   displacements = 'disp_x disp_y disp_z'
 []
 
-[Modules]
-  [TensorMechanics]
-    [Master]
+[Physics]
+  [SolidMechanics]
+    [QuasiStatic]
       [all]
         strain = SMALL
         add_variables = true
         new_system = true
         formulation = UPDATED
         volumetric_locking_correction = true
-        generate_output = 'cauchy_stress_xx cauchy_stress_yy cauchy_stress_zz cauchy_stress_xy '
-                          'cauchy_stress_xz cauchy_stress_yz mechanical_strain_xx mechanical_strain_yy mechanical_strain_zz mechanical_strain_xy '
-                          'mechanical_strain_xz mechanical_strain_yz'
+        generate_output = 'cauchy_stress_xx cauchy_stress_yy cauchy_stress_zz cauchy_stress_xy cauchy_stress_xz cauchy_stress_yz mechanical_strain_xx mechanical_strain_yy mechanical_strain_zz mechanical_strain_xy mechanical_strain_xz mechanical_strain_yz'
       []
     []
   []
-[] 
+[]
 
 [Materials]
-  [./stress]
+  [stress]
     type = CauchyStressFromNEML
     database = "../../test_materials.xml"
     model = "elastic_model"
     large_kinematics = false
-  [../]
+  []
 []
 
 [Functions]
- [./topfunc_x]
-   type = PiecewiseLinear
-   x = '0 1'
-   y = '0 10'
- [../]
- [./topfunc_y]
-   type = PiecewiseLinear
-   x = '0 1'
-   y = '0 20'
- [../]
- [./topfunc_z]
-   type = PiecewiseLinear
-   x = '0 1'
-   y = '0 -30'
- [../]
+  [topfunc_x]
+    type = PiecewiseLinear
+    x = '0 1'
+    y = '0 10'
+  []
+  [topfunc_y]
+    type = PiecewiseLinear
+    x = '0 1'
+    y = '0 20'
+  []
+  [topfunc_z]
+    type = PiecewiseLinear
+    x = '0 1'
+    y = '0 -30'
+  []
 []
 
 [BCs]
-  [./x_0]
+  [x_0]
     type = DirichletBC
     variable = disp_x
     boundary = 'left'
     value = 0
-  [../]
-  [./y_0]
+  []
+  [y_0]
     type = DirichletBC
     variable = disp_y
     boundary = 'bottom'
     value = 0
-  [../]
-  [./z_0]
+  []
+  [z_0]
     type = DirichletBC
     variable = disp_z
     boundary = 'back'
     value = 0
-  [../]
-  [./x_1]
+  []
+  [x_1]
     type = FunctionNeumannBC
     variable = disp_x
     boundary = 'right'
     function = topfunc_x
-  [../]
-  [./y_1]
+  []
+  [y_1]
     type = FunctionNeumannBC
     variable = disp_y
     boundary = 'top'
     function = topfunc_y
-  [../]
-  [./z_1]
+  []
+  [z_1]
     type = FunctionNeumannBC
     variable = disp_z
     boundary = 'front'
     function = topfunc_z
-  [../]
+  []
 
 []
 
 [AuxVariables]
-  [./vonmises]
+  [vonmises]
     order = CONSTANT
     family = MONOMIAL
-  [../]
-  [./s1]
+  []
+  [s1]
     order = CONSTANT
     family = MONOMIAL
-  [../]
-  [./tresca]
+  []
+  [tresca]
     order = CONSTANT
     family = MONOMIAL
-  [../]
-  [./hydrostatic]
+  []
+  [hydrostatic]
     order = CONSTANT
     family = MONOMIAL
-  [../]
-  [./huddleston]
+  []
+  [huddleston]
     order = CONSTANT
     family = MONOMIAL
-  [../]
-  [./hayhurst]
+  []
+  [hayhurst]
     order = CONSTANT
     family = MONOMIAL
-  [../]
-  [./rccmrx_mises]
+  []
+  [rccmrx_mises]
     order = CONSTANT
     family = MONOMIAL
-  [../]
-  [./rccmrx_tresca]
+  []
+  [rccmrx_tresca]
     order = CONSTANT
     family = MONOMIAL
-  [../]
-  [./max_s1_mises]
+  []
+  [max_s1_mises]
     order = CONSTANT
     family = MONOMIAL
-  [../]
+  []
 []
 
 [AuxKernels]
-  [./vonmises]
+  [vonmises]
     type = EffectiveStressAux
     variable = vonmises
     effective_stress_type = VonMises
-  [../]
-  [./s1]
+  []
+  [s1]
     type = EffectiveStressAux
     variable = s1
     effective_stress_type = MaxPrincipal
-  [../]
-  [./tresca]
+  []
+  [tresca]
     type = EffectiveStressAux
     variable = tresca
     effective_stress_type = Tresca
-  [../]
-  [./hydrostatic]
+  []
+  [hydrostatic]
     type = EffectiveStressAux
     variable = hydrostatic
     effective_stress_type = Hydrostatic
-  [../]
-  [./huddleston]
+  []
+  [huddleston]
     type = EffectiveStressAux
     variable = huddleston
     params_vector = '0.03'
     effective_stress_type = Huddleston
-  [../]
-  [./hayhurst]
+  []
+  [hayhurst]
     type = EffectiveStressAux
     variable = hayhurst
     params_vector = '0.2 0.3'
     effective_stress_type = Hayhurst
-  [../]
-  [./rccmrx_mises]
+  []
+  [rccmrx_mises]
     type = EffectiveStressAux
     variable = rccmrx_mises
     params_vector = '0.2'
     effective_stress_type = RCCMRXMises
-  [../]
-  [./rccmrx_tresca]
+  []
+  [rccmrx_tresca]
     type = EffectiveStressAux
     variable = rccmrx_tresca
     params_vector = '0.2'
     effective_stress_type = RCCMRXTresca
-  [../]
-  [./max_s1_mises]
+  []
+  [max_s1_mises]
     type = EffectiveStressAux
     variable = max_s1_mises
     effective_stress_type = maxS1AndMises
-  [../]
+  []
 []
 
 [Postprocessors]
-  [./vonmises]
+  [vonmises]
     type = ElementAverageValue
     variable = vonmises
-  [../]
-  [./s1]
+  []
+  [s1]
     type = ElementAverageValue
     variable = s1
-  [../]
-  [./tresca]
+  []
+  [tresca]
     type = ElementAverageValue
     variable = tresca
-  [../]
-  [./hydrostatic]
+  []
+  [hydrostatic]
     type = ElementAverageValue
     variable = hydrostatic
-  [../]
-  [./huddleston]
+  []
+  [huddleston]
     type = ElementAverageValue
     variable = huddleston
-  [../]
-  [./hayhurst]
+  []
+  [hayhurst]
     type = ElementAverageValue
     variable = hayhurst
-  [../]
-  [./rccmrx_mises]
+  []
+  [rccmrx_mises]
     type = ElementAverageValue
     variable = rccmrx_mises
-  [../]
-  [./rccmrx_tresca]
+  []
+  [rccmrx_tresca]
     type = ElementAverageValue
     variable = rccmrx_tresca
-  [../]
-  [./max_s1_mises]
+  []
+  [max_s1_mises]
     type = ElementAverageValue
     variable = max_s1_mises
-  [../]
+  []
 []
 
 [Executioner]

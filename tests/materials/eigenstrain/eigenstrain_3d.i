@@ -1,10 +1,10 @@
 [Mesh]
-  [./msh]
-  type = GeneratedMeshGenerator
-  dim = 3
-  nx = 4
-  ny = 4
-  nz = 4
+  [msh]
+    type = GeneratedMeshGenerator
+    dim = 3
+    nx = 4
+    ny = 4
+    nz = 4
   []
 []
 
@@ -12,98 +12,96 @@
   displacements = 'disp_x disp_y disp_z'
 []
 
-[Modules]
-  [TensorMechanics]
-    [Master]
+[Physics]
+  [SolidMechanics]
+    [QuasiStatic]
       [all]
         strain = SMALL
         add_variables = true
         new_system = true
         formulation = UPDATED
         volumetric_locking_correction = true
-        generate_output = 'cauchy_stress_xx cauchy_stress_yy cauchy_stress_zz cauchy_stress_xy '
-                          'cauchy_stress_xz cauchy_stress_yz mechanical_strain_xx mechanical_strain_yy mechanical_strain_zz mechanical_strain_xy '
-                          'mechanical_strain_xz mechanical_strain_yz'
+        generate_output = 'cauchy_stress_xx cauchy_stress_yy cauchy_stress_zz cauchy_stress_xy cauchy_stress_xz cauchy_stress_yz mechanical_strain_xx mechanical_strain_yy mechanical_strain_zz mechanical_strain_xy mechanical_strain_xz mechanical_strain_yz'
         eigenstrain_names = 'thermal'
       []
     []
   []
-[] 
+[]
 
 [BCs]
-  [./x]
+  [x]
     type = DirichletBC
     preset = true
     boundary = left
     variable = disp_x
     value = 0.0
-  [../]
-  [./right]
+  []
+  [right]
     type = DirichletBC
     preset = true
     boundary = right
     variable = disp_x
     value = 0.0
-  [../]
-  [./y]
+  []
+  [y]
     type = DirichletBC
     preset = true
     boundary = bottom
     variable = disp_y
     value = 0.0
-  [../]
-  [./z]
+  []
+  [z]
     type = DirichletBC
-     preset = true
+    preset = true
     boundary = back
     variable = disp_z
     value = 0.0
-  [../]
+  []
 []
 
 [AuxVariables]
-  [./T]
+  [T]
     initial_condition = 0
-  [../]
+  []
 []
 
 [AuxKernels]
-  [./temp]
+  [temp]
     type = FunctionAux
     variable = T
     function = temperature
-  [../]
+  []
 []
 
 [Functions]
-  [./temperature]
+  [temperature]
     type = ParsedFunction
-    value = 100.0*t
-  [../]
+    expression = 100.0*t
+  []
 []
 
 [Materials]
-  [./stress]
+  [stress]
     type = CauchyStressFromNEML
     database = "test.xml"
     model = "elastic_model"
-  [../]
+  []
 
-  [./thermal_strain]
+  [thermal_strain]
     type = ComputeThermalExpansionEigenstrainNEML
     database = "test.xml"
     model = "elastic_model"
     temperature = T
     eigenstrain_name = thermal
     stress_free_temperature = 0
-  [../]
+  []
 []
 
 [Preconditioning]
-  [./smp]
+  [smp]
     type = SMP
     full = true
-  [../]
+  []
 []
 
 [Executioner]

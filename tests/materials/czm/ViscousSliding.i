@@ -1,20 +1,20 @@
 [Mesh]
-  [./msh]
-  type = GeneratedMeshGenerator
-  dim = 3
-  nx = 1
-  ny = 1
-  nz = 2
-  zmax = 2
+  [msh]
+    type = GeneratedMeshGenerator
+    dim = 3
+    nx = 1
+    ny = 1
+    nz = 2
+    zmax = 2
   []
-  [./new_block]
+  [new_block]
     type = SubdomainBoundingBoxGenerator
     input = msh
     block_id = 1
     bottom_left = '0 0 1'
     top_right = '1 1 2'
   []
-  [./split]
+  [split]
     type = BreakMeshByBlockGenerator
     input = new_block
   []
@@ -25,107 +25,103 @@
 []
 
 [AuxVariables]
-  [./T_N]
+  [T_N]
     family = MONOMIAL
     order = CONSTANT
   []
-  [./T_S1]
+  [T_S1]
     family = MONOMIAL
     order = CONSTANT
   []
-  [./T_S2]
+  [T_S2]
     family = MONOMIAL
     order = CONSTANT
   []
 []
 
-[Modules]
-  [TensorMechanics]
-    [Master]
+[Physics]
+  [SolidMechanics]
+    [QuasiStatic]
       [all]
         strain = SMALL
         add_variables = true
         new_system = true
         formulation = UPDATED
         volumetric_locking_correction = false
-        generate_output = 'cauchy_stress_xx cauchy_stress_yy cauchy_stress_zz cauchy_stress_xy '
-                          'cauchy_stress_xz cauchy_stress_yz mechanical_strain_xx mechanical_strain_yy mechanical_strain_zz mechanical_strain_xy '
-                          'mechanical_strain_xz mechanical_strain_yz'
+        generate_output = 'cauchy_stress_xx cauchy_stress_yy cauchy_stress_zz cauchy_stress_xy cauchy_stress_xz cauchy_stress_yz mechanical_strain_xx mechanical_strain_yy mechanical_strain_zz mechanical_strain_xy mechanical_strain_xz mechanical_strain_yz'
       []
     []
   []
-[] 
+[]
 
-[Modules/TensorMechanics/CohesiveZoneMaster]
-  [./czm]
+[Physics/SolidMechanics/CohesiveZone]
+  [czm]
     boundary = 'interface'
     generate_output = 'traction_x traction_y traction_z normal_traction tangent_traction jump_x jump_y jump_z normal_jump tangent_jump'
-  [../]
+  []
 []
 
 [BCs]
-  [./x]
+  [x]
     type = DirichletBC
     boundary = back
     variable = disp_x
     value = 0.0
-  [../]
-  [./y]
+  []
+  [y]
     type = DirichletBC
     boundary = back
     variable = disp_y
     value = 0.0
-  [../]
-  [./z]
+  []
+  [z]
     type = DirichletBC
     boundary = back
     variable = disp_z
     value = 0.0
-  [../]
-  [./z_top]
+  []
+  [z_top]
     type = DirichletBC
     boundary = front
     variable = disp_z
     value = 0.0
-  [../]
-  [./x_top]
+  []
+  [x_top]
     type = FunctionDirichletBC
     boundary = front
     variable = disp_x
     function = disp_fun
-  [../]
-  [./y_top]
+  []
+  [y_top]
     type = FunctionDirichletBC
     boundary = front
     variable = disp_y
     function = disp_fun_neg
-  [../]
+  []
 []
 
 [Functions]
-  [./disp_fun]
+  [disp_fun]
     type = PiecewiseLinear
     x = '0 1 10 11 20'
     y = '0 1 1 0 0'
-  [../]
-  [./disp_fun_neg]
+  []
+  [disp_fun_neg]
     type = PiecewiseLinear
     x = '0 1 10 11 20'
     y = '0 -1.5 -1 -1 0'
-  [../]
+  []
 []
 
-
-
 [Materials]
-  [./stress]
+  [stress]
     type = CauchyStressFromNEML
     database = "../../neml_test_material.xml"
     model = "elastic_model"
     large_kinematics = false
-  [../]
+  []
 
-  [./czm]
+  [czm]
     type = ViscousSlidingCZM
     displacements = 'disp_x disp_y disp_z'
     boundary = 'interface'
@@ -133,14 +129,14 @@
     G = 1e2
     shear_viscosity = 1e3
     interface_thickness = 1
-  [../]
+  []
 []
 
 [Preconditioning]
-  [./smp]
+  [smp]
     type = SMP
     full = true
-  [../]
+  []
 []
 
 [Executioner]
@@ -151,9 +147,9 @@
 
   petsc_options_iname = '-pc_type'
   petsc_options_value = 'lu'
-  [./TimeStepper]
-   type =IterationAdaptiveDT
-    dt =  1
+  [TimeStepper]
+    type = IterationAdaptiveDT
+    dt = 1
   []
   l_max_its = 2
   l_tol = 1e-14

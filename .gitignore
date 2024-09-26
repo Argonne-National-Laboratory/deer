@@ -19,4 +19,5 @@ build
 *.csv
 *.previous_test_results.json
 *~
+.vscode
 *.yaml
