@@ -76,14 +76,15 @@
   type = Transient
 
   solve_type = 'newton'
+  automatic_scaling = true
 
   petsc_options_iname = '-pc_type'
   petsc_options_value = 'lu'
   l_max_its = 2
   l_tol = 1e-14
   nl_max_its = 15
-  nl_rel_tol = 1e-8
-  nl_abs_tol = 1e-6
+  nl_rel_tol = 1e-12
+  nl_abs_tol = 1e-11
   dtmin = 1
   dtmax = 1
   end_time = 6
