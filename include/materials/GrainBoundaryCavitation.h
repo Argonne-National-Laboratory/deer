@@ -77,7 +77,9 @@ protected:
 
   /// @{ Initial conditions
   const MaterialProperty<Real> & _a0;
+  const MaterialProperty<Real> & _a0_old;
   const MaterialProperty<Real> & _b0;
+  const MaterialProperty<Real> & _b0_old;
   /// @}
 
   /// @{ Model parameters. See MooseDocs for their descriptions.
