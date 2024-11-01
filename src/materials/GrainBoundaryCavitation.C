@@ -82,7 +82,9 @@ GrainBoundaryCavitation::GrainBoundaryCavitation(const InputParameters & paramet
     _D_old(getMaterialPropertyOldByName<Real>(_base_name + "damage")),
     // initial conditions
     _a0(getMaterialPropertyByName<Real>(_base_name + getParam<MaterialPropertyName>("a0"))),
+    _a0_old(getMaterialPropertyOldByName<Real>(_base_name + getParam<MaterialPropertyName>("a0"))),
     _b0(getMaterialPropertyByName<Real>(_base_name + getParam<MaterialPropertyName>("b0"))),
+    _b0_old(getMaterialPropertyOldByName<Real>(_base_name + getParam<MaterialPropertyName>("b0"))),
     // model parameters
     _psi(getParam<Real>("psi") / 180 * M_PI),
     _D_GB(getMaterialPropertyByName<Real>(_base_name + getParam<MaterialPropertyName>("D_GB"))),
