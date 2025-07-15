@@ -24,7 +24,7 @@ public:
 
 protected:
   const VariableValue & _scalar_var;
-  const Order & _scalar_order;
+  const Order _scalar_order;
   const size_t _rank;
   PostprocessorValue _value;
 };

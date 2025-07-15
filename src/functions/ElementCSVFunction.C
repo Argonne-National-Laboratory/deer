@@ -1,5 +1,7 @@
 #include "ElementCSVFunction.h"
 
+#include "FEProblemBase.h"
+
 registerMooseObject("DeerApp", ElementCSVFunction);
 
 InputParameters
